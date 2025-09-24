@@ -1,0 +1,7 @@
+{
+  "name": "BarberPlanApp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
