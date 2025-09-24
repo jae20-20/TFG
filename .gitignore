@@ -1,0 +1,21 @@
+# Dependencias de Node
+BarberPlanApp/node_modules/
+BarberPlanAPI/node_modules/
+
+# Builds de Ionic/Angular
+BarberPlanApp/www/
+BarberPlanApp/platforms/
+BarberPlanApp/dist/
+BarberPlanApp/.angular/
+
+# Builds de backend (si compilas)
+BarberPlanAPI/dist/
+
+# Archivos de entorno
+.env
+BarberPlanApp/.env
+BarberPlanAPI/.env
+
+# Sistema
+.DS_Store
+Thumbs.db
