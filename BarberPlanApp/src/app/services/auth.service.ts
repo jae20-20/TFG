@@ -10,12 +10,14 @@ export class AuthService {
   constructor(private apiService: ApiService, private storage: StorageService) {}
 
   // Login del usuario
-  async login(email: string, password: string) {
+  async login(correo: string, pw: string) {
     try {
-      const response: any = await this.apiService.login(email, password).toPromise();
-      await this.storage.set('token', response.token); // Guarda el token en el almacenamiento
-      return response.user; 
+      const response: any = await this.apiService.login(correo, pw).toPromise();
+      console.log('Respuesta del backend:', response);
+      await this.storage.set('token', response.token);
+      return response.user;
     } catch (error) {
+      console.error('Error en AuthService login:', error);
       throw error;
     }
   }
@@ -24,8 +26,10 @@ export class AuthService {
   async register(data: any) {
     try {
       const response: any = await this.apiService.register(data).toPromise();
-      return response; // Devuelve la respuesta del registro
+      console.log('Usuario registrado:', response);
+      return response;
     } catch (error) {
+      console.error('Error en AuthService register:', error);
       throw error;
     }
   }

@@ -13,13 +13,13 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginPage {
   correo: string = '';
-  clave: string = '';
+  pw: string = '';
 
   constructor(private router: Router, private authService: AuthService, private toastCtrl: ToastController) {}
 
   async login() {
     try {
-      const user = await this.authService.login(this.correo, this.clave);
+      const user = await this.authService.login(this.correo, this.pw);
       console.log('Usuario autenticado:', user);
       this.router.navigateByUrl('/home', { replaceUrl: true });
     } catch (error) {

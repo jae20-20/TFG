@@ -1,3 +1,5 @@
+//de leer y escribir datos genéricos en el almacenamiento local (no solo login).
+
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 

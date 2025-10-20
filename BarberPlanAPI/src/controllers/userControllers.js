@@ -39,48 +39,41 @@ export const addUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-    try {
-        const { correo, pw } = req.body;
+  try {
+    const { correo, pw } = req.body;
 
-        console.log("Datos recibidos:", { correo, pw }); 
-
-        // Validar que se envíen las credenciales
-        if (!correo || !pw) {
-            console.error("Error: Campos obligatorios faltantes");
-            return res.status(400).json({ error: "Todos los campos son obligatorios" });
-        }
-
-        // Buscar al usuario por correo
-        const users = await getAllUsers();
-        console.log("Usuarios obtenidos de la base de datos:", users);
-
-        const user = users.find(u => u.correo === correo);
-        console.log("Usuario encontrado:", user);
-
-        if (!user) {
-            console.error("Error: Usuario no encontrado");
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
-
-        // Comparar contraseñas
-        const isPasswordValid = await bcrypt.compare(pw, user.pw);
-        console.log("¿Contraseña válida?:", isPasswordValid);
-
-        if (!isPasswordValid) {
-            console.error("Error: Contraseña incorrecta");
-            return res.status(401).json({ error: "Contraseña incorrecta" });
-        }
-
-        // Generar un token JWT
-        const token = jwt.sign({ id: user._id, correo: user.correo }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
-        console.log("Token generado:", token); 
-
-        // Responder con éxito
-        res.json({ message: "Login exitoso", token });
-    } catch (error) {
-        console.error("Error en loginUser:", error);
-        res.status(500).json({ error: "Error al iniciar sesión" });
+    // Validar que se envíen las credenciales
+    if (!correo || !pw) {
+      return res.status(400).json({ error: "Todos los campos son obligatorios" });
     }
+
+    // Buscar al usuario por correo
+    const user = await getAllUsers().then(users => users.find(u => u.correo === correo));
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Verificar la contraseña
+    const isPasswordValid = await bcrypt.compare(pw, user.pw);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Contraseña incorrecta" });
+    }
+
+    // Generar el token JWT
+    const token = jwt.sign(
+      { id: user._id, correo: user.correo },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Incluir los datos del usuario en la respuesta
+    res.json({
+      message: "Login exitoso",
+      token,
+      user: { id: user._id, correo: user.correo },
+    });
+  } catch (error) {
+    console.error("Error en loginUser:", error);
+    res.status(500).json({ error: "Error al iniciar sesión" });
+  }
 };

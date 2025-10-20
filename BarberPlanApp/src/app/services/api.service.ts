@@ -11,8 +11,8 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   // Método para login
-  login(email: string, password: string) {
-    return this.http.post(`${this.apiUrl}/user/login`, { email, password });
+  login(correo: string, pw: string) {
+    return this.http.post(`${this.apiUrl}/user/login`, { correo, pw });
   }
 
   // Método para registro
