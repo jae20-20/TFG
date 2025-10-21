@@ -18,6 +18,7 @@ export class RegisterPage {
   correo: string = '';
   pw: string = '';
   confirmPw: string = '';
+  rol: string = '';
 
   constructor(
     private authService: AuthService,
@@ -43,6 +44,7 @@ export class RegisterPage {
         usuario: this.usuario,
         correo: this.correo,
         pw: this.pw,
+        rol: this.rol,
       };
       await this.authService.register(data);
       const toast = await this.toastCtrl.create({

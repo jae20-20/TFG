@@ -12,7 +12,7 @@ export class ApiService {
 
   // Método para login
   login(correo: string, pw: string) {
-    return this.http.post(`${this.apiUrl}/user/login`, { correo, pw });
+    return this.http.post(`${this.apiUrl}/user/login`, { correo, pw});
   }
 
   // Método para registro

@@ -15,9 +15,9 @@ export const getUsers = async (req, res) => {
 
 export const addUser = async (req, res) => {
     try {
-        const { nombre, correo, pw, apellido, usuario } = req.body;
+        const { nombre, correo, pw, apellido, usuario, rol} = req.body;
 
-        if (!nombre || !correo || !pw || !apellido || !usuario) {
+        if (!nombre || !correo || !pw || !apellido || !usuario || !rol) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
         // Encriptar contraseña
@@ -29,7 +29,8 @@ export const addUser = async (req, res) => {
             correo,
             pw: hashedPassword,
             apellido,
-            usuario
+            usuario,
+            rol
         });
             
         res.status(201).json({ message: "Usuario creado", id: newUser.insertedId });
@@ -61,7 +62,7 @@ export const loginUser = async (req, res) => {
 
     // Generar el token JWT
     const token = jwt.sign(
-      { id: user._id, correo: user.correo },
+      { id: user._id, correo: user.correo, rol: user.rol },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -70,8 +71,16 @@ export const loginUser = async (req, res) => {
     res.json({
       message: "Login exitoso",
       token,
-      user: { id: user._id, correo: user.correo },
+      user: { id: user._id,
+          correo: user.correo,
+          nombre: user.nombre,
+          apellido: user.apellido,
+          usuario: user.usuario,
+          rol: user.rol },
     });
+
+
+
   } catch (error) {
     console.error("Error en loginUser:", error);
     res.status(500).json({ error: "Error al iniciar sesión" });

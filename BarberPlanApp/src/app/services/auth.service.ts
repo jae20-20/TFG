@@ -43,4 +43,6 @@ export class AuthService {
   async getToken() {
     return await this.storage.get('token');
   }
+
+  
 }

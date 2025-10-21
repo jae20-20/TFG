@@ -49,6 +49,14 @@
           <ion-input type="password" [(ngModel)]="confirmPw" name="confirmPw" required></ion-input>
         </ion-item>
 
+        <ion-item>
+          <ion-label>Rol</ion-label>
+          <ion-select [(ngModel)]="rol" name="rol" placeholder="Selecciona un rol" required>
+            <ion-select-option value="barbero">Barbero</ion-select-option>
+            <ion-select-option value="cliente">Cliente</ion-select-option>
+          </ion-select>
+        </ion-item>
+
         <ion-button expand="block" type="submit" class="ion-margin-top">Crear cuenta</ion-button>
       </form>
     </ion-card-content>
