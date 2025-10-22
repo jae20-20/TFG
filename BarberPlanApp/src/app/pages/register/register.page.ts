@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,16 +10,17 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule],
+  imports: [IonicModule, FormsModule, CommonModule],
 })
 export class RegisterPage {
-  nombre: string = '';
-  apellido: string = '';
-  usuario: string = '';
-  correo: string = '';
-  pw: string = '';
-  confirmPw: string = '';
-  rol: string = '';
+  nombre = '';
+  apellido = '';
+  usuario = '';
+  correo = '';
+  pw = '';
+  confirmPw = '';
+  rol = '';
+  code = ''; 
 
   constructor(
     private authService: AuthService,
@@ -37,16 +39,23 @@ export class RegisterPage {
       return;
     }
 
+    const data: any = {
+      nombre: this.nombre,
+      apellido: this.apellido,
+      usuario: this.usuario,
+      correo: this.correo,
+      pw: this.pw,
+      rol: this.rol,
+    };
+
+    // Solo añadimos el código si el rol es barbero
+    if (this.rol === 'barbero' && this.code.trim() !== '') {
+      data.code = this.code;
+    }
+
     try {
-      const data = {
-        nombre: this.nombre,
-        apellido: this.apellido,
-        usuario: this.usuario,
-        correo: this.correo,
-        pw: this.pw,
-        rol: this.rol,
-      };
       await this.authService.register(data);
+
       const toast = await this.toastCtrl.create({
         message: 'Cuenta creada con éxito.',
         duration: 2000,

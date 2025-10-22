@@ -26,38 +26,33 @@ export class LoginPage {
 
   async login() {
     try {
-      const user = await this.authService.login(this.correo, this.pw);
-      console.log('Usuario autenticado:', user);
+        const user = await this.authService.login(this.correo, this.pw);
+        console.log('Usuario autenticado:', user);
 
-      // inicializa Storage si no se ha hecho
-      await this.storage.create();
+        await this.storage.create();
+        await this.storage.set('user', user);
 
-      // guarda el usuario completo en Storage
-      await this.storage.set('user', user);
-      await this.storage.set('token', user.token);
-
-      // redirige según rol
-      if (user.rol === 'barbero') {
-        this.router.navigateByUrl('/barber-home', { replaceUrl: true });
-      } else if (user.rol === 'cliente') {
-        this.router.navigateByUrl('/client-home', { replaceUrl: true });
-      } else {
+        if (user.rol === 'barbero') {
+            this.router.navigateByUrl('/barber-home', { replaceUrl: true });
+        } else if (user.rol === 'cliente') {
+            this.router.navigateByUrl('/client-home', { replaceUrl: true });
+        } else {
+            const toast = await this.toastCtrl.create({
+                message: 'Rol no autorizado.',
+                duration: 2000,
+                color: 'danger',
+            });
+            await toast.present();
+        }
+    } catch (error) {
         const toast = await this.toastCtrl.create({
-          message: 'Rol no autorizado.',
-          duration: 2000,
-          color: 'danger',
+            message: 'Error al iniciar sesión. Verifica tus credenciales.',
+            duration: 2000,
+            color: 'danger',
         });
         await toast.present();
-      }
-    } catch (error) {
-      const toast = await this.toastCtrl.create({
-        message: 'Error al iniciar sesión. Verifica tus credenciales.',
-        duration: 2000,
-        color: 'danger',
-      });
-      await toast.present();
     }
-  }
+}
 
   goToRegister() {
     this.router.navigateByUrl('/register');

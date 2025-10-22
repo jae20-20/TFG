@@ -15,30 +15,37 @@ export const getUsers = async (req, res) => {
 
 export const addUser = async (req, res) => {
     try {
-        const { nombre, correo, pw, apellido, usuario, rol} = req.body;
+        const { nombre, correo, pw, apellido, usuario, rol, code } = req.body;
 
         if (!nombre || !correo || !pw || !apellido || !usuario || !rol) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
+
+        // Validar que el campo `code` solo sea obligatorio si el rol es barbero
+        if (rol === 'barbero' && (!code || code.trim() === '')) {
+            return res.status(400).json({ error: "El código de barbería es obligatorio para barberos" });
+        }
+
         // Encriptar contraseña
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(pw, salt);
-        
+
         const newUser = await createUser({
             nombre,
             correo,
             pw: hashedPassword,
             apellido,
             usuario,
-            rol
+            rol,
+            code: rol === 'barbero' ? code : null, // Solo guardar el código si es barbero
         });
-            
+
         res.status(201).json({ message: "Usuario creado", id: newUser.insertedId });
     } catch (error) {
+        console.error("Error al crear usuario:", error);
         res.status(400).json({ error: "Error al crear usuario" });
     }
 };
-
 export const loginUser = async (req, res) => {
   try {
     const { correo, pw } = req.body;
@@ -76,7 +83,8 @@ export const loginUser = async (req, res) => {
           nombre: user.nombre,
           apellido: user.apellido,
           usuario: user.usuario,
-          rol: user.rol },
+          rol: user.rol,
+          code: user.rol === 'barbero' ? user.code : null, },
     });
 
 

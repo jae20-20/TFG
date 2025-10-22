@@ -13,6 +13,7 @@ app.use(express.json());
 
 //rutas
 app.use("/user", userRoutes);
+//app.use("/barbershop", barbershopRoutes);
 
 // Conectar a la base de datos y luego iniciar el servidor
 connectDB().then(() => {
