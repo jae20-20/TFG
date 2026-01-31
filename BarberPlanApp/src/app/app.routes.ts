@@ -16,4 +16,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/client-home/client-home.page').then(m => m.ClientHomePage),
     canActivate: [authGuard, roleGuard('cliente')]
   },
+  {
+    path: 'register-barberia',
+    loadComponent: () => import('./pages/register-barberia/register-barberia.page').then( m => m.RegisterBarberiaPage)
+  },
 ];

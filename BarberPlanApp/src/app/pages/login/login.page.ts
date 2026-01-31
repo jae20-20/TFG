@@ -57,4 +57,8 @@ export class LoginPage {
   goToRegister() {
     this.router.navigateByUrl('/register');
   }
+
+  goToBarberiaRegister(){
+    this.router.navigateByUrl('/register-barberia');
+  }
 }
