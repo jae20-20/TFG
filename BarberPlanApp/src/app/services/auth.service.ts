@@ -34,6 +34,23 @@ export class AuthService {
     }
   }
 
+  // Registro de barbería + admin
+  async registerBarberia(data: any) {
+    try {
+      const response: any = await this.apiService.registerBarberia(data).toPromise();
+      console.log('Barbería registrada:', response);
+      // Guardar token automáticamente después del registro
+      if (response.token) {
+        await this.storage.set('token', response.token);
+        await this.storage.set('user', response.user);
+      }
+      return response;
+    } catch (error) {
+      console.error('Error en AuthService registerBarberia:', error);
+      throw error;
+    }
+  }
+
   // Logout del usuario
   async logout() {
     await this.storage.remove('token'); // Elimina el token del almacenamiento

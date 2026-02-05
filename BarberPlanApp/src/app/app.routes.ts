@@ -6,6 +6,15 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./pages/login/login.page').then(m => m.LoginPage) },
   { path: 'register', loadComponent: () => import('./pages/register/register.page').then(m => m.RegisterPage) },
+  { 
+    path: 'register-barberia', 
+    loadComponent: () => import('./pages/register-barberia/register-barberia.page').then(m => m.RegisterBarberiaPage) 
+  },
+  {
+    path: 'admin-home',
+    loadComponent: () => import('./pages/admin-home/admin-home.page').then(m => m.AdminHomePage),
+    canActivate: [authGuard, roleGuard('admin')]
+  },
   {
     path: 'barber-home',
     loadComponent: () => import('./pages/barber-home/barber-home.page').then(m => m.BarberHomePage),
@@ -15,9 +24,5 @@ export const routes: Routes = [
     path: 'client-home',
     loadComponent: () => import('./pages/client-home/client-home.page').then(m => m.ClientHomePage),
     canActivate: [authGuard, roleGuard('cliente')]
-  },
-  {
-    path: 'register-barberia',
-    loadComponent: () => import('./pages/register-barberia/register-barberia.page').then( m => m.RegisterBarberiaPage)
   },
 ];

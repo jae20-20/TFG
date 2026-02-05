@@ -2,7 +2,7 @@
 
 import jwt from "jsonwebtoken";
 
-// ==================== VERIFICAR TOKEN ====================
+// ======== VERIFICAR TOKEN 
 
 export const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1]; // Obtener el token de la cabecera
@@ -21,7 +21,7 @@ export const verifyToken = (req, res, next) => {
     }
 };
 
-// ==================== VERIFICAR ROLES ====================
+// ======= VERIFICAR ROLES 
 
 // Middleware para verificar que el usuario tiene uno de los roles permitidos
 export const checkRole = (...allowedRoles) => {

@@ -4,7 +4,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Storage } from '@ionic/storage-angular';
 
-export const roleGuard = (allowedRole: 'barbero' | 'cliente') => async () => {
+export const roleGuard = (allowedRole: 'barbero' | 'cliente' | 'admin') => async () => {
   const router = inject(Router);
   const storage = inject(Storage);
 
@@ -18,7 +18,19 @@ export const roleGuard = (allowedRole: 'barbero' | 'cliente') => async () => {
   }
 
   if (user.rol !== allowedRole) {
-    const redirectTo = user.rol === 'barbero' ? '/barber-home' : '/client-home';
+    // Redirigir al home correspondiente según el rol
+    let redirectTo = '/login';
+    switch (user.rol) {
+      case 'admin':
+        redirectTo = '/admin-home';
+        break;
+      case 'barbero':
+        redirectTo = '/barber-home';
+        break;
+      case 'cliente':
+        redirectTo = '/client-home';
+        break;
+    }
     router.navigateByUrl(redirectTo, { replaceUrl: true });
     return false;
   }

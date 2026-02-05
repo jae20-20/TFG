@@ -15,10 +15,18 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/user/login`, { correo, pw});
   }
 
-  // Método para registro
+  // Método para registro de usuario
   register(data: any) {
     return this.http.post(`${this.apiUrl}/user/register`, data);
   }
 
+  // Método para registro de barbería + admin
+  registerBarberia(data: any) {
+    return this.http.post(`${this.apiUrl}/barberia/register`, data);
+  }
 
+  // Validar código de barbería
+  validateBarberiaCode(code: string) {
+    return this.http.post(`${this.apiUrl}/barberia/validate-code`, { code });
+  }
 }

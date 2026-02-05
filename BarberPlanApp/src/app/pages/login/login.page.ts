@@ -32,7 +32,10 @@ export class LoginPage {
         await this.storage.create();
         await this.storage.set('user', user);
 
-        if (user.rol === 'barbero') {
+        // Redirigir según el rol
+        if (user.rol === 'admin') {
+            this.router.navigateByUrl('/admin-home', { replaceUrl: true });
+        } else if (user.rol === 'barbero') {
             this.router.navigateByUrl('/barber-home', { replaceUrl: true });
         } else if (user.rol === 'cliente') {
             this.router.navigateByUrl('/client-home', { replaceUrl: true });

@@ -1,0 +1,45 @@
+.welcome-card {
+  margin: 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  color: white;
+
+  ion-card-title, ion-card-subtitle {
+    color: white;
+  }
+
+  ion-card-subtitle {
+    opacity: 0.9;
+  }
+}
+
+ion-list {
+  margin-top: 20px;
+  background: transparent;
+
+  ion-list-header {
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  ion-item {
+    --border-radius: 10px;
+    margin-bottom: 8px;
+    --background: var(--ion-color-light);
+
+    ion-icon {
+      font-size: 24px;
+    }
+
+    h2 {
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 13px;
+    }
+  }
+}
