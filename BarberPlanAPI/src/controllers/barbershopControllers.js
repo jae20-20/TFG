@@ -22,7 +22,6 @@ import {
 
 import { createUser, getUserByEmail, getUserByUsername } from "../models/userModel.js";
 
-// ==================== OBTENER BARBERÍAS ====================
 
 // Obtener todas las barberías (público)
 export const getBarberias = async (req, res) => {
@@ -73,7 +72,7 @@ export const getMyBarberia = async (req, res) => {
     }
 };
 
-// ==================== REGISTRO DE BARBERÍA + ADMIN ====================
+// REGISTRO DE BARBERÍA + ADMIN 
 
 export const registerBarberia = async (req, res) => {
     try {
@@ -191,7 +190,7 @@ export const registerBarberia = async (req, res) => {
     }
 };
 
-// ==================== ACTUALIZAR BARBERÍA (SOLO ADMIN) ====================
+// ACTUALIZAR BARBERÍA (SOLO ADMIN)
 
 export const editBarberia = async (req, res) => {
     try {
@@ -225,7 +224,7 @@ export const editBarberia = async (req, res) => {
     }
 };
 
-// ==================== SERVICIOS (SOLO ADMIN) ====================
+// **-*-*-*-*-*-*- SERVICIOS (SOLO ADMIN) -*-*-*-*-*-*
 
 // Obtener servicios de una barbería (público)
 export const getServicios = async (req, res) => {
@@ -320,7 +319,7 @@ export const deleteServicio = async (req, res) => {
     }
 };
 
-// ==================== BARBEROS (SOLO ADMIN) ====================
+// -*-**-*-*-*-*-*-*BARBEROS (SOLO ADMIN) -*-*-*-*-*-*-*-*-*-*-*--*-*--
 
 // Obtener barberos de la barbería
 export const getBarberos = async (req, res) => {

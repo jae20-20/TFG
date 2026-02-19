@@ -2,26 +2,24 @@
 
 import jwt from "jsonwebtoken";
 
-// ======== VERIFICAR TOKEN 
+// ======== VERIFICAR TOKEN
 
 export const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(" ")[1]; // Obtener el token de la cabecera
-  
-    if (!token) {
-      return res.status(401).json({ error: "Acceso denegado. Token no proporcionado" });
-    }
-  
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verificar el token
-      req.user = decoded; // Guardar los datos del usuario en la solicitud
-      next();
-    } catch (error) {
-      console.error("Error al verificar el token:", error);
-      res.status(403).json({ error: "Token inválido o expirado" });
-    }
+        const token = req.headers.authorization?.split(" ")[1]; // Obtener el token de la cabecera
+        if (!token) {
+                return res.status(401).json({ error: "Acceso denegado. Token no proporcionado" });
+        }
+        try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verificar el token
+                req.user = decoded; // Guardar los datos del usuario en la solicitud
+                next();
+        } catch (error) {
+                // No filtrar si es expirado o inválido para evitar filtrado de información
+                res.status(401).json({ error: "Token inválido o expirado" });
+        }
 };
 
-// ======= VERIFICAR ROLES 
+// ======= VERIFICAR ROLES
 
 // Middleware para verificar que el usuario tiene uno de los roles permitidos
 export const checkRole = (...allowedRoles) => {

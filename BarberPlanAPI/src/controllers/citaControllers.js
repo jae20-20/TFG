@@ -13,7 +13,7 @@ import {
 import { getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { getUserById } from "../models/userModel.js";
 
-// ==================== CREAR CITA (CLIENTE) ====================
+//CREAR CITA (CLIENTE)
 
 export const crearCita = async (req, res) => {
     try {
@@ -88,7 +88,7 @@ export const crearCita = async (req, res) => {
     }
 };
 
-// ==================== OBTENER CITAS ====================
+//  OBTENER CITAS
 
 // Obtener mis citas (cliente)
 export const getMisCitas = async (req, res) => {
@@ -161,7 +161,7 @@ export const getCita = async (req, res) => {
     }
 };
 
-// ==================== ACTUALIZAR ESTADO DE CITA ====================
+//  ACTUALIZAR ESTADO DE CITA
 
 // Confirmar cita (barbero o admin)
 export const confirmarCita = async (req, res) => {
@@ -246,7 +246,7 @@ export const cancelarCita = async (req, res) => {
     }
 };
 
-// ==================== DISPONIBILIDAD ====================
+// DISPONIBILIDAD
 
 // Obtener horarios disponibles de un barbero en una fecha
 export const getDisponibilidad = async (req, res) => {

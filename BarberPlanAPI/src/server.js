@@ -1,6 +1,10 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+
 import { connectDB } from "./db/connection.js";
 
 // Importar rutas
@@ -16,6 +20,18 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+
+//linite solictudes por IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100
+});
+
+app.use(globalLimiter);
+
+// Sanitizar entradas
+app.use(mongoSanitize());
 
 // ==================== RUTAS ====================
 app.use("/user", userRoutes);           // Rutas de usuarios
@@ -24,7 +40,7 @@ app.use("/cita", citaRoutes);           // Rutas de citas
 
 // Ruta de estado del servidor
 app.get("/", (req, res) => {
-  res.json({ 
+  res.json({
     message: "BarberPlan API funcionando correctamente",
     version: "1.0.0",
     endpoints: {

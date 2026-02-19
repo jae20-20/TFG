@@ -39,7 +39,7 @@ export const deleteUser = async (id) => {
     return await db.collection("Usuarios").deleteOne({ _id: new ObjectId(id) });
 };
 
-// ==================== FUNCIONES POR ROL ====================
+// *-*-*-*-*-*FUNCIONES POR ROL*-*-*-*-*-*-*-*-*-*-*-*-*-
 
 // Obtener usuarios por rol
 export const getUsersByRole = async (rol) => {
@@ -54,7 +54,7 @@ export const getBarberosByBarberia = async (barberiaId) => {
     }).project({ pw: 0 }).toArray();
 };
 
-// ==================== FUNCIONES DE PERFIL ====================
+// *-*-*- FUNCIONES DE PERFIL -*-*-*-
 
 // Actualizar perfil (solo campos permitidos)
 export const updateUserProfile = async (id, profileData) => {

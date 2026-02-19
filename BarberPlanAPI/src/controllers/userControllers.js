@@ -4,17 +4,17 @@ import jwt from "jsonwebtoken";
 
 import { addBarberoToBarberia, getBarberiaByCode } from "../models/barbershopModel.js";
 import {
-  createUser,
-  deleteUser,
-  getAllUsers,
-  getUserByEmail,
-  getUserById,
-  getUserByUsername,
-  updateUserPassword,
-  updateUserProfile
+    createUser,
+    deleteUser,
+    getAllUsers,
+    getUserByEmail,
+    getUserById,
+    getUserByUsername,
+    updateUserPassword,
+    updateUserProfile
 } from "../models/userModel.js";
 
-// ==================== OBTENER USUARIOS ====================
+//****OBTENER USUARIOS *****
 
 export const getUsers = async (req, res) => {
     try {
@@ -60,7 +60,7 @@ export const getProfile = async (req, res) => {
     }
 };
 
-// ==================== REGISTRO DE USUARIOS ====================
+// REGISTRO DE USUARIOS 
 
 export const addUser = async (req, res) => {
     try {
@@ -125,7 +125,7 @@ export const addUser = async (req, res) => {
     }
 };
 
-// ==================== LOGIN ====================
+// LOGIN
 
 export const loginUser = async (req, res) => {
     try {
@@ -177,7 +177,7 @@ export const loginUser = async (req, res) => {
     }
 };
 
-// ==================== ACTUALIZAR PERFIL ====================
+// ACTUALIZAR PERFIL
 
 export const editProfile = async (req, res) => {
     try {
@@ -204,7 +204,7 @@ export const editProfile = async (req, res) => {
     }
 };
 
-// ==================== CAMBIAR CONTRASEÑA ====================
+// CAMBIAR CONTRASEÑA
 
 export const changePassword = async (req, res) => {
     try {
@@ -237,7 +237,7 @@ export const changePassword = async (req, res) => {
     }
 };
 
-// ==================== ELIMINAR USUARIO ====================
+// ELIMINAR USUARIO
 
 export const deleteUserAccount = async (req, res) => {
     try {

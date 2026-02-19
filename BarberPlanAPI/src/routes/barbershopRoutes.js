@@ -18,26 +18,26 @@ import { isAdmin, verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ==================== RUTAS PÚBLICAS ====================
-router.get("/", getBarberias);                      // GET /barberia - Obtener todas las barberías
-router.get("/:id", getBarberia);                    // GET /barberia/:id - Obtener barbería por ID
-router.get("/:id/servicios", getServicios);         // GET /barberia/:id/servicios - Obtener servicios de una barbería
-router.get("/:id/barberos", getBarberos);           // GET /barberia/:id/barberos - Obtener barberos de una barbería
-router.post("/validate-code", validateCode);         // POST /barberia/validate-code - Validar código de barbería
+// RUTAS PÚBLICAS
+router.get("/", getBarberias);
+router.get("/:id", getBarberia);
+router.get("/:id/servicios", getServicios);
+router.get("/:id/barberos", getBarberos);
+router.post("/validate-code", validateCode);
 
-// ==================== REGISTRO DE BARBERÍA ====================
-router.post("/register", registerBarberia);          // POST /barberia/register - Registrar barbería + admin
+// REGISTRO DE BARBERÍA
+router.post("/register", registerBarberia);
 
-// ==================== RUTAS DE ADMIN ====================
-router.get("/my/barberia", verifyToken, isAdmin, getMyBarberia);  // GET /barberia/my/barberia - Obtener mi barbería (admin)
-router.put("/:id", verifyToken, isAdmin, editBarberia);           // PUT /barberia/:id - Editar barbería
+//  RUTAS DE ADMIN
+router.get("/my/barberia", verifyToken, isAdmin, getMyBarberia);
+router.put("/:id", verifyToken, isAdmin, editBarberia);
 
-// ==================== GESTIÓN DE SERVICIOS (ADMIN) ====================
-router.post("/:id/servicios", verifyToken, isAdmin, addServicio);                  // POST /barberia/:id/servicios - Añadir servicio
-router.put("/:id/servicios/:servicioId", verifyToken, isAdmin, editServicio);      // PUT /barberia/:id/servicios/:servicioId - Editar servicio
-router.delete("/:id/servicios/:servicioId", verifyToken, isAdmin, deleteServicio); // DELETE /barberia/:id/servicios/:servicioId - Eliminar servicio
+// GESTIÓN DE SERVICIOS (ADMIN)
+router.post("/:id/servicios", verifyToken, isAdmin, addServicio);
+router.put("/:id/servicios/:servicioId", verifyToken, isAdmin, editServicio);
+router.delete("/:id/servicios/:servicioId", verifyToken, isAdmin, deleteServicio);
 
-// ==================== GESTIÓN DE BARBEROS (ADMIN) ====================
-router.delete("/:id/barberos/:barberoId", verifyToken, isAdmin, removeBarbero);    // DELETE /barberia/:id/barberos/:barberoId - Eliminar barbero
+//GESTIÓN DE BARBEROS (ADMIN)
+router.delete("/:id/barberos/:barberoId", verifyToken, isAdmin, removeBarbero);
 
 export default router;
