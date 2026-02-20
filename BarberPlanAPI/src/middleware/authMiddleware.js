@@ -1,4 +1,4 @@
-//middlewares para verificar el token JWT y roles
+//middlewares para seguridad y control de acceso
 
 import jwt from "jsonwebtoken";
 
