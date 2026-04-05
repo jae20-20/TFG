@@ -1,155 +1,111 @@
-// Indicador de pasos
-.steps-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 20px 0 30px;
-  padding: 0 20px;
+// Animaciones
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-    .step-number {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--ion-color-medium);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    }
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 
-    .step-label {
-      margin-top: 8px;
-      font-size: 12px;
-      color: var(--ion-color-medium);
-      transition: all 0.3s ease;
-    }
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 
-    &.active {
-      .step-number {
-        background: var(--ion-color-primary);
-        transform: scale(1.1);
-      }
-      .step-label {
-        color: var(--ion-color-primary);
-        font-weight: 600;
-      }
-    }
-
-    &.completed {
-      .step-number {
-        background: var(--ion-color-success);
-      }
-      .step-label {
-        color: var(--ion-color-success);
-      }
-    }
+// Estilos de la página
+::ng-deep {
+  ion-content.bg-dark-900 {
+    --background: #0f0f0f;
   }
 
-  .step-line {
-    flex: 1;
-    height: 3px;
-    background: var(--ion-color-medium);
-    margin: 0 15px;
-    margin-bottom: 20px;
+  // Permitir scroll solo cuando sea necesario
+  div.h-screen.overflow-y-auto {
+    max-height: 100vh;
+  }
+
+  // Animación de entrada general
+  div.h-screen {
+    animation: slideUp 0.6s ease-out;
+  }
+
+  // Animación de contenido de pasos
+  .step-content {
+    animation: slideLeft 0.4s ease-out;
+  }
+
+  // Estilos para inputs y textareas
+  input::-webkit-autofill,
+  select::-webkit-autofill,
+  textarea::-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px rgba(42, 42, 42, 1) inset !important;
+    -webkit-text-fill-color: white !important;
+  }
+
+  input::-webkit-autofill::first-line,
+  select::-webkit-autofill::first-line,
+  textarea::-webkit-autofill::first-line {
+    font-size: 14px;
+  }
+
+  // Efecto de enfoque mejorado
+  input:focus,
+  select:focus,
+  textarea:focus {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3) !important;
+  }
+
+  // Efectos de botones
+  button[type="submit"]:active,
+  button[type="button"]:active {
+    transform: scale(0.98);
+  }
+
+  button:hover:not(:disabled) {
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+  }
+
+  // Mejorar select styling
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  // Textarea sin resize
+  textarea {
+    resize: none;
+  }
+
+  // Spinner de carga
+  ion-spinner {
+    --color: #d4af37;
+  }
+
+  // Transiciones suaves en indicadores de paso
+  div[class*="transition"] {
     transition: all 0.3s ease;
-
-    &.completed {
-      background: var(--ion-color-success);
-    }
-  }
-}
-
-// Tarjeta del formulario
-ion-card {
-  margin: 10px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-
-  ion-card-header {
-    padding-bottom: 0;
-  }
-
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-  }
-
-  ion-card-subtitle {
-    margin-top: 5px;
-  }
-}
-
-// Campos del formulario
-ion-item {
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  margin-bottom: 10px;
-
-  ion-label {
-    font-weight: 500;
-  }
-}
-
-// Grupo de botones
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-
-  ion-button {
-    flex: 1;
-  }
-}
-
-// Spinner en botón
-ion-button ion-spinner {
-  margin-right: 8px;
-}
-
-// Enlaces
-.login-link {
-  margin-top: 30px;
-  padding-bottom: 30px;
-
-  p {
-    margin: 8px 0;
-    color: var(--ion-color-medium);
-  }
-
-  a {
-    color: var(--ion-color-primary);
-    text-decoration: none;
-    font-weight: 600;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-// Estilo para el alert del código
-.code-display {
-  text-align: center;
-  
-  h2 {
-    font-size: 28px;
-    letter-spacing: 3px;
-    color: var(--ion-color-primary);
-    background: var(--ion-color-light);
-    padding: 15px;
-    border-radius: 8px;
-    margin: 15px 0;
-  }
-
-  p {
-    margin: 10px 0;
   }
 }

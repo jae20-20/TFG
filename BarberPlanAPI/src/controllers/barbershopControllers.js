@@ -358,7 +358,7 @@ export const removeBarbero = async (req, res) => {
     }
 };
 
-// ==================== VALIDAR CÓDIGO ====================
+// VALIDAR CÓDIGO
 
 export const validateCode = async (req, res) => {
     try {

@@ -1,70 +1,182 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>Crear una cuenta</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="bg-dark-900">
+  <!-- Contenedor principal -->
+  <div class="h-screen flex flex-col items-center px-4 py-6 overflow-y-auto">
+    
+    <!-- Logo y título -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-white mb-1">BarberPlan</h1>
+      <p class="text-gold-400 text-sm">Gestión premium de barberías</p>
+    </div>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Registro</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- Formulario de registro -->
+    <div class="w-full max-w-md">
+      <div class="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden shadow-2xl">
+        
+        <!-- Header de la tarjeta -->
+        <div class="px-8 pt-8 pb-4">
+          <h2 class="text-3xl font-bold text-white mb-2">Crear Cuenta</h2>
+          <p class="text-gray-400 text-sm">Únete a BarberPlan en segundos</p>
+        </div>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Regístrate</ion-card-title>
-      <ion-card-subtitle>Introduce tus datos para crear una cuenta</ion-card-subtitle>
-    </ion-card-header>
+        <!-- Contenido del formulario -->
+        <div class="px-8 pb-8">
+          <form (ngSubmit)="register()" class="space-y-5">
+            
+            <!-- Fila: Nombre y Apellido -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Campo Nombre -->
+              <div>
+                <label class="block text-gray-300 text-xs font-medium mb-2">Nombre</label>
+                <input
+                  type="text"
+                  [(ngModel)]="nombre"
+                  name="nombre"
+                  placeholder="Tu nombre"
+                  required
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                />
+              </div>
 
-    <ion-card-content>
-      <form (ngSubmit)="register()">
-        <ion-item>
-          <ion-label position="floating">Nombre</ion-label>
-          <ion-input type="text" [(ngModel)]="nombre" name="nombre" required></ion-input>
-        </ion-item>
+              <!-- Campo Apellido -->
+              <div>
+                <label class="block text-gray-300 text-xs font-medium mb-2">Apellido</label>
+                <input
+                  type="text"
+                  [(ngModel)]="apellido"
+                  name="apellido"
+                  placeholder="Tu apellido"
+                  required
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                />
+              </div>
+            </div>
 
-        <ion-item>
-          <ion-label position="floating">Apellido</ion-label>
-          <ion-input type="text" [(ngModel)]="apellido" name="apellido" required></ion-input>
-        </ion-item>
+            <!-- Campo Usuario -->
+            <div>
+              <label class="block text-gray-300 text-xs font-medium mb-2">Usuario</label>
+              <input
+                type="text"
+                [(ngModel)]="usuario"
+                name="usuario"
+                placeholder="Tu nombre de usuario"
+                required
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+              />
+            </div>
 
-        <ion-item>
-          <ion-label position="floating">Nombre de usuario</ion-label>
-          <ion-input type="text" [(ngModel)]="usuario" name="usuario" required></ion-input>
-        </ion-item>
+            <!-- Campo Email -->
+            <div>
+              <label class="block text-gray-300 text-xs font-medium mb-2">Email</label>
+              <input
+                type="email"
+                [(ngModel)]="correo"
+                name="correo"
+                placeholder="tu@email.com"
+                required
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+              />
+            </div>
 
-        <ion-item>
-          <ion-label position="floating">Correo</ion-label>
-          <ion-input type="email" [(ngModel)]="correo" name="correo" required></ion-input>
-        </ion-item>
+            <!-- Campo Rol -->
+            <div>
+              <label class="block text-gray-300 text-xs font-medium mb-2">Tipo de Cuenta</label>
+              <select
+                [(ngModel)]="rol"
+                name="rol"
+                required
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+              >
+                <option value="" disabled selected>Selecciona un tipo</option>
+                <option value="cliente">Cliente</option>
+                <option value="barbero">Barbero</option>
+              </select>
+            </div>
 
-        <ion-item>
-          <ion-label position="floating">Contraseña</ion-label>
-          <ion-input type="password" [(ngModel)]="pw" name="pw" required></ion-input>
-        </ion-item>
+            <!-- Campo Código de Barbería (visible solo si es barbero) -->
+            <div *ngIf="rol === 'barbero'">
+              <label class="block text-gray-300 text-xs font-medium mb-2">Código de Barbería</label>
+              <input
+                type="text"
+                [(ngModel)]="code"
+                name="codigoBarberia"
+                placeholder="Código proporcionado"
+                required
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+              />
+              <p class="text-gray-500 text-xs mt-1">Solicita el código a tu barbería</p>
+            </div>
 
-        <ion-item>
-          <ion-label position="floating">Confirmar Contraseña</ion-label>
-          <ion-input type="password" [(ngModel)]="confirmPw" name="confirmPw" required></ion-input>
-        </ion-item>
+            <!-- Fila: Contraseña y Confirmar -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Campo Contraseña -->
+              <div>
+                <label class="block text-gray-300 text-xs font-medium mb-2">Contraseña</label>
+                <input
+                  type="password"
+                  [(ngModel)]="pw"
+                  name="pw"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                />
+              </div>
 
-        <ion-item>
-          <ion-label>Rol</ion-label>
-          <ion-select [(ngModel)]="rol" name="rol" placeholder="Selecciona un rol" required>
-            <ion-select-option value="barbero">Barbero</ion-select-option>
-            <ion-select-option value="cliente">Cliente</ion-select-option>
-          </ion-select>
-        </ion-item>
+              <!-- Campo Confirmar Contraseña -->
+              <div>
+                <label class="block text-gray-300 text-xs font-medium mb-2">Confirmar</label>
+                <input
+                  type="password"
+                  [(ngModel)]="confirmPw"
+                  name="confirmPw"
+                  placeholder="Repite contraseña"
+                  required
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                />
+              </div>
+            </div>
 
-        <!-- Campo visible solo si el rol es barbero -->
-        <ion-item *ngIf="rol === 'barbero'">
-          <ion-label position="floating">Código de barbería</ion-label>
-          <ion-input type="text" [(ngModel)]="code" name="codigoBarberia" required></ion-input>
-        </ion-item>
+            <!-- Botón principal -->
+            <button
+              type="submit"
+              class="w-full py-3 px-4 bg-gold-500 hover:bg-gold-600 text-dark-900 font-bold rounded-lg transition duration-300 transform hover:scale-105 shadow-lg mt-6"
+            >
+              Crear Cuenta
+            </button>
+          </form>
 
-        <ion-button expand="block" type="submit" class="ion-margin-top">Crear cuenta</ion-button>
-      </form>
-    </ion-card-content>
-  </ion-card>
+          <!-- Separador -->
+          <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-dark-600"></div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie de página -->
+      <div class="text-center mt-6">
+        <p class="text-gray-500 text-xs">
+          <span class="text-gray-400">¿Ya tienes cuenta?</span>
+          <button
+            type="button"
+            (click)="goToLogin()"
+            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+          >
+            Inicia sesión aquí
+          </button>
+        </p>
+        <p class="text-gray-500 text-xs">
+          <span class="text-gray-400">¿Tienes una barbería?</span>
+          <button
+            type="button"
+            (click)="goToBarberiaRegister()"
+            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+          >
+            Regístrala aquí
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
 </ion-content>

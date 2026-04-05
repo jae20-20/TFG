@@ -72,4 +72,12 @@ export class RegisterPage {
       await toast.present();
     }
   }
+
+  goToLogin() {
+    this.router.navigateByUrl('/login');
+  }
+
+  goToBarberiaRegister(){
+    this.router.navigateByUrl('/register-barberia');
+  }
 }
