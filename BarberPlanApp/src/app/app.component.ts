@@ -4,11 +4,14 @@ import { addIcons } from 'ionicons';
 import {
   businessOutline,
   calendarOutline,
+  checkmarkOutline,
   chevronBackOutline,
   chevronForwardOutline,
+  closeOutline,
   cutOutline,
   keyOutline,
   logOutOutline,
+  pencilOutline,
   peopleOutline,
   personOutline,
   settingsOutline
@@ -24,7 +27,10 @@ addIcons({
   'cut-outline': cutOutline,
   'key-outline': keyOutline,
   'person-outline': personOutline,
-  'settings-outline': settingsOutline
+  'settings-outline': settingsOutline,
+  'pencil-outline': pencilOutline,
+  'checkmark-outline': checkmarkOutline,
+  'close-outline': closeOutline
 });
 
 @Component({

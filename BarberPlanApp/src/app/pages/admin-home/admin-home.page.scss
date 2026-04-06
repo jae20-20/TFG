@@ -188,6 +188,180 @@ ion-content {
   border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
 
+// ===== Barbería Profile Card Styles =====
+.barberia-profile-card {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(82, 95, 112, 0.18), transparent 35%),
+    linear-gradient(180deg, #121826 0%, #0b1220 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+
+.barberia-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+
+  .barberia-title {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  }
+
+  .barberia-actions {
+    ion-button {
+      --border-radius: 10px;
+      --padding-start: 10px;
+      --padding-end: 10px;
+      font-size: 12px;
+    }
+  }
+}
+
+.barberia-editable-section {
+  margin-bottom: 20px;
+}
+
+.section-subtitle {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.barberia-field-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #cbd5e1;
+  }
+
+  .field-display {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 14px;
+    color: #f8fafc;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .field-input {
+    --background: rgba(255, 255, 255, 0.05);
+    --border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    --border-radius: 12px;
+    --color: #f8fafc;
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+
+    &::placeholder {
+      color: #64748b;
+    }
+
+    &:focus {
+      --background: rgba(255, 255, 255, 0.08);
+      --border-bottom: 1px solid rgba(59, 130, 246, 0.5);
+    }
+  }
+}
+
+.barberia-info-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .info-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+
+    span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+
+    strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+  }
+}
+
+.barberia-actions-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ion-button {
+    --border-radius: 12px;
+    font-weight: 600;
+    text-transform: none;
+    height: 44px;
+
+    &.cancel-btn {
+      --border-color: rgba(255, 255, 255, 0.2);
+      --border-width: 1px;
+      --color: #cbd5e1;
+    }
+  }
+}
+
+.barberia-error {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 13px;
+}
+
 .calendar-detail-head {
   margin-bottom: 10px;
 

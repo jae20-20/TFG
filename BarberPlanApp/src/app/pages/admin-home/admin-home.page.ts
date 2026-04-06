@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
@@ -22,15 +23,20 @@ interface CalendarDay {
   templateUrl: './admin-home.page.html',
   styleUrls: ['./admin-home.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
 export class AdminHomePage implements OnInit {
   user: any = null;
   barberia: any = null;
+  barberiaEditForm: any = null;
+  isEditingPerfil = false;
+  savingPerfil = false;
   activeSection: 'calendario' | 'perfil' | 'configuracion' = 'calendario';
   citas: any[] = [];
   loadingCitas = false;
+  loadingBarberia = false;
   calendarError = '';
+  barberiaError = '';
   calendarDays: CalendarDay[] = [];
   currentMonthDate = new Date();
   calendarMonthLabel = '';
@@ -43,7 +49,8 @@ export class AdminHomePage implements OnInit {
     private authService: AuthService,
     private storage: Storage,
     private router: Router,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private toastCtrl: ToastController
   ) {}
 
   async ngOnInit() {
@@ -52,6 +59,7 @@ export class AdminHomePage implements OnInit {
     this.currentMonthDate = new Date();
     this.selectedDateKey = this.toDateKey(new Date());
     this.buildCalendar(this.currentMonthDate);
+    await this.loadBarberiaData();
     await this.loadBarberiaCitas();
   }
 
@@ -82,6 +90,95 @@ export class AdminHomePage implements OnInit {
     } finally {
       this.loadingCitas = false;
       this.updateSelectedDayAppointments();
+    }
+  }
+
+  async loadBarberiaData() {
+    this.loadingBarberia = true;
+    this.barberiaError = '';
+
+    try {
+      this.barberia = await this.apiService.getMyBarberia();
+      this.initializeEditForm();
+    } catch (error) {
+      console.error('Error al cargar la barbería:', error);
+      this.barberiaError = 'No se han podido cargar los datos de la barbería.';
+      this.barberia = null;
+    } finally {
+      this.loadingBarberia = false;
+    }
+  }
+
+  private initializeEditForm() {
+    if (this.barberia) {
+      this.barberiaEditForm = {
+        nombre: this.barberia.nombre,
+        direccion: this.barberia.direccion,
+        telefono: this.barberia.telefono,
+        descripcion: this.barberia.descripcion,
+        horario: this.barberia.horario
+      };
+    }
+  }
+
+  enterEditMode() {
+    this.isEditingPerfil = true;
+  }
+
+  cancelEdit() {
+    this.isEditingPerfil = false;
+    this.initializeEditForm();
+  }
+
+  async savePerfil() {
+    if (!this.barberia || !this.barberia._id) {
+      this.barberiaError = 'Error: No se encontró el ID de la barbería.';
+      return;
+    }
+
+    if (!this.barberiaEditForm.nombre || !this.barberiaEditForm.direccion) {
+      this.barberiaError = 'El nombre y la dirección son requeridos.';
+      return;
+    }
+
+    this.savingPerfil = true;
+    this.barberiaError = '';
+
+    try {
+      // Guardar cambios en el servidor
+      await this.apiService.updateBarberia(
+        this.barberia._id,
+        this.barberiaEditForm
+      );
+      
+      // Recargar datos desde el servidor para asegurar sincronización
+      await this.loadBarberiaData();
+      
+      // Salir del modo edición
+      this.isEditingPerfil = false;
+      
+      // Mostrar mensaje de éxito
+      const toast = await this.toastCtrl.create({
+        message: 'Barbería actualizada correctamente',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al guardar la barbería:', error);
+      this.barberiaError = 'No se han podido guardar los cambios de la barbería.';
+      
+      // Mostrar mensaje de error
+      const toast = await this.toastCtrl.create({
+        message: 'Error al guardar los cambios',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.savingPerfil = false;
     }
   }
 
@@ -177,6 +274,33 @@ export class AdminHomePage implements OnInit {
     const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     return `${normalizedDate.getFullYear()}-${String(normalizedDate.getMonth() + 1).padStart(2, '0')}-${String(normalizedDate.getDate()).padStart(2, '0')}`;
+  }
+
+  formatDate(value: string | Date | undefined) {
+    if (!value) {
+      return 'No disponible';
+    }
+
+    const date = typeof value === 'string' ? new Date(value) : value;
+    if (Number.isNaN(date.getTime())) {
+      return 'No disponible';
+    }
+
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
+  get adminFullName() {
+    if (!this.user) {
+      return 'No disponible';
+    }
+
+    return [this.user.nombre, this.user.apellido].filter(Boolean).join(' ') || 'No disponible';
   }
 
   async logout() {

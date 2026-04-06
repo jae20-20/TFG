@@ -50,4 +50,20 @@ export class ApiService {
       this.http.get<any[]>(`${this.apiUrl}/cita/barberia/${barberiaId}`, { headers })
     );
   }
+
+  // Obtener la barbería completa asociada al admin autenticado
+  async getMyBarberia() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/barberia/my/barberia`, { headers })
+    );
+  }
+
+  // Actualizar datos de la barbería
+  async updateBarberia(barberiaId: string, data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/barberia/${barberiaId}`, data, { headers })
+    );
+  }
 }
