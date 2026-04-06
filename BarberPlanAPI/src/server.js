@@ -1,7 +1,6 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
@@ -29,9 +28,6 @@ const globalLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-
-// Sanitizar entradas
-app.use(mongoSanitize());
 
 // ==================== RUTAS ====================
 app.use("/user", userRoutes);           // Rutas de usuarios

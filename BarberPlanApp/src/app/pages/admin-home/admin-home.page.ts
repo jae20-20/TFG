@@ -15,6 +15,7 @@ import { StorageService } from '../../services/storage.service';
 export class AdminHomePage implements OnInit {
   user: any = null;
   barberia: any = null;
+  activeSection: 'calendario' | 'perfil' | 'configuracion' = 'calendario';
 
   constructor(
     private authService: AuthService,
@@ -25,6 +26,10 @@ export class AdminHomePage implements OnInit {
 
   async ngOnInit() {
     this.user = await this.storage.get('user');
+  }
+
+  setSection(section: 'calendario' | 'perfil' | 'configuracion') {
+    this.activeSection = section;
   }
 
   async logout() {
