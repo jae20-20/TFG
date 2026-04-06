@@ -28,6 +28,80 @@
           <p>Ver y gestionar todas las citas</p>
         </ion-label>
       </ion-item>
+
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <div>
+            <p class="calendar-eyebrow">Agenda mensual</p>
+            <h2>{{ calendarMonthLabel }}</h2>
+          </div>
+
+          <div class="calendar-nav">
+            <ion-button fill="clear" size="small" (click)="changeMonth(-1)">
+              <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="changeMonth(1)">
+              <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="calendar-weekdays">
+          <span>Lun</span>
+          <span>Mar</span>
+          <span>Mié</span>
+          <span>Jue</span>
+          <span>Vie</span>
+          <span>Sáb</span>
+          <span>Dom</span>
+        </div>
+
+        <div class="calendar-grid">
+          <button
+            type="button"
+            class="calendar-day"
+            *ngFor="let day of calendarDays"
+            [class.outside-month]="!day.inCurrentMonth"
+            [class.today]="day.isToday"
+            [class.selected]="day.isSelected"
+            [class.has-appointments]="day.hasAppointments"
+            (click)="selectDay(day)"
+          >
+            <span class="calendar-day-number">{{ day.dayNumber }}</span>
+            <span class="calendar-day-count" *ngIf="day.appointmentCount > 0">{{ day.appointmentCount }}</span>
+          </button>
+        </div>
+
+        <div class="calendar-detail">
+          <div class="calendar-detail-head">
+            <h3>{{ selectedDateLabel | titlecase }}</h3>
+            <p *ngIf="loadingCitas">Cargando citas...</p>
+            <p class="calendar-error" *ngIf="calendarError">{{ calendarError }}</p>
+          </div>
+
+          <ng-container *ngIf="!loadingCitas">
+            <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
+              <ion-item *ngFor="let cita of selectedDayAppointments">
+                <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
+                <ion-label>
+                  <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
+                  <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
+                  <p>
+                    {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
+                    <span *ngIf="cita.estado">· {{ cita.estado }}</span>
+                  </p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+
+            <ng-template #emptyAppointments>
+              <div class="calendar-empty">
+                No hay citas agendadas para este día.
+              </div>
+            </ng-template>
+          </ng-container>
+        </div>
+      </div>
     </ion-list>
 
     <ion-list *ngSwitchCase="'perfil'">
