@@ -67,6 +67,22 @@ export class ApiService {
     );
   }
 
+  // Obtener perfil del usuario 
+  async getMyProfile() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/user/profile`, { headers })
+    );
+  }
+
+  // Actualizar perfil del usuario
+  async updateMyProfile(data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/user/profile`, data, { headers })
+    );
+  }
+
   // Crear un nuevo servicio
   async addServicio(barberiaId: string, data: any) {
     const headers = await this.getAuthHeaders();

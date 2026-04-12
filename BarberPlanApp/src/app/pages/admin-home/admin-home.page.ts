@@ -29,13 +29,16 @@ export class AdminHomePage implements OnInit {
   user: any = null;
   barberia: any = null;
   barberiaEditForm: any = null;
+  adminEditForm: any = null;
   newServicioForm: any = {
     nombre: '',
     precio: '',
     duracion: ''
   };
   isEditingPerfil = false;
+  isEditingAdmin = false;
   savingPerfil = false;
+  savingAdmin = false;
   savingServicio = false;
   deletingServicioId: string | null = null;
   activeSection: 'calendario' | 'configuracion' = 'calendario';
@@ -66,6 +69,7 @@ export class AdminHomePage implements OnInit {
     this.currentMonthDate = new Date();
     this.selectedDateKey = this.toDateKey(new Date());
     this.buildCalendar(this.currentMonthDate);
+    await this.loadAdminProfile();
     await this.loadBarberiaData();
     await this.loadBarberiaCitas();
   }
@@ -129,6 +133,29 @@ export class AdminHomePage implements OnInit {
     }
   }
 
+  private initializeAdminEditForm() {
+    if (this.user) {
+      this.adminEditForm = {
+        nombre: this.user.nombre || '',
+        apellido: this.user.apellido || '',
+        usuario: this.user.usuario || '',
+        telefono: this.user.telefono || ''
+      };
+    }
+  }
+
+  async loadAdminProfile() {
+    try {
+      const profile = await this.apiService.getMyProfile();
+      this.user = { ...this.user, ...profile };
+      await this.storage.set('user', this.user);
+      this.initializeAdminEditForm();
+    } catch (error) {
+      console.error('Error al cargar perfil de administrador:', error);
+      this.initializeAdminEditForm();
+    }
+  }
+
   enterEditMode() {
     this.isEditingPerfil = true;
   }
@@ -136,6 +163,57 @@ export class AdminHomePage implements OnInit {
   cancelEdit() {
     this.isEditingPerfil = false;
     this.initializeEditForm();
+  }
+
+  enterAdminEditMode() {
+    this.isEditingAdmin = true;
+  }
+
+  cancelAdminEdit() {
+    this.isEditingAdmin = false;
+    this.initializeAdminEditForm();
+  }
+
+  async saveAdminProfile() {
+    if (!this.adminEditForm?.nombre || !this.adminEditForm?.apellido || !this.adminEditForm?.usuario) {
+      this.barberiaError = 'Nombre, apellidos y usuario del administrador son obligatorios.';
+      return;
+    }
+
+    this.savingAdmin = true;
+    this.barberiaError = '';
+
+    try {
+      const response = await this.apiService.updateMyProfile(this.adminEditForm);
+      const updatedUser = response?.user || this.adminEditForm;
+
+      this.user = { ...this.user, ...updatedUser };
+      await this.storage.set('user', this.user);
+
+      this.initializeAdminEditForm();
+      this.isEditingAdmin = false;
+
+      const toast = await this.toastCtrl.create({
+        message: 'Datos del administrador actualizados correctamente',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al guardar datos del administrador:', error);
+      this.barberiaError = 'No se han podido guardar los datos del administrador.';
+
+      const toast = await this.toastCtrl.create({
+        message: 'Error al actualizar el administrador',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.savingAdmin = false;
+    }
   }
 
   private resetServicioForm() {
