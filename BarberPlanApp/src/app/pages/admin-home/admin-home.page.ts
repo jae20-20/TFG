@@ -29,9 +29,16 @@ export class AdminHomePage implements OnInit {
   user: any = null;
   barberia: any = null;
   barberiaEditForm: any = null;
+  newServicioForm: any = {
+    nombre: '',
+    precio: '',
+    duracion: ''
+  };
   isEditingPerfil = false;
   savingPerfil = false;
-  activeSection: 'calendario' | 'perfil' | 'configuracion' = 'calendario';
+  savingServicio = false;
+  deletingServicioId: string | null = null;
+  activeSection: 'calendario' | 'configuracion' = 'calendario';
   citas: any[] = [];
   loadingCitas = false;
   loadingBarberia = false;
@@ -63,7 +70,7 @@ export class AdminHomePage implements OnInit {
     await this.loadBarberiaCitas();
   }
 
-  setSection(section: 'calendario' | 'perfil' | 'configuracion') {
+  setSection(section: 'calendario' | 'configuracion') {
     this.activeSection = section;
   }
 
@@ -106,6 +113,7 @@ export class AdminHomePage implements OnInit {
       this.barberia = null;
     } finally {
       this.loadingBarberia = false;
+      this.resetServicioForm();
     }
   }
 
@@ -128,6 +136,122 @@ export class AdminHomePage implements OnInit {
   cancelEdit() {
     this.isEditingPerfil = false;
     this.initializeEditForm();
+  }
+
+  private resetServicioForm() {
+    this.newServicioForm = {
+      nombre: '',
+      precio: '',
+      duracion: ''
+    };
+  }
+
+  async addServicio() {
+    if (!this.barberia || !this.barberia._id) {
+      this.barberiaError = 'No se encontró la barbería para añadir el servicio.';
+      return;
+    }
+
+    if (!this.newServicioForm.nombre || !this.newServicioForm.precio || !this.newServicioForm.duracion) {
+      this.barberiaError = 'Nombre, precio y duración son obligatorios.';
+      return;
+    }
+
+    this.savingServicio = true;
+    this.barberiaError = '';
+
+    try {
+      await this.apiService.addServicio(this.barberia._id, {
+        nombre: this.newServicioForm.nombre,
+        precio: this.newServicioForm.precio,
+        duracion: this.newServicioForm.duracion
+      });
+
+      await this.loadBarberiaData();
+
+      const toast = await this.toastCtrl.create({
+        message: 'Servicio añadido correctamente',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al añadir el servicio:', error);
+      this.barberiaError = 'No se ha podido añadir el servicio.';
+
+      const toast = await this.toastCtrl.create({
+        message: 'Error al añadir el servicio',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.savingServicio = false;
+    }
+  }
+
+  async confirmDeleteServicio(servicio: any) {
+    if (!servicio?._id) {
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Eliminar servicio',
+      message: `¿Quieres eliminar el servicio "${servicio.nombre}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            await this.deleteServicio(servicio._id);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async deleteServicio(servicioId: string) {
+    if (!this.barberia || !this.barberia._id) {
+      this.barberiaError = 'No se encontró la barbería para eliminar el servicio.';
+      return;
+    }
+
+    this.deletingServicioId = servicioId;
+    this.barberiaError = '';
+
+    try {
+      await this.apiService.deleteServicio(this.barberia._id, servicioId);
+      await this.loadBarberiaData();
+
+      const toast = await this.toastCtrl.create({
+        message: 'Servicio eliminado correctamente',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al eliminar el servicio:', error);
+      this.barberiaError = 'No se ha podido eliminar el servicio.';
+
+      const toast = await this.toastCtrl.create({
+        message: 'Error al eliminar el servicio',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.deletingServicioId = null;
+    }
   }
 
   async savePerfil() {

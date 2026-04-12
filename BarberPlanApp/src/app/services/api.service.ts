@@ -66,4 +66,20 @@ export class ApiService {
       this.http.put<any>(`${this.apiUrl}/barberia/${barberiaId}`, data, { headers })
     );
   }
+
+  // Crear un nuevo servicio
+  async addServicio(barberiaId: string, data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios`, data, { headers })
+    );
+  }
+
+  // Eliminar un servicio
+  async deleteServicio(barberiaId: string, servicioId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios/${servicioId}`, { headers })
+    );
+  }
 }

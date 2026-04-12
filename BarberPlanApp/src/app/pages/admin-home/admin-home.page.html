@@ -104,209 +104,236 @@
       </div>
     </ion-list>
 
-    <ion-list *ngSwitchCase="'perfil'">
-      <ion-list-header>
-        <ion-label>Perfil</ion-label>
-      </ion-list-header>
-
-      <div class="barberia-profile-card" *ngIf="!loadingBarberia && barberia">
-        <!-- Header with title and edit button -->
-        <div class="barberia-header">
-          <div class="barberia-title">
-            <h3>Datos de la barbería</h3>
-            <p>Información de tu negocio</p>
-          </div>
-          <div class="barberia-actions">
-            <ion-button 
-              *ngIf="!isEditingPerfil" 
-              fill="outline" 
-              size="small"
-              (click)="enterEditMode()"
-            >
-              <ion-icon slot="start" name="pencil-outline"></ion-icon>
-              Editar
-            </ion-button>
-          </div>
-        </div>
-
-        <!-- Editable Fields Section -->
-        <div class="barberia-editable-section">
-          <h4 class="section-subtitle">Información principal</h4>
-          
-          <!-- Nombre -->
-          <div class="barberia-field-group">
-            <label>Nombre de la barbería</label>
-            <ng-container *ngIf="!isEditingPerfil">
-              <div class="field-display">
-                {{ barberia.nombre || 'No disponible' }}
-              </div>
-            </ng-container>
-            <ng-container *ngIf="isEditingPerfil">
-              <ion-input
-                class="field-input"
-                type="text"
-                placeholder="Nombre de la barbería"
-                [(ngModel)]="barberiaEditForm.nombre"
-              ></ion-input>
-            </ng-container>
-          </div>
-
-          <!-- Dirección -->
-          <div class="barberia-field-group">
-            <label>Dirección</label>
-            <ng-container *ngIf="!isEditingPerfil">
-              <div class="field-display">
-                {{ barberia.direccion || 'No disponible' }}
-              </div>
-            </ng-container>
-            <ng-container *ngIf="isEditingPerfil">
-              <ion-input
-                class="field-input"
-                type="text"
-                placeholder="Dirección"
-                [(ngModel)]="barberiaEditForm.direccion"
-              ></ion-input>
-            </ng-container>
-          </div>
-
-          <!-- Teléfono -->
-          <div class="barberia-field-group">
-            <label>Teléfono</label>
-            <ng-container *ngIf="!isEditingPerfil">
-              <div class="field-display">
-                {{ barberia.telefono || 'No disponible' }}
-              </div>
-            </ng-container>
-            <ng-container *ngIf="isEditingPerfil">
-              <ion-input
-                class="field-input"
-                type="tel"
-                placeholder="Teléfono"
-                [(ngModel)]="barberiaEditForm.telefono"
-              ></ion-input>
-            </ng-container>
-          </div>
-
-          <!-- Descripción -->
-          <div class="barberia-field-group">
-            <label>Descripción</label>
-            <ng-container *ngIf="!isEditingPerfil">
-              <div class="field-display">
-                {{ barberia.descripcion || 'Sin descripción' }}
-              </div>
-            </ng-container>
-            <ng-container *ngIf="isEditingPerfil">
-              <ion-textarea
-                class="field-input"
-                placeholder="Descripción de tu barbería"
-                rows="3"
-                [(ngModel)]="barberiaEditForm.descripcion"
-              ></ion-textarea>
-            </ng-container>
-          </div>
-
-          <!-- Horario -->
-          <div class="barberia-field-group">
-            <label>Horario</label>
-            <ng-container *ngIf="!isEditingPerfil">
-              <div class="field-display">
-                {{ barberia.horario || 'No definido' }}
-              </div>
-            </ng-container>
-            <ng-container *ngIf="isEditingPerfil">
-              <ion-input
-                class="field-input"
-                type="text"
-                placeholder="Ej: Lun-Vie 09:00-18:00"
-                [(ngModel)]="barberiaEditForm.horario"
-              ></ion-input>
-            </ng-container>
-          </div>
-        </div>
-
-        <!-- Info Section (Read-only) -->
-        <div class="barberia-info-section">
-          <h4 class="section-subtitle">Información adicional</h4>
-          <div class="info-grid">
-            <div class="info-item">
-              <span>Código</span>
-              <strong>{{ barberia.codigo || 'No disponible' }}</strong>
-            </div>
-            <div class="info-item">
-              <span>Barberos</span>
-              <strong>{{ barberia.barberos?.length || 0 }}</strong>
-            </div>
-            <div class="info-item">
-              <span>Servicios</span>
-              <strong>{{ barberia.servicios?.length || 0 }}</strong>
-            </div>
-            <div class="info-item">
-              <span>Administrador</span>
-              <strong>{{ user?.nombre || 'N/A' }}</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="barberia-actions-footer" *ngIf="isEditingPerfil">
-          <ion-button
-            expand="block"
-            fill="solid"
-            color="primary"
-            (click)="savePerfil()"
-            [disabled]="savingPerfil"
-          >
-            <ion-icon slot="start" name="checkmark-outline"></ion-icon>
-            {{ savingPerfil ? 'Guardando...' : 'Guardar cambios' }}
-          </ion-button>
-          <ion-button
-            expand="block"
-            fill="outline"
-            class="cancel-btn"
-            (click)="cancelEdit()"
-            [disabled]="savingPerfil"
-          >
-            <ion-icon slot="start" name="close-outline"></ion-icon>
-            Cancelar
-          </ion-button>
-        </div>
-
-        <!-- Error Message -->
-        <p *ngIf="barberiaError" class="barberia-error">{{ barberiaError }}</p>
-      </div>
-
-      <!-- Loading state -->
-      <p *ngIf="loadingBarberia" class="calendar-empty" style="margin: 20px;">Cargando datos de la barbería...</p>
-    </ion-list>
-
     <ion-list *ngSwitchDefault>
       <ion-list-header>
         <ion-label>Configuración</ion-label>
       </ion-list-header>
 
-      <ion-item button detail>
-        <ion-icon slot="start" name="cut-outline" color="secondary"></ion-icon>
-        <ion-label>
-          <h2>Servicios</h2>
-          <p>Gestionar cortes y servicios</p>
-        </ion-label>
-      </ion-item>
+      <div class="config-accordion-group">
+        <ion-accordion-group value=""> <!-- lo dejo vacio para que no se abra ninguno por defecto-->
+          <ion-accordion value="barberia" class="config-accordion">
+            <ion-item slot="header" class="config-accordion-header">
+              <ion-icon slot="start" name="person-outline" color="primary"></ion-icon>
+              <ion-label>
+                <h2>Datos de la barbería</h2>
+                <p>Editar información principal del negocio</p>
+              </ion-label>
+            </ion-item>
 
-      <ion-item button detail>
-        <ion-icon slot="start" name="key-outline" color="warning"></ion-icon>
-        <ion-label>
-          <h2>Código de Barbería</h2>
-          <p>Ver código para invitar barberos</p>
-        </ion-label>
-      </ion-item>
+            <div slot="content" class="config-accordion-content">
+              <div class="barberia-profile-card" *ngIf="!loadingBarberia && barberia">
+                <div class="barberia-header">
+                  <div class="barberia-title">
+                    <h3>Datos de la barbería</h3>
+                    <p>Información de tu negocio</p>
+                  </div>
+                  <div class="barberia-actions">
+                    <ion-button
+                      *ngIf="!isEditingPerfil"
+                      fill="outline"
+                      size="small"
+                      (click)="enterEditMode()"
+                    >
+                      <ion-icon slot="start" name="pencil-outline"></ion-icon>
+                      Editar
+                    </ion-button>
+                  </div>
+                </div>
 
-      <ion-item button detail>
-        <ion-icon slot="start" name="people-outline" color="tertiary"></ion-icon>
-        <ion-label>
-          <h2>Barberos</h2>
-          <p>Ver barberos asociados</p>
-        </ion-label>
-      </ion-item>
+                <div class="barberia-editable-section">
+                  <h4 class="section-subtitle">Información principal</h4>
+
+                  <div class="barberia-field-group">
+                    <label>Nombre de la barbería</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.nombre || 'No disponible' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-input class="field-input" type="text" placeholder="Nombre de la barbería" [(ngModel)]="barberiaEditForm.nombre"></ion-input>
+                    </ng-container>
+                  </div>
+
+                  <div class="barberia-field-group">
+                    <label>Dirección</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.direccion || 'No disponible' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-input class="field-input" type="text" placeholder="Dirección" [(ngModel)]="barberiaEditForm.direccion"></ion-input>
+                    </ng-container>
+                  </div>
+
+                  <div class="barberia-field-group">
+                    <label>Teléfono</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.telefono || 'No disponible' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-input class="field-input" type="tel" placeholder="Teléfono" [(ngModel)]="barberiaEditForm.telefono"></ion-input>
+                    </ng-container>
+                  </div>
+
+                  <div class="barberia-field-group">
+                    <label>Descripción</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.descripcion || 'Sin descripción' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-textarea class="field-input" placeholder="Descripción de tu barbería" rows="3" [(ngModel)]="barberiaEditForm.descripcion"></ion-textarea>
+                    </ng-container>
+                  </div>
+
+                  <div class="barberia-field-group">
+                    <label>Horario</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.horario || 'No definido' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-input class="field-input" type="text" placeholder="Ej: Lun-Vie 09:00-18:00" [(ngModel)]="barberiaEditForm.horario"></ion-input>
+                    </ng-container>
+                  </div>
+                </div>
+
+                <div class="barberia-info-section">
+                  <h4 class="section-subtitle">Información adicional</h4>
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <span>Administrador</span>
+                      <strong>{{ user?.nombre || 'N/A' }}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="barberia-actions-footer" *ngIf="isEditingPerfil">
+                  <ion-button expand="block" fill="solid" color="primary" (click)="savePerfil()" [disabled]="savingPerfil">
+                    <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+                    {{ savingPerfil ? 'Guardando...' : 'Guardar cambios' }}
+                  </ion-button>
+                  <ion-button expand="block" fill="outline" class="cancel-btn" (click)="cancelEdit()" [disabled]="savingPerfil">
+                    <ion-icon slot="start" name="close-outline"></ion-icon>
+                    Cancelar
+                  </ion-button>
+                </div>
+
+                <p *ngIf="barberiaError" class="barberia-error">{{ barberiaError }}</p>
+              </div>
+
+              <p *ngIf="loadingBarberia" class="calendar-empty">Cargando datos de la barbería...</p>
+            </div>
+          </ion-accordion>
+
+          <ion-accordion value="servicios" class="config-accordion">
+            <ion-item slot="header" class="config-accordion-header">
+              <ion-icon slot="start" name="cut-outline" color="secondary"></ion-icon>
+              <ion-label>
+                <h2>Servicios</h2>
+                <p>Gestionar cortes y servicios</p>
+              </ion-label>
+            </ion-item>
+
+            <div slot="content" class="config-accordion-content">
+              <div class="services-section">
+                <!-- ver los servicios que hay-->
+                <div class="services-list" *ngIf="barberia?.servicios?.length > 0; else noServices">
+                  <div class="service-card" *ngFor="let servicio of barberia.servicios">
+                    <div class="service-card-head">
+                      <div>
+                        <h4>{{ servicio.nombre }}</h4>
+                        <p>{{ servicio.duracion }} min · {{ servicio.precio }} €</p>
+                      </div>
+
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        color="danger"
+                        class="delete-service-button"
+                        (click)="confirmDeleteServicio(servicio)"
+                        [disabled]="deletingServicioId === servicio._id"
+                      >
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </div>
+
+                    <p class="service-description" *ngIf="servicio.descripcion">
+                      {{ servicio.descripcion }}
+                    </p>
+                  </div>
+                </div>
+                <!-- creacion del nuevo servicio-->
+                <div class="services-form-card">
+                  <h3>Nuevo servicio</h3>
+                  <p>Nombre, precio y duración en minutos.</p>
+
+                  <div class="services-form-grid">
+                    <ion-item lines="none" class="service-input-item">
+                      <ion-label position="stacked">Nombre</ion-label>
+                      <ion-input type="text" placeholder="Corte clásico" [(ngModel)]="newServicioForm.nombre"></ion-input>
+                    </ion-item>
+
+                    <ion-item lines="none" class="service-input-item">
+                      <ion-label position="stacked">Precio</ion-label>
+                      <ion-input type="number" inputmode="decimal" placeholder="12.50" [(ngModel)]="newServicioForm.precio"></ion-input>
+                    </ion-item>
+
+                    <ion-item lines="none" class="service-input-item">
+                      <ion-label position="stacked">Duración (min)</ion-label>
+                      <ion-input type="number" inputmode="numeric" placeholder="30" [(ngModel)]="newServicioForm.duracion"></ion-input>
+                    </ion-item>
+                  </div>
+
+                  <ion-button expand="block" color="primary" class="add-service-button" (click)="addServicio()" [disabled]="savingServicio">
+                    <ion-icon slot="start" name="add-outline"></ion-icon>
+                    {{ savingServicio ? 'Añadiendo...' : 'Añadir servicio' }}
+                  </ion-button>
+                </div>
+                
+
+                <ng-template #noServices>
+                  <div class="config-placeholder-card">Todavía no hay servicios creados.</div>
+                </ng-template>
+              </div>
+            </div>
+          </ion-accordion>
+
+          <ion-accordion value="codigo" class="config-accordion">
+            <ion-item slot="header" class="config-accordion-header">
+              <ion-icon slot="start" name="key-outline" color="warning"></ion-icon>
+              <ion-label>
+                <h2>Código de barbería</h2>
+                <p>Ver código para invitar barberos</p>
+              </ion-label>
+            </ion-item>
+
+            <div slot="content" class="config-accordion-content">
+              <div class="config-placeholder-card">Código: {{ barberia?.codigo || 'No disponible' }}</div>
+            </div>
+          </ion-accordion>
+
+          <ion-accordion value="barberos" class="config-accordion">
+            <ion-item slot="header" class="config-accordion-header">
+              <ion-icon slot="start" name="people-outline" color="tertiary"></ion-icon>
+              <ion-label>
+                <h2>Barberos</h2>
+                <p>Ver barberos asociados</p>
+              </ion-label>
+            </ion-item>
+
+            <div slot="content" class="config-accordion-content">
+              <div class="config-placeholder-card">Tienes {{ barberia?.barberos?.length || 0 }} barberos asociados.</div>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </div>
     </ion-list>
   </ng-container>
 </ion-content>
@@ -322,16 +349,6 @@
         (click)="setSection('calendario')"
       >
         <ion-icon name="calendar-outline"></ion-icon>
-      </ion-button>
-
-      <ion-button
-        fill="clear"
-        aria-label="Perfil"
-        title="Perfil"
-        [class.is-active]="activeSection === 'perfil'"
-        (click)="setSection('perfil')"
-      >
-        <ion-icon name="person-outline"></ion-icon>
       </ion-button>
 
       <ion-button

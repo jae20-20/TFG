@@ -188,6 +188,169 @@ ion-content {
   border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
 
+.config-accordion-group {
+  margin-top: 16px;
+}
+
+.config-accordion {
+  margin-bottom: 12px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #121826 0%, #0b1220 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.config-accordion-header {
+  --background: transparent;
+  --min-height: 68px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  color: #f8fafc;
+
+  h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  p {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.config-accordion-content {
+  padding: 0 16px 16px;
+}
+
+.config-placeholder-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.services-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.services-form-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  p {
+    margin: 0 0 14px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+}
+
+.services-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.service-input-item {
+  --background: rgba(15, 23, 42, 0.6);
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --min-height: 58px;
+  --inner-padding-end: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+
+  ion-label {
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  ion-input {
+    --color: #f8fafc;
+  }
+}
+
+.add-service-button {
+  height: 44px;
+  --border-radius: 12px;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.service-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.service-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #93c5fd;
+  }
+}
+
+.service-description {
+  margin: 10px 0 0;
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.delete-service-button {
+  --color: #ef4444;
+  --color-hover: #dc2626;
+  --color-focused: #dc2626;
+  --padding-start: 0;
+  --padding-end: 0;
+  width: 36px;
+  height: 36px;
+
+  ion-icon {
+    color: #ef4444;
+    font-size: 20px;
+  }
+}
+
 // ===== Barbería Profile Card Styles =====
 .barberia-profile-card {
   margin-top: 16px;
@@ -433,7 +596,7 @@ ion-content {
 
 .admin-bottom-menu {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   align-items: center;
   gap: 10px;
   justify-items: center;

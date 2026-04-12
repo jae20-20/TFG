@@ -2,19 +2,21 @@ import { Component } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  businessOutline,
-  calendarOutline,
-  checkmarkOutline,
-  chevronBackOutline,
-  chevronForwardOutline,
-  closeOutline,
-  cutOutline,
-  keyOutline,
-  logOutOutline,
-  pencilOutline,
-  peopleOutline,
-  personOutline,
-  settingsOutline
+    addOutline,
+    businessOutline,
+    calendarOutline,
+    checkmarkOutline,
+    chevronBackOutline,
+    chevronForwardOutline,
+    closeOutline,
+    cutOutline,
+    keyOutline,
+    logOutOutline,
+    pencilOutline,
+    peopleOutline,
+    personOutline,
+    settingsOutline,
+    trashOutline
 } from 'ionicons/icons';
 
 addIcons({
@@ -30,7 +32,9 @@ addIcons({
   'settings-outline': settingsOutline,
   'pencil-outline': pencilOutline,
   'checkmark-outline': checkmarkOutline,
-  'close-outline': closeOutline
+  'add-outline': addOutline,
+  'close-outline': closeOutline,
+  'trash-outline': trashOutline
 });
 
 @Component({
