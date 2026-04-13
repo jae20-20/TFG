@@ -203,17 +203,39 @@ export const editBarberia = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para editar esta barbería" });
         }
 
-        const { nombre, direccion, telefono, descripcion, horario, imagen } = req.body;
-
-        await updateBarbershop(id, {
+        const {
             nombre,
+            ciudad,
             direccion,
             telefono,
             descripcion,
             horario,
             imagen,
+            logoUrl,
+            portadaUrl,
+            galeriaTrabajos
+        } = req.body;
+
+        // Solo actualizar los campos presentes en la petición para no borrar datos existentes.
+        const updateData = {
+            nombre,
+            ciudad,
+            direccion,
+            telefono,
+            descripcion,
+            horario,
+            imagen,
+            logoUrl,
+            portadaUrl,
+            galeriaTrabajos,
             updatedAt: new Date()
-        });
+        };
+
+        const safeUpdateData = Object.fromEntries(
+            Object.entries(updateData).filter(([_, value]) => value !== undefined)
+        );
+
+        await updateBarbershop(id, safeUpdateData);
 
         const updatedBarberia = await getBarbershopById(id);
         res.json({ message: "Barbería actualizada correctamente", barberia: updatedBarberia });

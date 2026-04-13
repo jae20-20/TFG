@@ -64,10 +64,14 @@ export const getProfile = async (req, res) => {
 
 export const addUser = async (req, res) => {
     try {
-        const { nombre, correo, pw, apellido, usuario, rol, code } = req.body;
+        const { nombre, correo, pw, apellido, usuario, rol, code, ciudad } = req.body;
 
         if (!nombre || !correo || !pw || !apellido || !usuario || !rol) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
+        }
+
+        if (rol === "cliente" && !ciudad) {
+            return res.status(400).json({ error: "La ciudad es obligatoria para el registro de clientes" });
         }
 
         // Verificar si el correo ya existe
@@ -107,6 +111,7 @@ export const addUser = async (req, res) => {
             apellido,
             usuario,
             rol,
+            ciudad: rol === "cliente" ? ciudad : null,
             barberiaId: barberia ? barberia._id : null,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -167,6 +172,7 @@ export const loginUser = async (req, res) => {
                 apellido: user.apellido,
                 usuario: user.usuario,
                 rol: user.rol,
+                ciudad: user.ciudad || null,
                 barberiaId: user.barberiaId || null
             },
         });
@@ -182,7 +188,7 @@ export const loginUser = async (req, res) => {
 export const editProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { nombre, apellido, usuario, telefono, avatar } = req.body;
+        const { nombre, apellido, usuario, telefono, avatar, ciudad } = req.body;
 
         // Verificar si el nuevo nombre de usuario ya existe
         if (usuario) {
@@ -192,7 +198,7 @@ export const editProfile = async (req, res) => {
             }
         }
 
-        await updateUserProfile(userId, { nombre, apellido, usuario, telefono, avatar });
+        await updateUserProfile(userId, { nombre, apellido, usuario, telefono, avatar, ciudad });
         
         const updatedUser = await getUserById(userId);
         const { pw, ...userWithoutPw } = updatedUser;

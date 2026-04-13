@@ -102,7 +102,87 @@
       </div>
     </ion-list>
 
-    <ion-list *ngSwitchDefault>
+    <div *ngSwitchCase="'perfil-barberia'" class="perfil-visual-page">
+      <div class="public-preview-shell">
+        <div class="preview-topbar">
+          <div class="preview-business-chip">
+            <div class="preview-logo-mini" [style.background-image]="perfilVisualForm.logoUrl ? 'url(' + perfilVisualForm.logoUrl + ')' : 'none'">
+              <ion-icon *ngIf="!perfilVisualForm.logoUrl" name="business-outline"></ion-icon>
+            </div>
+            <div>
+              <h3>{{ barberia?.nombre || 'Tu barbería' }}</h3>
+              <p>{{ barberia?.direccion || 'Dirección de tu negocio' }}</p>
+            </div>
+          </div>
+          <ion-button size="small" class="reserve-btn-preview" disabled>
+            Reservar ahora
+          </ion-button>
+        </div>
+
+        <div class="preview-cover-main" [style.background-image]="perfilVisualForm.portadaUrl ? 'url(' + perfilVisualForm.portadaUrl + ')' : 'none'">
+          <div class="upload-overlay">
+            <label class="upload-icon-btn" title="Añadir portada">
+              <input type="file" accept="image/*" (change)="onPortadaSelected($event)" />
+              <ion-icon name="camera-outline"></ion-icon>
+            </label>
+          </div>
+          <p *ngIf="!perfilVisualForm.portadaUrl">Añade una foto de portada</p>
+        </div>
+
+        <div class="preview-logo-floating" [style.background-image]="perfilVisualForm.logoUrl ? 'url(' + perfilVisualForm.logoUrl + ')' : 'none'">
+          <label class="upload-icon-btn" title="Añadir logo">
+            <input type="file" accept="image/*" (change)="onLogoSelected($event)" />
+            <ion-icon [name]="perfilVisualForm.logoUrl ? 'camera-outline' : 'add-outline'"></ion-icon>
+          </label>
+        </div>
+
+        <div class="preview-content">
+          <h2>{{ barberia?.nombre || 'Nombre de la barbería' }}</h2>
+          <p>{{ barberia?.direccion || 'Dirección' }}<span *ngIf="barberia?.ciudad">, {{ barberia.ciudad }}</span></p>
+
+          <div class="preview-gallery-row" *ngIf="perfilVisualForm.galeriaTrabajos.length > 0">
+            <div
+              class="preview-gallery-item"
+              *ngFor="let image of perfilVisualForm.galeriaTrabajos; let i = index"
+              [style.background-image]="'url(' + image + ')'"
+            >
+              <ion-button
+                fill="clear"
+                size="small"
+                color="danger"
+                class="remove-gallery-btn"
+                (click)="removeGaleriaImage(i)"
+              >
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="preview-gallery-uploader">
+            <label class="gallery-upload-tile">
+              <input type="file" accept="image/*" multiple (change)="onGaleriaSelected($event)" />
+              <ion-icon name="images-outline"></ion-icon>
+              <span>Añadir fotos</span>
+            </label>
+          </div>
+
+          <ion-button
+            expand="block"
+            color="primary"
+            class="save-visual-btn"
+            (click)="savePerfilVisual()"
+            [disabled]="savingPerfilVisual"
+          >
+            <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+            {{ savingPerfilVisual ? 'Guardando...' : 'Guardar plantilla visual' }}
+          </ion-button>
+
+          <p *ngIf="barberiaError" class="barberia-error">{{ barberiaError }}</p>
+        </div>
+      </div>
+    </div>
+
+    <ion-list *ngSwitchCase="'configuracion'">
       <ion-list-header>
         <ion-label>Configuración</ion-label>
       </ion-list-header>
@@ -162,6 +242,20 @@
                     </ng-container>
                     <ng-container *ngIf="isEditingPerfil">
                       <ion-input class="field-input" type="text" placeholder="Dirección" [(ngModel)]="barberiaEditForm.direccion"></ion-input>
+                    </ng-container>
+                  </div>
+
+                  <div class="barberia-field-group">
+                    <label>Ciudad</label>
+                    <ng-container *ngIf="!isEditingPerfil">
+                      <div class="field-display">
+                        {{ barberia.ciudad || 'No disponible' }}
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="isEditingPerfil">
+                      <ion-select class="field-input" interface="popover" placeholder="Selecciona ciudad" [(ngModel)]="barberiaEditForm.ciudad">
+                        <ion-select-option *ngFor="let ciudad of ciudades" [value]="ciudad">{{ ciudad }}</ion-select-option>
+                      </ion-select>
                     </ng-container>
                   </div>
 
@@ -449,6 +543,16 @@
         (click)="setSection('configuracion')"
       >
         <ion-icon name="settings-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button
+        fill="clear"
+        aria-label="Perfil barbería"
+        title="Perfil barbería"
+        [class.is-active]="activeSection === 'perfil-barberia'"
+        (click)="setSection('perfil-barberia')"
+      >
+        <ion-icon name="image-outline"></ion-icon>
       </ion-button>
     </div>
   </ion-toolbar>

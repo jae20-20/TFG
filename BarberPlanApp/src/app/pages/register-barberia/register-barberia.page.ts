@@ -18,9 +18,16 @@ export class RegisterBarberiaPage implements OnInit {
   showPassword = false;
   confirmPw = '';
 
+  ciudades = [
+    'Madrid',
+    'Valencia',
+    'Sevilla'
+  ];
+
   formData = {
     // Datos de la barbería
     nombreBarberia: '',
+    ciudad: '',
     direccion: '',
     telefono: '',
     descripcion: '',
@@ -43,7 +50,7 @@ export class RegisterBarberiaPage implements OnInit {
 
   // Validación del paso 1
   isStep1Valid(): boolean {
-    return !!(this.formData.nombreBarberia.trim() && this.formData.direccion.trim());
+    return !!(this.formData.nombreBarberia.trim() && this.formData.ciudad && this.formData.direccion.trim());
   }
 
   // Validación del paso 2

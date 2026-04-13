@@ -58,7 +58,7 @@ export const getBarberosByBarberia = async (barberiaId) => {
 
 // Actualizar perfil (solo campos permitidos)
 export const updateUserProfile = async (id, profileData) => {
-    const allowedFields = ["nombre", "apellido", "usuario", "telefono", "avatar"];
+    const allowedFields = ["nombre", "apellido", "usuario", "telefono", "avatar", "ciudad"];
     const filteredData = {};
     
     for (const key of allowedFields) {

@@ -41,7 +41,7 @@ export class AdminHomePage implements OnInit {
   savingAdmin = false;
   savingServicio = false;
   deletingServicioId: string | null = null;
-  activeSection: 'calendario' | 'configuracion' = 'calendario';
+  activeSection: 'calendario' | 'configuracion' | 'perfil-barberia' = 'calendario';
   citas: any[] = [];
   loadingCitas = false;
   loadingBarberia = false;
@@ -53,6 +53,34 @@ export class AdminHomePage implements OnInit {
   selectedDateKey = this.toDateKey(new Date());
   selectedDateLabel = '';
   selectedDayAppointments: any[] = [];
+  perfilVisualForm = {
+    logoUrl: '',
+    portadaUrl: '',
+    galeriaTrabajos: [] as string[]
+  };
+  savingPerfilVisual = false;
+  ciudades = [
+    'Madrid',
+    'Barcelona',
+    'Valencia',
+    'Sevilla',
+    'Zaragoza',
+    'Málaga',
+    'Murcia',
+    'Palma',
+    'Las Palmas de Gran Canaria',
+    'Bilbao',
+    'Alicante',
+    'Córdoba',
+    'Valladolid',
+    'Vigo',
+    'Gijón',
+    'A Coruña',
+    'Granada',
+    'Vitoria-Gasteiz',
+    'Elche',
+    'L\'Hospitalet de Llobregat'
+  ];
 
   constructor(
     private apiService: ApiService,
@@ -74,7 +102,7 @@ export class AdminHomePage implements OnInit {
     await this.loadBarberiaCitas();
   }
 
-  setSection(section: 'calendario' | 'configuracion') {
+  setSection(section: 'calendario' | 'configuracion' | 'perfil-barberia') {
     this.activeSection = section;
   }
 
@@ -111,6 +139,7 @@ export class AdminHomePage implements OnInit {
     try {
       this.barberia = await this.apiService.getMyBarberia();
       this.initializeEditForm();
+      this.initializePerfilVisualForm();
     } catch (error) {
       console.error('Error al cargar la barbería:', error);
       this.barberiaError = 'No se han podido cargar los datos de la barbería.';
@@ -125,12 +154,172 @@ export class AdminHomePage implements OnInit {
     if (this.barberia) {
       this.barberiaEditForm = {
         nombre: this.barberia.nombre,
+        ciudad: this.barberia.ciudad || '',
         direccion: this.barberia.direccion,
         telefono: this.barberia.telefono,
         descripcion: this.barberia.descripcion,
         horario: this.barberia.horario
       };
     }
+  }
+
+  private initializePerfilVisualForm() {
+    this.perfilVisualForm = {
+      logoUrl: this.barberia?.logoUrl || '',
+      portadaUrl: this.barberia?.portadaUrl || '',
+      galeriaTrabajos: Array.isArray(this.barberia?.galeriaTrabajos)
+        ? [...this.barberia.galeriaTrabajos]
+        : []
+    };
+  }
+
+  async onLogoSelected(event: Event) {
+    const file = this.extractImageFile(event);
+    if (!file) {
+      return;
+    }
+
+    try {
+      this.perfilVisualForm.logoUrl = await this.fileToCompressedDataUrl(file, 700, 700, 0.85);
+      this.barberiaError = '';
+    } catch (error) {
+      console.error('Error al procesar logo:', error);
+      this.barberiaError = 'No se pudo procesar la imagen del logo.';
+    }
+  }
+
+  async onPortadaSelected(event: Event) {
+    const file = this.extractImageFile(event);
+    if (!file) {
+      return;
+    }
+
+    try {
+      this.perfilVisualForm.portadaUrl = await this.fileToCompressedDataUrl(file, 1600, 900, 0.85);
+      this.barberiaError = '';
+    } catch (error) {
+      console.error('Error al procesar portada:', error);
+      this.barberiaError = 'No se pudo procesar la imagen de portada.';
+    }
+  }
+
+  async onGaleriaSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    input.value = '';
+
+    if (!files.length) {
+      return;
+    }
+
+    try {
+      const images = await Promise.all(
+        files.map((file) => this.fileToCompressedDataUrl(file, 1200, 1200, 0.85))
+      );
+
+      const merged = [...this.perfilVisualForm.galeriaTrabajos, ...images];
+      this.perfilVisualForm.galeriaTrabajos = merged.slice(0, 15);
+      this.barberiaError = '';
+    } catch (error) {
+      console.error('Error al procesar imágenes de galería:', error);
+      this.barberiaError = 'No se pudieron procesar una o más imágenes de la galería.';
+    }
+  }
+
+  removeGaleriaImage(index: number) {
+    this.perfilVisualForm.galeriaTrabajos = this.perfilVisualForm.galeriaTrabajos.filter((_, i) => i !== index);
+  }
+
+  async savePerfilVisual() {
+    if (!this.barberia?._id) {
+      this.barberiaError = 'No se encontró la barbería para guardar el perfil visual.';
+      return;
+    }
+
+    this.savingPerfilVisual = true;
+    this.barberiaError = '';
+
+    try {
+      await this.apiService.updateBarberia(this.barberia._id, {
+        logoUrl: this.perfilVisualForm.logoUrl,
+        portadaUrl: this.perfilVisualForm.portadaUrl,
+        galeriaTrabajos: this.perfilVisualForm.galeriaTrabajos
+      });
+
+      await this.loadBarberiaData();
+
+      const toast = await this.toastCtrl.create({
+        message: 'Perfil visual guardado correctamente',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al guardar perfil visual:', error);
+      this.barberiaError = 'No se pudo guardar el perfil visual.';
+
+      const toast = await this.toastCtrl.create({
+        message: 'Error al guardar perfil visual',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.savingPerfilVisual = false;
+    }
+  }
+
+  private extractImageFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files.length ? input.files[0] : null;
+    input.value = '';
+
+    if (!file || !file.type.startsWith('image/')) {
+      return null;
+    }
+
+    return file;
+  }
+
+  private async fileToCompressedDataUrl(file: File, maxWidth: number, maxHeight: number, quality: number) {
+    const source = await this.readFileAsDataUrl(file);
+    const image = await this.loadImage(source);
+
+    const ratio = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+    const width = Math.round(image.width * ratio);
+    const height = Math.round(image.height * ratio);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      throw new Error('No se pudo crear el contexto de imagen.');
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  private readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error || new Error('No se pudo leer el archivo'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('No se pudo cargar la imagen seleccionada'));
+      image.src = src;
+    });
   }
 
   private initializeAdminEditForm() {
@@ -338,8 +527,8 @@ export class AdminHomePage implements OnInit {
       return;
     }
 
-    if (!this.barberiaEditForm.nombre || !this.barberiaEditForm.direccion) {
-      this.barberiaError = 'El nombre y la dirección son requeridos.';
+    if (!this.barberiaEditForm.nombre || !this.barberiaEditForm.ciudad || !this.barberiaEditForm.direccion) {
+      this.barberiaError = 'El nombre, la ciudad y la dirección son requeridos.';
       return;
     }
 

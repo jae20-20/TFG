@@ -20,7 +20,10 @@ export class RegisterPage {
   pw = '';
   confirmPw = '';
   rol = '';
+  ciudad = '';
   code = ''; 
+
+  ciudades = ['Madrid', 'Valencia', 'Sevilla'];
 
   constructor(
     private authService: AuthService,
@@ -47,6 +50,20 @@ export class RegisterPage {
       pw: this.pw,
       rol: this.rol,
     };
+
+    if (this.rol === 'cliente') {
+      if (!this.ciudad.trim()) {
+        const toast = await this.toastCtrl.create({
+          message: 'La ciudad es obligatoria para clientes.',
+          duration: 2000,
+          color: 'danger',
+        });
+        await toast.present();
+        return;
+      }
+
+      data.ciudad = this.ciudad;
+    }
 
     // Solo añadimos el código si el rol es barbero
     if (this.rol === 'barbero' && this.code.trim() !== '') {
