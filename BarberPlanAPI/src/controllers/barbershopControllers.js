@@ -11,6 +11,7 @@ import {
     getBarberiaByCode,
     getBarberosByBarberiaId,
     getBarbershopById,
+    getDefaultBarberiaSchedule,
     getServicioById,
     getServiciosByBarberiaId,
     isUserAdminOfBarberia,
@@ -83,6 +84,7 @@ export const registerBarberia = async (req, res) => {
             telefono,
             descripcion,
             horario,
+            schedule,
             // Datos del admin
             nombre,
             apellido,
@@ -141,6 +143,7 @@ export const registerBarberia = async (req, res) => {
             telefono: telefono || null,
             descripcion: descripcion || null,
             horario: horario || null,
+            schedule: schedule || getDefaultBarberiaSchedule(),
             codigo,
             adminId: adminUser.insertedId,
             barberos: [],
@@ -210,6 +213,7 @@ export const editBarberia = async (req, res) => {
             telefono,
             descripcion,
             horario,
+            schedule,
             imagen,
             logoUrl,
             portadaUrl,
@@ -224,6 +228,7 @@ export const editBarberia = async (req, res) => {
             telefono,
             descripcion,
             horario,
+            schedule,
             imagen,
             logoUrl,
             portadaUrl,
@@ -243,6 +248,63 @@ export const editBarberia = async (req, res) => {
     } catch (error) {
         console.error("Error al actualizar barbería:", error);
         res.status(500).json({ error: "Error al actualizar barbería" });
+    }
+};
+
+// Obtener horario estructurado de la barbería del admin autenticado
+export const getMyHorario = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        res.json({
+            horario: barberia.schedule || getDefaultBarberiaSchedule(),
+            legacyHorario: barberia.horario || null
+        });
+    } catch (error) {
+        console.error("Error al obtener horario de la barbería:", error);
+        res.status(500).json({ error: "Error al obtener horario de la barbería" });
+    }
+};
+
+// Actualizar horario estructurado de la barbería del admin autenticado
+export const updateMyHorario = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const { horario } = req.body;
+        if (!horario || typeof horario !== "object") {
+            return res.status(400).json({ error: "El horario debe enviarse como objeto" });
+        }
+
+        const updatedSchedule = {
+            timezone: horario.timezone || "Europe/Madrid",
+            weeklyTemplate: horario.weeklyTemplate || getDefaultBarberiaSchedule().weeklyTemplate,
+            exceptions: Array.isArray(horario.exceptions) ? horario.exceptions : []
+        };
+
+        await updateBarbershop(barberia._id.toString(), {
+            schedule: updatedSchedule,
+            updatedAt: new Date()
+        });
+
+        const updatedBarberia = await getBarbershopById(barberia._id.toString());
+        res.json({
+            message: "Horario actualizado correctamente",
+            horario: updatedBarberia?.schedule || updatedSchedule
+        });
+    } catch (error) {
+        console.error("Error al actualizar horario de la barbería:", error);
+        res.status(500).json({ error: "Error al actualizar horario de la barbería" });
     }
 };
 

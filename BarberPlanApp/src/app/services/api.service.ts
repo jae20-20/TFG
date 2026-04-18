@@ -59,11 +59,27 @@ export class ApiService {
     );
   }
 
+  // Obtener el horario estructurado de la barbería autenticada
+  async getMyHorario() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/barberia/my/horario`, { headers })
+    );
+  }
+
   // Actualizar datos de la barbería
   async updateBarberia(barberiaId: string, data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
       this.http.put<any>(`${this.apiUrl}/barberia/${barberiaId}`, data, { headers })
+    );
+  }
+
+  // Actualizar el horario estructurado de la barbería autenticada
+  async updateMyHorario(data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/barberia/my/horario`, data, { headers })
     );
   }
 

@@ -19,6 +19,7 @@ import {
     peopleOutline,
     personOutline,
     settingsOutline,
+    timeOutline,
     trashOutline
 } from 'ionicons/icons';
 
@@ -36,6 +37,7 @@ addIcons({
   'key-outline': keyOutline,
   'person-outline': personOutline,
   'settings-outline': settingsOutline,
+  'time-outline': timeOutline,
   'pencil-outline': pencilOutline,
   'checkmark-outline': checkmarkOutline,
   'add-outline': addOutline,

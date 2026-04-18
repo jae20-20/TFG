@@ -235,6 +235,183 @@ ion-content {
   font-size: 14px;
 }
 
+.field-display-muted {
+  color: #94a3b8 !important;
+}
+
+.schedule-editor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.schedule-editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+}
+
+.schedule-timezone-item {
+  min-width: 220px;
+}
+
+.schedule-week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.schedule-day-card,
+.schedule-exceptions-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.schedule-day-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  h4 {
+    margin: 0 0 2px;
+    color: #f8fafc;
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+  }
+
+  ion-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    text-transform: none;
+    font-weight: 600;
+  }
+}
+
+.schedule-slot-empty {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.24);
+  color: #94a3b8;
+  font-size: 13px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.schedule-slot-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.schedule-time-item,
+.schedule-exception-item {
+  --background: rgba(15, 23, 42, 0.6);
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --min-height: 54px;
+  --inner-padding-end: 0;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+
+  ion-label {
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  ion-input,
+  ion-select {
+    --color: #f8fafc;
+  }
+}
+
+.remove-slot-button {
+  margin: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.schedule-exceptions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-exception-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.schedule-exceptions-head {
+  margin-bottom: 0;
+}
+
+.schedule-exceptions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-exception-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+
+  h4 {
+    margin: 0 0 4px;
+    color: #f8fafc;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 13px;
+  }
+}
+
+.schedule-legacy-note {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fbbf24;
+  font-size: 13px;
+}
+
 .services-section {
   display: flex;
   flex-direction: column;

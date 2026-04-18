@@ -5,6 +5,20 @@ import { client } from "../db/connection.js";
 
 const db = client.db("BarberPlan");
 
+export const getDefaultBarberiaSchedule = () => ({
+    timezone: "Europe/Madrid",
+    weeklyTemplate: {
+        mon: [],
+        tue: [],
+        wed: [],
+        thu: [],
+        fri: [],
+        sat: [],
+        sun: []
+    },
+    exceptions: []
+});
+
 // ==================== FUNCIONES BÁSICAS ====================
 
 export const getAllBarbershops = async () => {

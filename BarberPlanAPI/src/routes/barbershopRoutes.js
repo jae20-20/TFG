@@ -9,9 +9,11 @@ import {
     getBarberias,
     getBarberos,
     getMyBarberia,
+    getMyHorario,
     getServicios,
     registerBarberia,
     removeBarbero,
+    updateMyHorario,
     validateCode
 } from "../controllers/barbershopControllers.js";
 import { isAdmin, verifyToken } from "../middleware/authMiddleware.js";
@@ -31,6 +33,8 @@ router.post("/register", registerBarberia);
 //  RUTAS DE ADMIN
 router.get("/my/barberia", verifyToken, isAdmin, getMyBarberia);
 router.put("/:id", verifyToken, isAdmin, editBarberia);
+router.get("/my/horario", verifyToken, isAdmin, getMyHorario);
+router.put("/my/horario", verifyToken, isAdmin, updateMyHorario);
 
 // GESTIÓN DE SERVICIOS (ADMIN)
 router.post("/:id/servicios", verifyToken, isAdmin, addServicio);
