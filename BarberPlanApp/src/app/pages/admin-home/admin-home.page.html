@@ -1,15 +1,15 @@
 <ion-header [translucent]="true">
-  <ion-toolbar color="primary">
-    <ion-title>¡Bienvenido, {{ user?.nombre }}!</ion-title>
+  <ion-toolbar class="admin-topbar">
+    <ion-title class="admin-topbar-title">¡Bienvenido, {{ user?.nombre }}!</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="logout()">
+      <ion-button class="admin-logout-btn" (click)="logout()">
         <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
   <ion-header collapse="condense">
     
   </ion-header>
@@ -219,7 +219,7 @@
                 </div>
 
                 <div class="barberia-editable-section">
-                  <h4 class="section-subtitle">Información principal</h4>
+                  <!--<h4 class="section-subtitle">Información principal</h4>-->
 
                   <div class="barberia-field-group">
                     <label>Nombre de la barbería</label>
