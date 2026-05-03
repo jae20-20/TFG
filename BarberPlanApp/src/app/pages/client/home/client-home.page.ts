@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
-import { ApiService } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../../services/api.service';
+import { AuthService } from '../../../services/auth.service';
 
 interface BarberiaPublica {
   _id: string;
