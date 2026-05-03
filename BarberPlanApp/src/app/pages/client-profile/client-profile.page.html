@@ -1,0 +1,74 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="client-topbar">
+    <ion-title class="client-topbar-title">Perfil</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="client-logout-btn" (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding client-premium-content">
+  <section class="profile-hero">
+    <div class="profile-avatar">{{ getInitials() }}</div>
+    <div>
+      <p class="client-eyebrow">Tu cuenta</p>
+      <h1>{{ profile?.nombre || user?.nombre || 'Cliente' }}</h1>
+      <p>{{ profile?.email || user?.correo || 'Información de la cuenta' }}</p>
+    </div>
+  </section>
+
+  <div class="client-state" *ngIf="loadingProfile">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <div class="client-state error" *ngIf="!loadingProfile && profileError">
+    <p>{{ profileError }}</p>
+    <ion-button size="small" fill="outline" (click)="loadProfile()">Reintentar</ion-button>
+  </div>
+
+  <div class="profile-grid" *ngIf="!loadingProfile">
+    <article class="profile-card">
+      <p class="profile-card-label">Nombre completo</p>
+      <h2>{{ profile?.nombre || user?.nombre || 'No disponible' }}</h2>
+    </article>
+
+    <article class="profile-card">
+      <p class="profile-card-label">Correo</p>
+      <h2>{{ profile?.email || user?.correo || 'No disponible' }}</h2>
+    </article>
+
+    <article class="profile-card">
+      <p class="profile-card-label">Teléfono</p>
+      <h2>{{ profile?.telefono || user?.telefono || 'No disponible' }}</h2>
+    </article>
+
+    <article class="profile-card">
+      <p class="profile-card-label">Rol</p>
+      <h2>{{ profile?.rol || user?.rol || 'cliente' }}</h2>
+    </article>
+  </div>
+</ion-content>
+
+<ion-footer class="client-footer">
+  <ion-toolbar>
+    <div class="client-bottom-menu">
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('inicio')" (click)="goToTab('inicio')">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Inicio</span>
+      </button>
+
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('citas')" (click)="goToTab('citas')">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Mis citas</span>
+      </button>
+
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('perfil')" (click)="goToTab('perfil')">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Perfil</span>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,80 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="client-topbar">
+    <ion-title class="client-topbar-title">Mis citas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button class="client-logout-btn" (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding client-premium-content">
+  <section class="client-hero">
+    <p class="client-eyebrow">Tu agenda</p>
+    <h1>Mis citas</h1>
+    <p>Consulta tus próximas reservas y revisa el estado de cada cita desde aquí.</p>
+  </section>
+
+  <div class="client-state" *ngIf="loadingCitas">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando citas...</p>
+  </div>
+
+  <div class="client-state error" *ngIf="!loadingCitas && citasError">
+    <p>{{ citasError }}</p>
+    <ion-button size="small" fill="outline" (click)="loadMisCitas()">Reintentar</ion-button>
+  </div>
+
+  <div class="client-state" *ngIf="!loadingCitas && !citasError && citas.length === 0">
+    <p>Aún no tienes citas reservadas.</p>
+  </div>
+
+  <div class="appointments-list" *ngIf="!loadingCitas && !citasError && citas.length > 0">
+    <article class="appointment-card" *ngFor="let cita of citas">
+      <div class="appointment-card-head">
+        <div>
+          <p class="appointment-eyebrow">{{ getCitaDateLabel(cita) }}</p>
+          <h2>{{ getCitaTitle(cita) }}</h2>
+        </div>
+        <span class="appointment-status" [ngClass]="getStatusClass(cita)">{{ getStatusLabel(cita) }}</span>
+      </div>
+
+      <div class="appointment-meta">
+        <span>
+          <ion-icon name="cut-outline"></ion-icon>
+          {{ getCitaService(cita) }}
+        </span>
+        <span *ngIf="cita?.horaInicio || cita?.horaFin">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ cita?.horaInicio || '--:--' }} - {{ cita?.horaFin || '--:--' }}
+        </span>
+      </div>
+
+      <p class="appointment-location" *ngIf="cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion">
+        {{ cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion }}
+      </p>
+    </article>
+  </div>
+</ion-content>
+
+<ion-footer class="client-footer">
+  <ion-toolbar>
+    <div class="client-bottom-menu">
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('inicio')" (click)="goToTab('inicio')">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Inicio</span>
+      </button>
+
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('citas')" (click)="goToTab('citas')">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Mis citas</span>
+      </button>
+
+      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('perfil')" (click)="goToTab('perfil')">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Perfil</span>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

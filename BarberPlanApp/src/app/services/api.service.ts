@@ -43,6 +43,65 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/barberia/validate-code`, { code });
   }
 
+  // Obtener barberías públicas para clientes
+  async getBarberias() {
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/barberia`)
+    );
+  }
+
+  // Obtener detalle de barbería pública
+  async getBarberia(barberiaId: string) {
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/barberia/${barberiaId}`)
+    );
+  }
+
+  // Obtener servicios públicos de una barbería
+  async getServiciosBarberia(barberiaId: string) {
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/servicios`)
+    );
+  }
+
+  // Obtener barberos públicos de una barbería
+  async getBarberosBarberia(barberiaId: string) {
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/barberos`)
+    );
+  }
+
+  // Obtener disponibilidad pública de un barbero en fecha
+  async getDisponibilidadBarbero(barberoId: string, fecha: string, barberiaId: string) {
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/${fecha}`, {
+        params: { barberiaId }
+      })
+    );
+  }
+
+  // Obtener mis citas (cliente autenticado)
+  async getMisCitas() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/cita/mis-citas`, { headers })
+    );
+  }
+
+  // Crear cita (cliente autenticado)
+  async crearCita(data: {
+    barberiaId: string;
+    barberoId: string;
+    servicioId: string;
+    fecha: string;
+    horaInicio: string;
+  }) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/cita`, data, { headers })
+    );
+  }
+
   // Obtener citas de una barbería 
   async getCitasBarberia(barberiaId: string) {
     const headers = await this.getAuthHeaders();

@@ -1,0 +1,121 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="detail-topbar">
+    <ion-buttons slot="start">
+      <ion-button class="back-btn" (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="detail-topbar-title">Detalle de barbería</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding detail-premium-content">
+  <div class="detail-state" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando detalle...</p>
+  </div>
+
+  <div class="detail-state error" *ngIf="!loading && error">
+    <p>{{ error }}</p>
+    <ion-button fill="outline" size="small" (click)="loadBarberiaDetail()">Reintentar</ion-button>
+  </div>
+
+  <ng-container *ngIf="!loading && !error && barberia">
+    <section class="hero-card">
+      <div class="hero-cover" [style.background-image]="getCoverImage() ? 'url(' + getCoverImage() + ')' : 'none'">
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="hero-logo" [style.background-image]="getLogoImage() ? 'url(' + getLogoImage() + ')' : 'none'">
+        <ion-icon *ngIf="!getLogoImage()" name="business-outline"></ion-icon>
+      </div>
+      <div class="hero-body">
+        <h1>{{ barberia.nombre || 'Barbería' }}</h1>
+        <p>{{ barberia.direccion || 'Dirección no disponible' }}<span *ngIf="barberia.ciudad">, {{ barberia.ciudad }}</span></p>
+        <p class="hero-description">{{ barberia.descripcion || 'Descubre sus servicios y reserva tu próxima cita.' }}</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Servicios</h2>
+      </div>
+      <div class="service-list" *ngIf="servicios.length > 0; else emptyServicios">
+        <article class="service-item" *ngFor="let servicio of servicios">
+          <h3>{{ servicio.nombre || 'Servicio' }}</h3>
+          <p>{{ servicio.descripcion || 'Servicio disponible en esta barbería.' }}</p>
+          <div class="service-meta">
+            <span>{{ getServicioPrecio(servicio) }}</span>
+            <span>{{ servicio.duracion || '-' }} min</span>
+          </div>
+        </article>
+      </div>
+      <ng-template #emptyServicios>
+        <p class="empty-text">Esta barbería todavía no tiene servicios configurados.</p>
+      </ng-template>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Reservar cita</h2>
+      </div>
+
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Servicio</label>
+          <select [(ngModel)]="reservaForm.servicioId">
+            <option value="" disabled selected>Selecciona servicio</option>
+            <option *ngFor="let servicio of servicios" [value]="getEntityId(servicio)">
+              {{ servicio.nombre }} ({{ getServicioPrecio(servicio) }})
+            </option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Barbero</label>
+          <select [(ngModel)]="reservaForm.barberoId" (change)="onBarberoOrFechaChange()">
+            <option value="" disabled selected>Selecciona barbero</option>
+            <option *ngFor="let barbero of barberos" [value]="getEntityId(barbero)">
+              {{ getBarberoNombre(barbero) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Fecha</label>
+          <input type="date" [min]="minFecha" [(ngModel)]="reservaForm.fecha" (change)="onBarberoOrFechaChange()" />
+        </div>
+      </div>
+
+      <div class="availability-block">
+        <div class="availability-head">
+          <h3>Horas disponibles</h3>
+          <ion-spinner name="crescent" *ngIf="loadingDisponibilidad"></ion-spinner>
+        </div>
+
+        <div class="hours-grid" *ngIf="!loadingDisponibilidad && horariosDisponibles.length > 0">
+          <button
+            type="button"
+            *ngFor="let hora of horariosDisponibles"
+            [class.selected]="reservaForm.horaInicio === hora"
+            (click)="selectHorario(hora)"
+          >
+            {{ hora }}
+          </button>
+        </div>
+
+        <p class="empty-text" *ngIf="!loadingDisponibilidad && horariosDisponibles.length === 0">
+          No hay horarios disponibles para la selección actual.
+        </p>
+      </div>
+
+      <ion-button
+        expand="block"
+        class="reserve-btn"
+        (click)="reservarCita()"
+        [disabled]="reservando || !servicios.length || !barberos.length"
+      >
+        {{ reservando ? 'Reservando...' : 'Confirmar reserva' }}
+      </ion-button>
+    </section>
+  </ng-container>
+</ion-content>
