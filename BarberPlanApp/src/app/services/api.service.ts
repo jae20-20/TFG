@@ -110,6 +110,14 @@ export class ApiService {
     );
   }
 
+  // Obtener citas del barbero autenticado
+  async getCitasBarbero() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/cita/barbero`, { headers })
+    );
+  }
+
   // Obtener la barbería completa asociada al admin autenticado
   async getMyBarberia() {
     const headers = await this.getAuthHeaders();

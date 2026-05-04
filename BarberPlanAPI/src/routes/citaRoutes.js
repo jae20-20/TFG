@@ -22,22 +22,22 @@ import {
 const router = express.Router();
 
 // ==================== RUTAS PÚBLICAS ====================
-router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);  // GET /cita/disponibilidad/:barberoId/:fecha - Obtener disponibilidad
+router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);  
 
 // ==================== RUTAS DE CLIENTE ====================
-router.post("/", verifyToken, isCliente, crearCita);                 // POST /cita - Crear nueva cita
-router.get("/mis-citas", verifyToken, isCliente, getMisCitas);       // GET /cita/mis-citas - Obtener mis citas (cliente)
+router.post("/", verifyToken, isCliente, crearCita);
+router.get("/mis-citas", verifyToken, isCliente, getMisCitas);
 
 // ==================== RUTAS DE BARBERO ====================
-router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);     // GET /cita/barbero - Obtener citas del barbero
+router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);
 
 // ==================== RUTAS DE ADMIN ====================
-router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);  // GET /cita/barberia/:barberiaId - Obtener citas de la barbería
+router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);
 
 // ==================== RUTAS COMPARTIDAS ====================
-router.get("/:id", verifyToken, getCita);                            // GET /cita/:id - Obtener cita por ID
-router.put("/:id/confirmar", verifyToken, isAdminOrBarbero, confirmarCita);   // PUT /cita/:id/confirmar - Confirmar cita
-router.put("/:id/completar", verifyToken, isAdminOrBarbero, completarCita);   // PUT /cita/:id/completar - Marcar cita como completada
-router.put("/:id/cancelar", verifyToken, cancelarCita);              // PUT /cita/:id/cancelar - Cancelar cita
+router.get("/:id", verifyToken, getCita);
+router.put("/:id/confirmar", verifyToken, isAdminOrBarbero, confirmarCita);
+router.put("/:id/completar", verifyToken, isAdminOrBarbero, completarCita);
+router.put("/:id/cancelar", verifyToken, cancelarCita);
 
 export default router;
