@@ -1,0 +1,145 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/configuration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Horario General</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <div class="schedule-editor-card" *ngIf="!loading">
+    <div class="schedule-editor-head">
+      <div>
+        <h3>Horario habitual</h3>
+        <p>Define las franjas normales de apertura por día.</p>
+      </div>
+
+      <ion-item lines="none" class="service-input-item schedule-timezone-item">
+        <ion-label position="stacked">Zona horaria</ion-label>
+        <ion-select [(ngModel)]="horarioForm.timezone">
+          <ion-select-option value="Europe/Madrid">Europe/Madrid</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <div class="schedule-week-grid">
+      <div class="schedule-day-card" *ngFor="let day of scheduleDays">
+        <div class="schedule-day-card-head">
+          <div>
+            <h4>{{ day.label }}</h4>
+            <p>{{ horarioForm.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}</p>
+          </div>
+
+          <ion-button fill="clear" size="small" (click)="addWeeklySlot(day.key)">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Añadir franja
+          </ion-button>
+        </div>
+
+        <div class="schedule-slot-empty" *ngIf="horarioForm.weeklyTemplate[day.key].length === 0">
+          Sin franjas configuradas.
+        </div>
+
+        <div class="schedule-slot-row" *ngFor="let slot of horarioForm.weeklyTemplate[day.key]; let slotIndex = index">
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Desde</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.start"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Hasta</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.end"></ion-input>
+          </ion-item>
+
+          <ion-button fill="clear" color="danger" class="remove-slot-button" (click)="removeWeeklySlot(day.key, slotIndex)">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-exceptions-card">
+      <div class="schedule-editor-head schedule-exceptions-head">
+        <div>
+          <h3>Excepciones</h3>
+          <p>Festivos, vacaciones o cierres puntuales.</p>
+        </div>
+      </div>
+
+      <div class="schedule-exception-form">
+        <ion-item lines="none" class="service-input-item schedule-exception-item">
+          <ion-label position="stacked">Fecha</ion-label>
+          <ion-input type="date" [(ngModel)]="newHorarioExceptionForm.date"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none" class="service-input-item schedule-exception-item">
+          <ion-label position="stacked">Tipo</ion-label>
+          <ion-select [(ngModel)]="newHorarioExceptionForm.type">
+            <ion-select-option value="closed">Cerrado todo el día</ion-select-option>
+            <ion-select-option value="custom">Horario especial</ion-select-option>
+            <ion-select-option value="block">Bloquear horas</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item lines="none" class="service-input-item schedule-exception-item">
+          <ion-label position="stacked">Motivo</ion-label>
+          <ion-input type="text" placeholder="Vacaciones, festivo..." [(ngModel)]="newHorarioExceptionForm.reason"></ion-input>
+        </ion-item>
+
+        <div class="schedule-slot-row" *ngIf="newHorarioExceptionForm.type !== 'closed'">
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Desde</ion-label>
+            <ion-input type="time" [(ngModel)]="newHorarioExceptionForm.start"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Hasta</ion-label>
+            <ion-input type="time" [(ngModel)]="newHorarioExceptionForm.end"></ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button expand="block" color="secondary" class="add-service-button" (click)="addHorarioException()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Añadir excepción
+        </ion-button>
+      </div>
+
+      <div class="schedule-exceptions-list" *ngIf="horarioForm.exceptions.length > 0; else noExceptions">
+        <div class="schedule-exception-row" *ngFor="let exception of horarioForm.exceptions; let exceptionIndex = index">
+          <div>
+            <h4>{{ exception.date | date:'dd/MM/yyyy' }}</h4>
+            <p>
+              {{ exception.type === 'closed' ? 'Cerrado todo el día' : exception.type === 'custom' ? 'Horario especial' : 'Bloqueo parcial' }}
+              <span *ngIf="exception.reason">· {{ exception.reason }}</span>
+            </p>
+            <p *ngIf="exception.type !== 'closed'">
+              {{ exception.start }} - {{ exception.end }}
+            </p>
+          </div>
+
+          <ion-button fill="clear" color="danger" (click)="removeHorarioException(exceptionIndex)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <ng-template #noExceptions>
+        <div class="config-placeholder-card">Todavía no hay excepciones configuradas.</div>
+      </ng-template>
+    </div>
+
+    <ion-button expand="block" color="primary" class="save-visual-btn" (click)="saveHorario()" [disabled]="savingHorario">
+      <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+      {{ savingHorario ? 'Guardando...' : 'Guardar horario' }}
+    </ion-button>
+
+    <div class="schedule-legacy-note" *ngIf="legacyHorario">
+      Horario antiguo detectado: {{ legacyHorario }}
+    </div>
+
+    <p *ngIf="horarioError" class="barberia-error">{{ horarioError }}</p>
+  </div>
+
+  <p *ngIf="loading" class="calendar-empty">Cargando horario...</p>
+</ion-content>

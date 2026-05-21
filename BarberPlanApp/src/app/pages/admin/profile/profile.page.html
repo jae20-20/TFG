@@ -1,0 +1,95 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Perfil Personal</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Perfil</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="barberia-profile-card" *ngIf="user">
+    <div class="barberia-header">
+      <div class="barberia-title">
+        <h3>Datos del administrador</h3>
+        <p>Información de la cuenta de gestión</p>
+      </div>
+      <div class="barberia-actions">
+        <ion-button
+          *ngIf="!isEditingAdmin"
+          fill="outline"
+          size="small"
+          (click)="enterAdminEditMode()"
+        >
+          <ion-icon slot="start" name="pencil-outline"></ion-icon>
+          Editar
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="barberia-editable-section">
+      <h4 class="section-subtitle">Información principal</h4>
+
+      <div class="barberia-field-group">
+        <label>Nombre</label>
+        <ng-container *ngIf="!isEditingAdmin">
+          <div class="field-display">{{ user.nombre || 'No disponible' }}</div>
+        </ng-container>
+        <ng-container *ngIf="isEditingAdmin && adminEditForm">
+          <ion-input class="field-input" type="text" placeholder="Nombre" [(ngModel)]="adminEditForm.nombre"></ion-input>
+        </ng-container>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Apellidos</label>
+        <ng-container *ngIf="!isEditingAdmin">
+          <div class="field-display">{{ user.apellido || 'No disponible' }}</div>
+        </ng-container>
+        <ng-container *ngIf="isEditingAdmin && adminEditForm">
+          <ion-input class="field-input" type="text" placeholder="Apellidos" [(ngModel)]="adminEditForm.apellido"></ion-input>
+        </ng-container>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Usuario</label>
+        <ng-container *ngIf="!isEditingAdmin">
+          <div class="field-display">{{ user.usuario || 'No disponible' }}</div>
+        </ng-container>
+        <ng-container *ngIf="isEditingAdmin && adminEditForm">
+          <ion-input class="field-input" type="text" placeholder="Nombre de usuario" [(ngModel)]="adminEditForm.usuario"></ion-input>
+        </ng-container>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Teléfono</label>
+        <ng-container *ngIf="!isEditingAdmin">
+          <div class="field-display">{{ user.telefono || 'No disponible' }}</div>
+        </ng-container>
+        <ng-container *ngIf="isEditingAdmin && adminEditForm">
+          <ion-input class="field-input" type="tel" placeholder="Teléfono" [(ngModel)]="adminEditForm.telefono"></ion-input>
+        </ng-container>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Correo</label>
+        <div class="field-display">{{ user.correo || 'No disponible' }}</div>
+      </div>
+    </div>
+
+    <div class="barberia-actions-footer" *ngIf="isEditingAdmin">
+      <ion-button expand="block" fill="solid" color="primary" (click)="saveAdminProfile()" [disabled]="savingAdmin">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        {{ savingAdmin ? 'Guardando...' : 'Guardar cambios' }}
+      </ion-button>
+      <ion-button expand="block" fill="outline" class="cancel-btn" (click)="cancelAdminEdit()" [disabled]="savingAdmin">
+        <ion-icon slot="start" name="close-outline"></ion-icon>
+        Cancelar
+      </ion-button>
+    </div>
+
+    <p *ngIf="profileError" class="barberia-error">{{ profileError }}</p>
+  </div>
+</ion-content>

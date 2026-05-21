@@ -11,8 +11,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/register-barberia/register-barberia.page').then(m => m.RegisterBarberiaPage) 
   },
   {
-    path: 'admin-home',
-    loadComponent: () => import('./pages/admin-home/admin-home.page').then(m => m.AdminHomePage),
+    path: 'admin',
+    loadChildren: () => import('./pages/admin/admin.routes').then(m => m.adminRoutes),
     canActivate: [authGuard, roleGuard('admin')]
   },
   {
@@ -44,5 +44,4 @@ export const routes: Routes = [
     path: 'client-home/barberia/:id/reservar',
     loadComponent: () => import('./pages/client/barberia-booking/client-barberia-booking.page').then(m => m.ClientBarberiaBookingPage),
     canActivate: [authGuard, roleGuard('cliente')]
-  },
-];
+  },];

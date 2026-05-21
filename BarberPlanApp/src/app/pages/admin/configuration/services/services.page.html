@@ -1,0 +1,73 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/configuration"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Servicios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <div class="services-section" *ngIf="!loading">
+    <div class="services-list" *ngIf="barberia?.servicios?.length > 0; else noServices">
+      <div class="service-card" *ngFor="let servicio of barberia.servicios">
+        <div class="service-card-head">
+          <div>
+            <h4>{{ servicio.nombre }}</h4>
+            <p>{{ servicio.duracion }} min · {{ servicio.precio }} €</p>
+          </div>
+
+          <ion-button
+            fill="clear"
+            size="small"
+            color="danger"
+            class="delete-service-button"
+            (click)="confirmDeleteServicio(servicio)"
+            [disabled]="deletingServicioId === servicio._id"
+          >
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <p class="service-description" *ngIf="servicio.descripcion">
+          {{ servicio.descripcion }}
+        </p>
+      </div>
+    </div>
+    
+    <div class="services-form-card">
+      <h3>Nuevo servicio</h3>
+      <p>Nombre, precio y duración en minutos.</p>
+
+      <div class="services-form-grid">
+        <ion-item lines="none" class="service-input-item">
+          <ion-label position="stacked">Nombre</ion-label>
+          <ion-input type="text" placeholder="Corte clásico" [(ngModel)]="newServicioForm.nombre"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none" class="service-input-item">
+          <ion-label position="stacked">Precio</ion-label>
+          <ion-input type="number" inputmode="decimal" placeholder="12.50" [(ngModel)]="newServicioForm.precio"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none" class="service-input-item">
+          <ion-label position="stacked">Duración (min)</ion-label>
+          <ion-input type="number" inputmode="numeric" placeholder="30" [(ngModel)]="newServicioForm.duracion"></ion-input>
+        </ion-item>
+      </div>
+
+      <ion-button expand="block" color="primary" class="add-service-button" (click)="addServicio()" [disabled]="savingServicio">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        {{ savingServicio ? 'Añadiendo...' : 'Añadir servicio' }}
+      </ion-button>
+
+      <p *ngIf="serviciosError" class="barberia-error">{{ serviciosError }}</p>
+    </div>
+    
+    <ng-template #noServices>
+      <div class="config-placeholder-card">Todavía no hay servicios creados.</div>
+    </ng-template>
+  </div>
+
+  <p *ngIf="loading" class="calendar-empty">Cargando servicios...</p>
+</ion-content>

@@ -174,6 +174,22 @@ export class ApiService {
     );
   }
 
+  // Obtener detalle de un barbero por ID (requiere autenticación)
+  async getBarberoById(barberoId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/barbero/${barberoId}`, { headers })
+    );
+  }
+
+  // Actualizar datos de un barbero por ID (requiere autenticación)
+  async updateBarbero(barberoId: string, data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/barbero/${barberoId}`, data, { headers })
+    );
+  }
+
   // Eliminar un servicio
   async deleteServicio(barberiaId: string, servicioId: string) {
     const headers = await this.getAuthHeaders();

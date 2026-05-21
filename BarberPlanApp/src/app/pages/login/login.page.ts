@@ -34,7 +34,7 @@ export class LoginPage {
 
         // Redirigir según el rol
         if (user.rol === 'admin') {
-            this.router.navigateByUrl('/admin-home', { replaceUrl: true });
+            this.router.navigateByUrl('/admin/calendar', { replaceUrl: true });
         } else if (user.rol === 'barbero') {
             this.router.navigateByUrl('/barber-home', { replaceUrl: true });
         } else if (user.rol === 'cliente') {

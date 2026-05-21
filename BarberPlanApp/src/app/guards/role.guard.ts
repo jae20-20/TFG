@@ -22,7 +22,7 @@ export const roleGuard = (allowedRole: 'barbero' | 'cliente' | 'admin') => async
     let redirectTo = '/login';
     switch (user.rol) {
       case 'admin':
-        redirectTo = '/admin-home';
+        redirectTo = '/admin/calendar';
         break;
       case 'barbero':
         redirectTo = '/barber-home';
