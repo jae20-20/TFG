@@ -33,11 +33,11 @@ export class LoginPage {
         await this.storage.set('user', user);
 
         // Redirigir según el rol
-        if (user.rol === 'admin') {
+          if (user.rol === 'admin') {
             this.router.navigateByUrl('/admin/calendar', { replaceUrl: true });
-        } else if (user.rol === 'barbero') {
-            this.router.navigateByUrl('/barber-home', { replaceUrl: true });
-        } else if (user.rol === 'cliente') {
+          } else if (user.rol === 'barbero') {
+            this.router.navigateByUrl('/barber/calendar', { replaceUrl: true });
+          } else if (user.rol === 'cliente') {
             this.router.navigateByUrl('/client-home', { replaceUrl: true });
         } else {
             const toast = await this.toastCtrl.create({

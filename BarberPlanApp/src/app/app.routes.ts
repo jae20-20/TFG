@@ -16,8 +16,8 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('admin')]
   },
   {
-    path: 'barber-home',
-    loadComponent: () => import('./pages/barber-home/barber-home.page').then(m => m.BarberHomePage),
+    path: 'barber',
+    loadChildren: () => import('./pages/barber/barber.routes').then(m => m.barberRoutes),
     canActivate: [authGuard, roleGuard('barbero')]
   },
   {

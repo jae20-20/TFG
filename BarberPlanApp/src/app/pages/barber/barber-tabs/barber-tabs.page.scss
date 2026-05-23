@@ -1,0 +1,57 @@
+:host {
+	--barber-bg: #0f0f0f;
+	--barber-surface: #17191d;
+	--barber-border: rgba(212, 175, 55, 0.2);
+	--barber-text: #f8fafc;
+	--barber-muted: #9ca3af;
+	--barber-gold: #d4af37;
+	--barber-gold-strong: #c9a227;
+
+	/* Map Ionic primary color tokens to the barber palette */
+	--ion-color-primary: var(--barber-gold);
+	--ion-color-primary-rgb: 212, 175, 55;
+	--ion-color-primary-contrast: #171717;
+	--ion-color-primary-contrast-rgb: 23, 23, 23;
+	--ion-color-primary-shade: #bb9a30;
+	--ion-color-primary-tint: #d9b94b;
+}
+
+.barber-topbar {
+	--background: linear-gradient(180deg, #1a1d22 0%, #121417 100%);
+	--border-color: rgba(212, 175, 55, 0.26);
+	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
+}
+
+.barber-topbar-title {
+	color: var(--barber-text);
+	font-weight: 800;
+	letter-spacing: 0.01em;
+}
+
+.barber-logout-btn {
+	--color: #d4af37;
+}
+
+ion-content {
+	--padding-bottom: 88px;
+}
+
+.barber-footer {
+	--background: linear-gradient(180deg, #17191d 0%, #131519 100%);
+	border-top: 1px solid rgba(212, 175, 55, 0.2);
+	box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15);
+
+	ion-tab-button {
+		--color: #cab168;
+		--color-selected: var(--barber-gold);
+		background: transparent;
+		
+		ion-icon {
+			font-size: 24px;
+		}
+
+		&.tab-selected {
+			background: rgba(31, 35, 43, 0.5);
+		}
+	}
+}
