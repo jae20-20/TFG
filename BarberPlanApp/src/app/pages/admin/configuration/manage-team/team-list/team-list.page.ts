@@ -40,21 +40,14 @@ export class TeamListPage implements OnInit {
     }
   }
 
-  // Legacy method kept for compatibility
   openBarberDetails(barberoId: string) {
     this.router.navigate([`/admin/configuration/manage-team/${barberoId}`]);
   }
 
-  // New method used by template
   openBarber(barbero: any) {
     if (barbero && barbero._id) {
       this.openBarberDetails(barbero._id);
     }
   }
 
-  // Placeholder for adding a new barber
-  addBarber() {
-    // Navigate to a future 'add barber' page or open a modal
-    console.log('Add barber clicked - implement UI later');
-  }
 }

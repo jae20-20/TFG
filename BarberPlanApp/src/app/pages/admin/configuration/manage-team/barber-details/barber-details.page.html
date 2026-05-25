@@ -1,13 +1,54 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>barber-details</ion-title>
+  <ion-toolbar class="admin-topbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/configuration" text="Atrás"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="admin-topbar-title">Detalles del Barbero</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">barber-details</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <div class="barberia-profile-card" *ngIf="!loading && barber">
+    <div class="barberia-header">
+      <div class="barberia-title">
+        <h3>{{ barber.nombre }} {{ barber.apellido }}</h3>
+      </div>
+    </div>
+
+    <div class="barberia-editable-section">      
+      <div class="barberia-field-group">
+        <label>Nombre</label>
+        <div class="field-display">{{ barber.nombre }}</div>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Apellidos</label>
+        <div class="field-display">{{ barber.apellido || 'No especificado' }}</div>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Teléfono</label>
+        <div class="field-display">{{ barber.telefono || 'No especificado' }}</div>
+      </div>
+
+      <div class="barberia-field-group">
+        <label>Correo</label>
+        <div class="field-display">{{ barber.correo || 'No especificado' }}</div>
+      </div>
+    </div>
+
+    <div class="barberia-actions-footer">
+      <ion-button expand="block" color="danger" fill="outline" (click)="confirmRemoveBarber()" [disabled]="saving">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        {{ saving ? 'Eliminando...' : 'Eliminar barbero' }}
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="calendar-empty">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando información del barbero...</p>
+  </div>
+  
+  <p *ngIf="error" class="barberia-error">{{ error }}</p>
 </ion-content>

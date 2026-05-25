@@ -178,7 +178,7 @@ export class ApiService {
   async getBarberoById(barberoId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/barbero/${barberoId}`, { headers })
+      this.http.get<any>(`${this.apiUrl}/user/${barberoId}`, { headers })
     );
   }
 
@@ -187,6 +187,14 @@ export class ApiService {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
       this.http.put<any>(`${this.apiUrl}/barbero/${barberoId}`, data, { headers })
+    );
+  }
+
+  // Eliminar (desvincular) un barbero de la barbería
+  async removeBarbero(barberiaId: string, barberoId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/barberos/${barberoId}`, { headers })
     );
   }
 

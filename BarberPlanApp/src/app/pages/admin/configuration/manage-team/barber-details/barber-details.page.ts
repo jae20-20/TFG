@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../../services/api.service';
 
 interface BarberDetail {
@@ -10,6 +10,7 @@ interface BarberDetail {
   nombre: string;
   apellido: string;
   telefono: string;
+  correo: string;
   vacaciones: string[]; // ISO date strings
   horarioPersonal: any; // could be similar to schedule
 }
@@ -30,8 +31,10 @@ export class BarberDetailsPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private apiService: ApiService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {
@@ -55,22 +58,51 @@ export class BarberDetailsPage implements OnInit {
     }
   }
 
-  async saveBarberDetail() {
+  async confirmRemoveBarber() {
+    const alert = await this.alertCtrl.create({
+      header: 'Confirmar eliminación',
+      message: `¿Estás seguro de que deseas eliminar a ${this.barber?.nombre} ${this.barber?.apellido} de la barbería?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.removeBarber();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async removeBarber() {
     if (!this.barber) return;
     this.saving = true;
     try {
-      await this.apiService.updateBarbero(this.barber._id, this.barber);
+      // 1. Obtener la barbería asociada al admin
+      const miBarberia = await this.apiService.getMyBarberia();
+      // 2. Eliminar el barbero
+      await this.apiService.removeBarbero(miBarberia._id, this.barber._id);
+      
       const toast = await this.toastCtrl.create({
-        message: 'Datos del barbero actualizados',
+        message: 'Barbero eliminado de la barbería con éxito.',
         duration: 2000,
         position: 'bottom',
         color: 'success'
       });
       await toast.present();
+      
+      // Volver a la lista de barberos
+      this.router.navigate(['/admin/configuration'], { replaceUrl: true });
     } catch (e) {
-      console.error('Error guardando barbero', e);
+      console.error('Error eliminando barbero', e);
       const toast = await this.toastCtrl.create({
-        message: 'Error al guardar los cambios',
+        message: 'Error al eliminar al barbero.',
         duration: 2000,
         position: 'bottom',
         color: 'danger'
