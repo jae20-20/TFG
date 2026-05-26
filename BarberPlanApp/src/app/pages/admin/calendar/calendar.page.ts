@@ -34,6 +34,10 @@ export class CalendarPage implements OnInit {
   selectedDateKey = this.toDateKey(new Date());
   selectedDateLabel = '';
   selectedDayAppointments: any[] = [];
+  
+  // Agrupamiento por barberos
+  teamBarbers: any[] = [];
+  selectedBarberId: string = '';
 
   constructor(
     private apiService: ApiService,
@@ -63,6 +67,35 @@ export class CalendarPage implements OnInit {
     this.calendarError = '';
 
     try {
+      // Cargar barberos de la barbería
+      const barbers = await this.apiService.getBarberosBarberia(this.user.barberiaId);
+      if (Array.isArray(barbers)) {
+        
+        // Formatear la lista de barberos extraídos de la base de datos (excluyendo al admin por si acaso viene duplicado)
+        const otherBarbers = barbers
+          .filter(b => b._id !== this.user.id)
+          .map(b => ({
+            ...b,
+            displayName: `${b.nombre} ${b.apellido || ''}`.trim()
+          }));
+
+        // Crear explícitamente el objeto del administrador
+        const adminBarber = {
+          _id: this.user.id,
+          nombre: this.user.nombre,
+          apellido: this.user.apellido,
+          displayName: `${this.user.nombre} (Tú)`,
+        };
+
+        // El admin siempre será el primero
+        this.teamBarbers = [adminBarber, ...otherBarbers];
+
+        if (this.teamBarbers.length > 0) {
+          this.selectedBarberId = this.teamBarbers[0]._id;
+        }
+      }
+
+      // Cargar citas
       const citas = await this.apiService.getCitasBarberia(this.user.barberiaId);
       this.citas = Array.isArray(citas) ? citas : [];
       this.buildCalendar(this.currentMonthDate);
@@ -140,12 +173,20 @@ export class CalendarPage implements OnInit {
 
   private updateSelectedDayAppointments() {
     this.selectedDayAppointments = this.getAppointmentsByDateKey(this.selectedDateKey);
+
     this.selectedDateLabel = new Intl.DateTimeFormat('es-ES', {
       weekday: 'long',
       day: 'numeric',
       month: 'long'
     }).format(this.parseDateKey(this.selectedDateKey));
     this.buildCalendar(this.currentMonthDate);
+  }
+
+  getFilteredAppointments() {
+    if (!this.selectedBarberId) {
+      return [];
+    }
+    return this.selectedDayAppointments.filter(cita => cita.barbero?._id === this.selectedBarberId);
   }
 
   private getAppointmentsByDateKey(dateKey: string) {

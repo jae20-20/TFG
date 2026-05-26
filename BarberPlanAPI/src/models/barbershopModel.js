@@ -93,13 +93,21 @@ export const removeBarberoFromBarberia = async (barberiaId, barberoId) => {
     );
 };
 
-// Obtener todos los barberos de una barbería
+// Obtener todos los barberos de una barbería (incluyendo al admin)
 export const getBarberosByBarberiaId = async (barberiaId) => {
     const barberia = await db.collection("Barberias").findOne({ _id: new ObjectId(barberiaId) });
-    if (!barberia || !barberia.barberos) return [];
+    if (!barberia) return [];
+    
+    // Incluir a los empleados y al admin
+    const barberosIds = barberia.barberos || [];
+    if (barberia.adminId && !barberosIds.some(id => id.toString() === barberia.adminId.toString())) {
+        barberosIds.push(barberia.adminId);
+    }
+
+    if (barberosIds.length === 0) return [];
     
     return await db.collection("Usuarios").find({
-        _id: { $in: barberia.barberos }
+        _id: { $in: barberosIds }
     }).project({ pw: 0 }).toArray(); // Excluir contraseña
 };
 

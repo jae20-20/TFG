@@ -61,16 +61,23 @@
         <p class="calendar-error" *ngIf="calendarError">{{ calendarError }}</p>
       </div>
 
+      <!-- Segmento de filtrado por Barberos (Pasa páginas horizontal) -->
+      <ion-segment *ngIf="!loadingCitas && teamBarbers.length > 0" scrollable="true" [(ngModel)]="selectedBarberId" class="barber-segment">
+        <ion-segment-button *ngFor="let barber of teamBarbers" [value]="barber._id">
+          <ion-label>{{ barber.displayName }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
       <ng-container *ngIf="!loadingCitas">
-        <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
-          <ion-item *ngFor="let cita of selectedDayAppointments">
+        <ion-list *ngIf="getFilteredAppointments().length > 0; else emptyAppointments" lines="none">
+          <ion-item *ngFor="let cita of getFilteredAppointments()">
             <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
             <ion-label>
               <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
               <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
               <p>
-                {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
-                <span *ngIf="cita.estado">· {{ cita.estado }}</span>
+                Cliente: {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
+                <span *ngIf="cita.estado">· {{ cita.estado | titlecase }}</span>
               </p>
             </ion-label>
           </ion-item>
@@ -78,7 +85,7 @@
 
         <ng-template #emptyAppointments>
           <div class="calendar-empty">
-            No hay citas agendadas para este día.
+            No hay citas agendadas para este filtro.
           </div>
         </ng-template>
       </ng-container>
