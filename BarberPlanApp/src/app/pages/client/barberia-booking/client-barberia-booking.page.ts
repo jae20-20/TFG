@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
 
 interface ReservaForm {
@@ -45,7 +45,8 @@ export class ClientBarberiaBookingPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private apiService: ApiService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {}
 
   async ngOnInit() {
@@ -137,12 +138,6 @@ export class ClientBarberiaBookingPage implements OnInit {
     return 'Fecha y hora';
   }
 
-  goToNextStep() {
-    if (this.reservaPaso < 3) {
-      this.reservaPaso = (this.reservaPaso + 1) as 1 | 2 | 3;
-    }
-  }
-
   goToPrevStep() {
     if (this.reservaPaso > 1) {
       this.reservaPaso = (this.reservaPaso - 1) as 1 | 2 | 3;
@@ -157,17 +152,32 @@ export class ClientBarberiaBookingPage implements OnInit {
   selectBarbero(barberoId: string) {
     this.reservaForm.barberoId = barberoId;
     this.reservaForm.horaInicio = '';
-    this.reservaPaso = 3;
-    void this.loadDisponibilidad();
+    // void this.loadDisponibilidad(); - will load when moving to next step
   }
 
   selectFecha(fecha: string) {
     this.reservaForm.fecha = fecha;
     this.reservaForm.horaInicio = '';
-    void this.loadDisponibilidad();
+    void this.loadDisponibilidad(true);
   }
 
-  async loadDisponibilidad() {
+  async goToNextStep() {
+    if (this.reservaPaso === 2) {
+      if (!this.reservaForm.barberoId || !this.reservaForm.fecha) {
+        return;
+      }
+      await this.loadDisponibilidad(true);
+      if (this.horariosDisponibles.length === 0) {
+        return; // stay on step 2 if closed or fully booked
+      }
+    }
+    
+    if (this.reservaPaso < 3) {
+      this.reservaPaso = (this.reservaPaso + 1) as 1 | 2 | 3;
+    }
+  }
+
+  async loadDisponibilidad(showWarnings: boolean = false) {
     if (!this.reservaForm.barberoId || !this.reservaForm.fecha || !this.barberiaId) {
       this.horariosDisponibles = [];
       return;
@@ -185,6 +195,27 @@ export class ClientBarberiaBookingPage implements OnInit {
       this.horariosDisponibles = Array.isArray(response?.horariosDisponibles)
         ? response.horariosDisponibles
         : [];
+
+      if (response?.estado === 'cerrado') {
+        if (showWarnings) {
+          const alert = await this.alertCtrl.create({
+            header: 'Día Cerrado',
+            message: 'La barbería no abre en la fecha seleccionada. Por favor, elige otro día.',
+            buttons: ['Aceptar']
+          });
+          await alert.present();
+        }
+      } else if (response?.estado === 'completo') {
+        if (showWarnings) {
+          const toast = await this.toastCtrl.create({
+            message: 'No hay citas disponibles para este día.',
+            duration: 3000,
+            position: 'bottom',
+            color: 'warning'
+          });
+          await toast.present();
+        }
+      }
     } catch (error) {
       console.error('Error al cargar disponibilidad:', error);
       this.horariosDisponibles = [];

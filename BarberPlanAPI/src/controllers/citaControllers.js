@@ -267,16 +267,53 @@ export const getDisponibilidad = async (req, res) => {
         // Obtener citas del barbero en esa fecha
         const citasOcupadas = await getCitasByBarberoAndFecha(barberoId, fecha);
 
-        // Generar slots disponibles (simplificado - horario 9:00 a 20:00, intervalos de 30 min)
+        const schedule = barberia.schedule || {
+            timezone: "Europe/Madrid",
+            weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+            exceptions: []
+        };
+
+        const dateObj = new Date(fecha);
+        const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        const dayKey = days[dateObj.getDay()];
+
+        let slotsForDay = [];
+        let isClosed = false;
+
+        const exception = schedule.exceptions?.find(e => e.date === fecha);
+        if (exception) {
+            if (exception.type === 'closed') {
+                isClosed = true;
+            } else {
+                slotsForDay = exception.slots || [];
+            }
+        } else {
+            slotsForDay = schedule.weeklyTemplate?.[dayKey] || [];
+            if (slotsForDay.length === 0) {
+                isClosed = true;
+            }
+        }
+
+        if (isClosed) {
+            return res.json({
+                fecha,
+                barberoId,
+                estado: "cerrado",
+                horariosDisponibles: []
+            });
+        }
+
         const horariosDisponibles = [];
-        const horaInicio = 9;
-        const horaFin = 20;
         const intervalo = 30; // minutos
 
-        for (let hora = horaInicio; hora < horaFin; hora++) {
-            for (let minuto = 0; minuto < 60; minuto += intervalo) {
-                const horaStr = `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
-                
+        for (const slot of slotsForDay) {
+            if (!slot.start || !slot.end) continue;
+            let current = new Date(`1970-01-01T${slot.start}:00`);
+            const end = new Date(`1970-01-01T${slot.end}:00`);
+
+            while (current < end) {
+                const horaStr = `${String(current.getHours()).padStart(2, "0")}:${String(current.getMinutes()).padStart(2, "0")}`;
+
                 // Verificar si este horario está ocupado
                 const ocupado = citasOcupadas.some(cita => {
                     return horaStr >= cita.horaInicio && horaStr < cita.horaFin;
@@ -285,12 +322,17 @@ export const getDisponibilidad = async (req, res) => {
                 if (!ocupado) {
                     horariosDisponibles.push(horaStr);
                 }
+                
+                current.setMinutes(current.getMinutes() + intervalo);
             }
         }
+
+        let estado = horariosDisponibles.length === 0 ? "completo" : "abierto";
 
         res.json({
             fecha,
             barberoId,
+            estado,
             horariosDisponibles
         });
 
