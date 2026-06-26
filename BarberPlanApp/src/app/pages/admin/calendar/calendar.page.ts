@@ -14,6 +14,7 @@ interface CalendarDay {
   isSelected: boolean;
   hasAppointments: boolean;
   appointmentCount: number;
+  isClosed: boolean;
 }
 
 @Component({
@@ -38,6 +39,11 @@ export class CalendarPage implements OnInit {
   // Agrupamiento por barberos
   teamBarbers: any[] = [];
   selectedBarberId: string = '';
+
+  // Horario
+  horarioBarberia: any = null;
+  dayOpenTime: string | null = null;
+  dayCloseTime: string | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -98,6 +104,15 @@ export class CalendarPage implements OnInit {
       // Cargar citas
       const citas = await this.apiService.getCitasBarberia(this.user.barberiaId);
       this.citas = Array.isArray(citas) ? citas : [];
+      
+      // Cargar horario
+      try {
+        const response = await this.apiService.getMyHorario();
+        this.horarioBarberia = response?.horario || response?.schedule || response || null;
+      } catch (err) {
+        console.warn('No se pudo cargar el horario:', err);
+      }
+
       this.buildCalendar(this.currentMonthDate);
     } catch (error) {
       console.error('Error al cargar citas de barbería:', error);
@@ -160,7 +175,8 @@ export class CalendarPage implements OnInit {
         isToday: key === todayKey,
         isSelected: key === this.selectedDateKey,
         hasAppointments: appointments.length > 0,
-        appointmentCount: appointments.length
+        appointmentCount: appointments.length,
+        isClosed: this.isDayClosed(key)
       };
     });
 
@@ -179,7 +195,51 @@ export class CalendarPage implements OnInit {
       day: 'numeric',
       month: 'long'
     }).format(this.parseDateKey(this.selectedDateKey));
+    
+    this.updateScheduleLimits();
     this.buildCalendar(this.currentMonthDate);
+  }
+  //anyadido para las lineas de los limites de cada cita en calendario
+  private updateScheduleLimits() {
+    this.dayOpenTime = null;
+    this.dayCloseTime = null;
+
+    if (!this.horarioBarberia || !this.selectedDateKey) return;
+
+    const dateObj = this.parseDateKey(this.selectedDateKey);
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const dayKey = dayNames[dateObj.getDay()];
+
+   
+    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
+      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
+      if (exception) {
+        if (exception.type === 'closed') {
+           // Cerrado todo el día
+           return;
+        } else if (exception.type === 'custom' && exception.start && exception.end) {
+           this.dayOpenTime = exception.start;
+           this.dayCloseTime = exception.end;
+           return;
+        }
+      }
+    }
+
+    // 2. Regular schedule
+    const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
+    if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+      const slots = weeklyTemplate[dayKey];
+      if (slots.length > 0) {
+        let minStart = '23:59';
+        let maxEnd = '00:00';
+        for (const slot of slots) {
+          if (slot.start && slot.start < minStart) minStart = slot.start;
+          if (slot.end && slot.end > maxEnd) maxEnd = slot.end;
+        }
+        if (minStart !== '23:59') this.dayOpenTime = minStart;
+        if (maxEnd !== '00:00') this.dayCloseTime = maxEnd;
+      }
+    }
   }
 
   getFilteredAppointments() {
@@ -199,6 +259,32 @@ export class CalendarPage implements OnInit {
   private isDateInCurrentMonth(dateKey: string, year: number, month: number) {
     const date = this.parseDateKey(dateKey);
     return date.getFullYear() === year && date.getMonth() === month;
+  }
+
+  private isDayClosed(dateKey: string): boolean {
+    if (!this.horarioBarberia) return false;
+
+    const dateObj = this.parseDateKey(dateKey);
+    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const dayKey = dayNames[dateObj.getDay()];
+
+    // 1. Verificar excepciones
+    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
+      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === dateKey);
+      if (exception && exception.type === 'closed') {
+        return true;
+      }
+    }
+
+    // 2. Verificar horario habitual
+    const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
+    if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+      if (weeklyTemplate[dayKey].length === 0) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private parseDateKey(dateKey: string) {

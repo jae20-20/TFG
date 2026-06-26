@@ -39,6 +39,7 @@
         [class.today]="day.isToday"
         [class.selected]="day.isSelected"
         [class.has-appointments]="day.hasAppointments"
+        [class.closed-day]="day.isClosed"
         (click)="selectDay(day)"
       >
         <span class="calendar-day-number">{{ day.dayNumber }}</span>
@@ -61,6 +62,10 @@
       </ion-segment>
 
       <ng-container *ngIf="!loadingCitas">
+        <div class="schedule-delimiter" *ngIf="dayOpenTime">
+          <span>{{ dayOpenTime }}</span>
+        </div>
+
         <ion-list *ngIf="getFilteredAppointments().length > 0; else emptyAppointments" lines="none">
           <ion-item *ngFor="let cita of getFilteredAppointments()">
             <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
@@ -77,9 +82,14 @@
 
         <ng-template #emptyAppointments>
           <div class="calendar-empty">
-            No hay citas agendadas para este filtro.
+            <span *ngIf="dayOpenTime">No hay citas para este día.</span>
+            <span *ngIf="!dayOpenTime">Cerrado</span>
           </div>
         </ng-template>
+
+        <div class="schedule-delimiter" *ngIf="dayCloseTime">
+          <span>{{ dayCloseTime }}</span>
+        </div>
       </ng-container>
     </div>
   </div>

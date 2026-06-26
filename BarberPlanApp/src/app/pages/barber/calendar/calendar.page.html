@@ -48,6 +48,7 @@
           [class.today]="day.isToday"
           [class.selected]="day.isSelected"
           [class.has-appointments]="day.hasAppointments"
+          [class.closed-day]="day.isClosed"
           (click)="selectDay(day)"
         >
           <span class="calendar-day-number">{{ day.dayNumber }}</span>
@@ -63,26 +64,35 @@
         </div>
 
         <ng-container *ngIf="!loadingCitas">
-          <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
-            <ion-item *ngFor="let cita of selectedDayAppointments">
-              <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
-              <ion-label>
-                <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
-                <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
-                <p>
-                  {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
-                  <span *ngIf="cita.estado">· {{ cita.estado }}</span>
-                </p>
-              </ion-label>
-            </ion-item>
-          </ion-list>
+        <div class="schedule-delimiter" *ngIf="dayOpenTime">
+          <span>{{ dayOpenTime }}</span>
+        </div>
 
-          <ng-template #emptyAppointments>
-            <div class="calendar-empty">
-              No hay citas agendadas para este día.
-            </div>
-          </ng-template>
-        </ng-container>
+        <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
+          <ion-item *ngFor="let cita of selectedDayAppointments">
+            <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
+            <ion-label>
+              <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
+              <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
+              <p>
+                Cliente: {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
+                <span *ngIf="cita.estado">· {{ cita.estado | titlecase }}</span>
+              </p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        
+        <ng-template #emptyAppointments>
+          <div class="calendar-empty">
+            <span *ngIf="dayOpenTime">No hay citas para este día.</span>
+            <span *ngIf="!dayOpenTime">Cerrado</span>
+          </div>
+        </ng-template>
+
+        <div class="schedule-delimiter" *ngIf="dayCloseTime">
+          <span>{{ dayCloseTime }}</span>
+        </div>
+      </ng-container>
       </div>
     </div>
   </ion-list>
