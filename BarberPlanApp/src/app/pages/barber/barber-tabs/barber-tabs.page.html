@@ -1,7 +1,15 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="barber-topbar">
+    <ion-buttons slot="start">
+      <ion-button *ngIf="showBackButton" fill="clear" class="small-golden-back" (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
     <ion-title class="barber-topbar-title">¡Bienvenido, {{ user?.nombre }}!</ion-title>
+
     <ion-buttons slot="end">
+      <div class="golden-page-badge" style="margin-right: 12px; font-size: 0.75rem;">{{ pageName }}</div>
       <ion-button class="barber-logout-btn" (click)="logout()">
         <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
       </ion-button>

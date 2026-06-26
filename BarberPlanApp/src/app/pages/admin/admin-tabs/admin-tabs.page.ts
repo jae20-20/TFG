@@ -1,10 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { Router, NavigationEnd } from '@angular/router';
+import { AlertController, IonicModule, NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { AuthService } from '../../../services/auth.service';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline } from 'ionicons/icons';
+
+addIcons({
+  'arrow-back-outline': arrowBackOutline,
+  'log-out-outline': logOutOutline,
+  'calendar-outline': calendarOutline,
+  'settings-outline': settingsOutline,
+  'person-outline': personOutline
+});
 
 @Component({
   selector: 'app-admin-tabs',
@@ -13,19 +25,64 @@ import { AuthService } from '../../../services/auth.service';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class AdminTabsPage implements OnInit {
+export class AdminTabsPage implements OnInit, OnDestroy {
   user: any = null;
+  pageName: string = 'Calendario';
+  showBackButton: boolean = false;
+  backHref: string = '/admin/configuration';
+  private routerSub: Subscription;
 
   constructor(
     private authService: AuthService,
     private storage: Storage,
     private router: Router,
-    private alertCtrl: AlertController
-  ) { }
+    private alertCtrl: AlertController,
+    private navCtrl: NavController,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.routerSub = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.updatePageName(event.urlAfterRedirects);
+    });
+  }
 
-  async ngOnInit() {
-    await this.storage.create();
-    this.user = await this.storage.get('user');
+  ngOnInit() {
+    this.storage.create().then(() => {
+      this.storage.get('user').then(u => this.user = u);
+    });
+    this.updatePageName(this.router.url);
+  }
+
+  ngOnDestroy() {
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
+    }
+  }
+
+  updatePageName(url: string) {
+    const segments = url.split('?')[0].split('/').filter(s => s);
+    this.showBackButton = segments.length > 2;
+
+    if (this.showBackButton) {
+      this.backHref = '/' + segments.slice(0, 2).join('/');
+    }
+
+    if (url.includes('calendar')) this.pageName = 'Calendario';
+    else if (url.includes('barbershop-details')) this.pageName = 'Datos Barbería';
+    else if (url.includes('schedule')) this.pageName = 'Horario';
+    else if (url.includes('services')) this.pageName = 'Servicios';
+    else if (url.includes('card-configuration')) this.pageName = 'Personalizar';
+    else if (url.includes('manage-team')) this.pageName = 'Equipo';
+    else if (url.includes('configuration')) this.pageName = 'Configuración';
+    else if (url.includes('profile')) this.pageName = 'Perfil';
+    else this.pageName = 'Admin';
+    
+    this.cdr.detectChanges();
+  }
+
+  goBack() {
+    this.navCtrl.navigateBack(this.backHref);
   }
 
   async logout() {

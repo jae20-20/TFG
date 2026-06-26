@@ -1,11 +1,16 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="detail-topbar">
     <ion-buttons slot="start">
-      <ion-button class="back-btn" (click)="goBack()">
+      <ion-button class="small-golden-back" fill="clear" (click)="goBack()">
         <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title class="detail-topbar-title">Detalle de barbería</ion-title>
+    
+    <ion-title class="detail-topbar-title"></ion-title>
+
+    <ion-buttons slot="end">
+      <div class="golden-page-badge" style="margin-right: 12px; font-size: 0.75rem;">Detalles</div>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
