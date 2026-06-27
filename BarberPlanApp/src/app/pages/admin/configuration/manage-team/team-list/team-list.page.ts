@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
+import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../../../services/api.service';
 
 @Component({
@@ -15,10 +16,17 @@ export class TeamListPage implements OnInit {
   barberos: any[] = [];
   loading = false;
   error = '';
+  currentUser: any;
 
-  constructor(private apiService: ApiService, private router: Router) {}
+  constructor(
+    private apiService: ApiService, 
+    private router: Router,
+    private storage: Storage
+  ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.storage.create();
+    this.currentUser = await this.storage.get('user');
     this.loadBarberos();
   }
 
@@ -46,8 +54,16 @@ export class TeamListPage implements OnInit {
 
   openBarber(barbero: any) {
     if (barbero && barbero._id) {
-      this.openBarberDetails(barbero._id);
+      if (this.isAdmin(barbero)) {
+        this.router.navigate(['/admin/profile']);
+      } else {
+        this.openBarberDetails(barbero._id);
+      }
     }
+  }
+
+  isAdmin(barbero: any): boolean {
+    return this.currentUser && (barbero._id === this.currentUser.id || barbero._id === this.currentUser._id);
   }
 
 }

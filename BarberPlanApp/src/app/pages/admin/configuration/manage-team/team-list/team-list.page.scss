@@ -326,6 +326,22 @@ ion-content {
   margin-top: 8px;
 }
 
+.barber-segment { margin-bottom: 16px; --background: rgba(15, 23, 42, 0.4); } 
+
+.admin-badge {
+  font-size: 0.75rem;
+  color: rgba(212, 175, 55, 0.9);
+  font-weight: 600;
+  background: rgba(212, 175, 55, 0.15);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.admin-role-text {
+  color: rgba(212, 175, 55, 0.9) !important;
+  font-weight: 600;
+}
+
 .schedule-time-item,
 .schedule-exception-item {
   --background: rgba(15, 23, 42, 0.6);
@@ -610,6 +626,8 @@ ion-content {
     line-height: 1.5;
     word-break: break-word;
   }
+
+
 
   .field-input {
     --background: rgba(255, 255, 255, 0.05);
@@ -1082,6 +1100,9 @@ ion-list ion-item {
 
 ion-list ion-item h2 {
   color: var(--premium-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 ion-list ion-item p {
