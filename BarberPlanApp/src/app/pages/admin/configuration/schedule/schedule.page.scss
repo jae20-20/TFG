@@ -277,7 +277,7 @@ ion-content {
 .schedule-exceptions-card {
   padding: 14px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
@@ -315,7 +315,7 @@ ion-content {
   border: 1px dashed rgba(148, 163, 184, 0.24);
   color: #94a3b8;
   font-size: 13px;
-  background: rgba(15, 23, 42, 0.45);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .schedule-slot-row {
@@ -328,7 +328,7 @@ ion-content {
 
 .schedule-time-item,
 .schedule-exception-item {
-  --background: rgba(15, 23, 42, 0.6);
+  --background: rgba(255, 255, 255, 0.05);
   --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
@@ -384,7 +384,7 @@ ion-content {
   gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.55);
+    background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(148, 163, 184, 0.12);
 
   h4 {
@@ -444,7 +444,7 @@ ion-content {
 }
 
 .service-input-item {
-  --background: rgba(15, 23, 42, 0.6);
+    background: rgba(255, 255, 255, 0.05);
   --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
