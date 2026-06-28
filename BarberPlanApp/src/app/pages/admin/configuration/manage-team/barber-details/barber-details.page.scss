@@ -1289,3 +1289,46 @@ ion-list ion-item p {
   background: rgba(212, 175, 55, 0.08);
   color: #e6cc7a;
 }
+
+.divider {
+  height: 1px;
+  background: rgba(212, 175, 55, 0.2);
+  margin: 24px 0;
+}
+
+.dias-libres-section {
+  background: linear-gradient(180deg, #17191d 0%, #111317 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.add-dia-libre {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  ion-item {
+    flex: 1;
+    --background: transparent;
+  }
+}
+
+.dias-libres-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  ion-chip {
+    --background: rgba(212, 175, 55, 0.15);
+    --color: #d4af37;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    font-weight: 600;
+
+    ion-icon {
+      color: #d4af37;
+    }
+  }
+}

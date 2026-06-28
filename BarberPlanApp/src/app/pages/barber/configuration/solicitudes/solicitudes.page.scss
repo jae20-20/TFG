@@ -1,30 +1,174 @@
-ion-content.barber-premium-content {
-	--background: #0f0f0f;
+:host {
+  --page-bg: #0f0f0f;
+  --premium-gold: #d4af37;
+  --premium-gold-dark: #b5952f;
+  --premium-gold-light: #f3e5ab;
+  --panel-bg: linear-gradient(180deg, #17191d 0%, #111317 100%);
 }
 
-.config-placeholder-card {
-	padding: 22px;
-	margin-top: 20px;
-	text-align: center;
-	color: #f8fafc;
-	background: linear-gradient(180deg, #17191d 0%, #111317 100%);
-	border: 1px solid rgba(212, 175, 55, 0.2);
-	border-radius: 18px;
+.barber-premium-content {
+  --background: var(--page-bg);
+}
 
-	ion-icon {
-		font-size: 42px;
-		color: #d4af37;
-		margin-bottom: 10px;
-	}
+.nueva-solicitud-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 
-	h2 {
-		margin: 0;
-		font-size: 20px;
-		font-weight: 800;
-	}
+  h3 {
+    margin: 0 0 4px;
+    color: #f8fafc;
+    font-size: 18px;
+    font-weight: 800;
+  }
 
-	p {
-		margin: 8px 0 0;
-		color: #9ca3af;
-	}
+  p {
+    margin: 0 0 16px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .input-item {
+    --background: rgba(15, 23, 42, 0.6);
+    --border-radius: 12px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 12px;
+
+    ion-label {
+      color: #cbd5e1;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    ion-input, ion-select {
+      --color: #f8fafc;
+    }
+  }
+
+  .submit-btn {
+    margin: 0;
+    --border-radius: 12px;
+    font-weight: 700;
+  }
+}
+
+.solicitudes-list {
+  background: transparent;
+  padding: 0;
+}
+
+.solicitud-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  .solicitud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+
+    .sol-tipo {
+      margin: 0;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    ion-badge {
+      font-size: 0.75rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+  }
+
+  .solicitud-body {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+
+    p {
+      margin: 6px 0;
+    }
+
+    strong {
+      color: var(--premium-gold-light);
+    }
+    
+    .respuesta-admin {
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 3px solid var(--premium-gold);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+  }
+
+  .solicitud-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+    ion-button {
+      margin: 0;
+      font-weight: 600;
+      text-transform: none;
+    }
+  }
+}
+
+.placeholder-card {
+  padding: 40px 20px;
+  text-align: center;
+  color: #f8fafc;
+  background: var(--panel-bg);
+  border: 1px dashed rgba(212, 175, 55, 0.3);
+  border-radius: 18px;
+
+  ion-icon {
+    font-size: 48px;
+    color: var(--premium-gold);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 10px 0 0;
+    color: #9ca3af;
+    font-size: 14px;
+  }
+}
+
+.error-msg {
+  color: #ef4444;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.calendar-empty {
+  text-align: center;
+  padding: 30px;
+  color: #cbd5e1;
 }

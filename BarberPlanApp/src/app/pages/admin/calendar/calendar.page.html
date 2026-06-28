@@ -49,47 +49,71 @@
 
     <div class="calendar-detail">
       <div class="calendar-detail-head">
-        <h3>{{ selectedDateLabel | titlecase }}</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <h3>{{ selectedDateLabel | titlecase }}</h3>
+          <ion-button fill="outline" [color]="isGlobalDayClosed(selectedDateKey) ? 'danger' : 'warning'" size="small" (click)="toggleCerrarDiaGlobal()">
+            <ion-icon slot="start" [name]="isGlobalDayClosed(selectedDateKey) ? 'lock-open-outline' : 'lock-closed-outline'"></ion-icon>
+            {{ isGlobalDayClosed(selectedDateKey) ? 'Abrir Día' : 'Cerrar Día' }}
+          </ion-button>
+        </div>
         <p *ngIf="loadingCitas">Cargando citas...</p>
         <p class="calendar-error" *ngIf="calendarError">{{ calendarError }}</p>
       </div>
 
       <!-- Segmento de filtrado por Barberos (Pasa páginas horizontal) -->
-      <ion-segment *ngIf="!loadingCitas && teamBarbers.length > 0" scrollable="true" [(ngModel)]="selectedBarberId" class="barber-segment">
+      <ion-segment *ngIf="!loadingCitas && teamBarbers.length > 0" scrollable="true" [(ngModel)]="selectedBarberId" (ionChange)="onBarberChange()" class="barber-segment">
         <ion-segment-button *ngFor="let barber of teamBarbers" [value]="barber._id">
           <ion-label>{{ barber.displayName }}</ion-label>
         </ion-segment-button>
       </ion-segment>
 
+      <div class="calendar-admin-actions" *ngIf="!loadingCitas && teamBarbers.length > 0">
+        <ion-button fill="outline" color="warning" size="small" (click)="gestionarDiaBarbero()">
+          <ion-icon slot="start" name="settings-outline"></ion-icon>
+          Gestionar Horario de {{ getSelectedBarberName() }}
+        </ion-button>
+      </div>
+
       <ng-container *ngIf="!loadingCitas">
-        <div class="schedule-delimiter" *ngIf="dayOpenTime">
-          <span>{{ dayOpenTime }}</span>
+        <div class="schedule-delimiter closed-partial" *ngIf="barberAbsence" style="color: var(--ion-color-danger); border-color: var(--ion-color-danger);">
+          <span>-- CERRADO DE  {{ barberAbsence.start }} A {{ barberAbsence.end }} --</span>
         </div>
 
-        <ion-list *ngIf="getFilteredAppointments().length > 0; else emptyAppointments" lines="none">
-          <ion-item *ngFor="let cita of getFilteredAppointments()">
-            <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
-            <ion-label>
-              <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
-              <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
-              <p>
-                Cliente: {{ cita.cliente?.nombre }} {{ cita.cliente?.apellido }}
-                <span *ngIf="cita.estado">· {{ cita.estado | titlecase }}</span>
-              </p>
-            </ion-label>
-          </ion-item>
+        <ion-list lines="none" *ngIf="getFilteredAppointments().length > 0">
+          <ng-container *ngFor="let item of getTimelineItems(); let i = index">
+            
+            <div class="schedule-delimiter" *ngIf="item.type === 'delimiter'">
+              <span>{{ item.time }}</span>
+            </div>
+            
+            <ion-item *ngIf="item.type === 'appointment'">
+              <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
+              <ion-label>
+                <h2>{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</h2>
+                <p>{{ item.cita.servicioNombre || item.cita.servicio?.nombre || item.cita.servicio }}</p>
+                <p>
+                  Cliente: {{ item.cita.cliente?.nombre }} {{ item.cita.cliente?.apellido }}
+                  <span *ngIf="item.cita.estado">· {{ item.cita.estado | titlecase }}</span>
+                </p>
+              </ion-label>
+            </ion-item>
+
+          </ng-container>
         </ion-list>
-
-        <ng-template #emptyAppointments>
-          <div class="calendar-empty">
-            <span *ngIf="dayOpenTime">No hay citas para este día.</span>
-            <span *ngIf="!dayOpenTime">Cerrado</span>
+        
+        <!-- Si no hay citas, resumen de horario y mensaje vacío -->
+        <ng-container *ngIf="getFilteredAppointments().length === 0">
+          <div class="schedule-delimiter" *ngIf="scheduleLimitsText">
+            <span>Horario: {{ scheduleLimitsText }}</span>
           </div>
-        </ng-template>
-
-        <div class="schedule-delimiter" *ngIf="dayCloseTime">
-          <span>{{ dayCloseTime }}</span>
-        </div>
+          <div class="schedule-delimiter" *ngIf="!scheduleLimitsText && dayOpenTime">
+            <span>Horario: {{ dayOpenTime }} a {{ dayCloseTime }}</span>
+          </div>
+          
+          <div class="calendar-empty">
+            <span>{{ getEmptyMessage() }}</span>
+          </div>
+        </ng-container>
       </ng-container>
     </div>
   </div>

@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/configuration" text="" color="light"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Solicitudes de Equipo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <div *ngIf="loading" class="calendar-empty">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando solicitudes...</p>
+  </div>
+  
+  <p *ngIf="error" class="barberia-error">{{ error }}</p>
+
+  <ion-list class="config-hub-list" *ngIf="!loading && solicitudes.length > 0">
+    <div class="solicitud-card" *ngFor="let solicitud of solicitudes">
+      <div class="solicitud-header">
+        <div class="barbero-info">
+          <ion-avatar>
+            <img [src]="solicitud.barberoAvatar || 'assets/default-avatar.png'" />
+          </ion-avatar>
+          <h3>{{ solicitud.barberoNombre }}</h3>
+        </div>
+        <ion-badge [color]="solicitud.estado === 'pendiente' ? 'warning' : (solicitud.estado === 'aprobada' ? 'success' : 'danger')">
+          {{ solicitud.estado | uppercase }}
+        </ion-badge>
+      </div>
+      
+      <div class="solicitud-body">
+        <p><strong>Tipo:</strong> {{ solicitud.tipo }}</p>
+        <p><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }} <strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.motivo"><strong>Motivo:</strong> {{ solicitud.motivo }}</p>
+      </div>
+      
+      <div class="solicitud-actions" *ngIf="solicitud.estado === 'pendiente'">
+        <ion-button color="success" size="small" (click)="responderSolicitud(solicitud._id, 'aprobada')">Aprobar</ion-button>
+        <ion-button color="danger" size="small" (click)="responderSolicitud(solicitud._id, 'rechazada')">Rechazar</ion-button>
+      </div>
+    </div>
+  </ion-list>
+
+  <div *ngIf="!loading && solicitudes.length === 0 && !error" class="config-placeholder-card">
+    <ion-icon name="mail-open-outline"></ion-icon>
+    <h2>Sin Solicitudes</h2>
+    <p>No hay solicitudes pendientes del equipo.</p>
+  </div>
+</ion-content>

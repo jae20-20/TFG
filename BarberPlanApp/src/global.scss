@@ -114,3 +114,52 @@ body.dark .custom-header-center {
   color: #d4af37 !important;
   font-size: 24px !important; 
 }
+
+/* Estilos para Alertas Premium */
+.premium-alert {
+  --background: #17191d;
+  --backdrop-opacity: 0.7;
+
+  .alert-wrapper {
+    background: linear-gradient(180deg, #17191d 0%, #111317 100%) !important;
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .alert-title {
+    color: #f8fafc !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+  }
+
+  .alert-message {
+    color: #94a3b8 !important;
+    font-size: 14px !important;
+  }
+
+  .alert-button-group {
+    border-top: 1px solid rgba(212, 175, 55, 0.1) !important;
+  }
+
+  .alert-button {
+    color: #d4af37 !important;
+    font-weight: 600 !important;
+    
+    &.alert-button-role-cancel {
+      color: #94a3b8 !important;
+      font-weight: 500 !important;
+    }
+  }
+
+  .alert-input {
+    background: rgba(15, 23, 42, 0.6) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(148, 163, 184, 0.12) !important;
+    border-radius: 8px !important;
+    
+    &::placeholder {
+      color: #64748b !important;
+    }
+  }
+}

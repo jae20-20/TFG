@@ -9,6 +9,8 @@ import { connectDB } from "./db/connection.js";
 // Importar rutas
 import barbershopRoutes from "./routes/barbershopRoutes.js";
 import citaRoutes from "./routes/citaRoutes.js";
+import solicitudRoutes from "./routes/solicitudRoutes.js";
+import barberoRoutes from "./routes/barberoRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config(); // Cargar variables de entorno
@@ -34,6 +36,8 @@ app.use(globalLimiter);
 app.use("/user", userRoutes);           // Rutas de usuarios
 app.use("/barberia", barbershopRoutes); // Rutas de barberías
 app.use("/cita", citaRoutes);           // Rutas de citas
+app.use("/solicitud", solicitudRoutes); // Rutas de solicitudes
+app.use("/barbero", barberoRoutes);     // Rutas de barberos
 
 // Ruta de estado del servidor
 app.get("/", (req, res) => {

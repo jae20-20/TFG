@@ -28,5 +28,9 @@ export const configurationRoutes: Routes = [
   {
     path: 'manage-team/:id',
     loadComponent: () => import('./manage-team/barber-details/barber-details.page').then(m => m.BarberDetailsPage)
+  },
+  {
+    path: 'team-requests',
+    loadComponent: () => import('./team-requests/team-requests.page').then(m => m.TeamRequestsPage)
   }
 ];

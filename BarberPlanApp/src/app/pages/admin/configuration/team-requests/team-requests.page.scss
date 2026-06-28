@@ -1,0 +1,109 @@
+:host {
+  --page-bg: #0f0f0f;
+  --premium-gold: #d4af37;
+  --premium-gold-dark: #b5952f;
+  --premium-gold-light: #f3e5ab;
+  --panel-bg: linear-gradient(180deg, #17191d 0%, #111317 100%);
+}
+
+.admin-premium-content {
+  --background: var(--page-bg);
+}
+
+.solicitud-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  .solicitud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+
+    .barbero-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      ion-avatar {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--premium-gold);
+      }
+
+      h3 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+    }
+
+    ion-badge {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+  }
+
+  .solicitud-body {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+
+    p {
+      margin: 6px 0;
+    }
+
+    strong {
+      color: var(--premium-gold-light);
+    }
+  }
+
+  .solicitud-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-end;
+
+    ion-button {
+      margin: 0;
+      --border-radius: 8px;
+      font-weight: 600;
+    }
+  }
+}
+
+.config-placeholder-card {
+  padding: 32px;
+  margin-top: 20px;
+  text-align: center;
+  color: #f8fafc;
+  background: var(--panel-bg);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 18px;
+
+  ion-icon {
+    font-size: 48px;
+    color: var(--premium-gold);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  p {
+    margin: 12px 0 0;
+    color: #9ca3af;
+    font-size: 1rem;
+  }
+}

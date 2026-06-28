@@ -1315,3 +1315,15 @@ ion-list ion-item p {
     margin: 0 10px;
   }
 }
+
+.calendar-admin-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 12px;
+  
+  ion-button {
+    margin: 0;
+    --border-radius: 8px;
+    font-weight: 600;
+  }
+}

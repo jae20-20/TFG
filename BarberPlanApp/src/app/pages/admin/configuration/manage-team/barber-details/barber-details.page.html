@@ -1,4 +1,5 @@
-
+<ion-header>
+</ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
   <div class="barberia-profile-card" *ngIf="!loading && barber">
@@ -29,11 +30,87 @@
         <div class="field-display">{{ barber.correo || 'No especificado' }}</div>
       </div>
     </div>
+    
+    <div class="divider"></div>
+
+    <div class="schedule-editor-head">
+      <div>
+        <h3>Horario Especial</h3>
+        <p>Aplica un horario diferente al de la barbería.</p>
+      </div>
+      <ion-toggle color="success" [checked]="barber.horarioPersonal?.enabled" (ionChange)="toggleHorarioEspecial($event)"></ion-toggle>
+    </div>
+
+    <div class="schedule-week-grid" *ngIf="barber.horarioPersonal?.enabled">
+      <div class="schedule-day-card" *ngFor="let day of scheduleDays">
+        <div class="schedule-day-card-head">
+          <div>
+            <h4>{{ day.label }}</h4>
+            <p>{{ barber.horarioPersonal!.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}</p>
+          </div>
+          <ion-button fill="clear" size="small" (click)="addWeeklySlot(day.key)">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Añadir franja
+          </ion-button>
+        </div>
+
+        <div class="schedule-slot-empty" *ngIf="barber.horarioPersonal!.weeklyTemplate[day.key].length === 0">
+          Sin franjas configuradas.
+        </div>
+
+        <div class="schedule-slot-row" *ngFor="let slot of barber.horarioPersonal!.weeklyTemplate[day.key]; let slotIndex = index">
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Desde</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.start"></ion-input>
+          </ion-item>
+          <ion-item lines="none" class="service-input-item schedule-time-item">
+            <ion-label position="stacked">Hasta</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.end"></ion-input>
+          </ion-item>
+          <ion-button fill="clear" color="danger" class="remove-slot-button" (click)="removeWeeklySlot(day.key, slotIndex)">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="schedule-editor-head">
+      <div>
+        <h3>Días Libres</h3>
+        <p>Añade días específicos en los que el barbero no trabaja.</p>
+      </div>
+    </div>
+
+    <div class="dias-libres-section">
+      <div class="add-dia-libre">
+        <ion-item lines="none" class="service-input-item">
+          <ion-input type="date" [(ngModel)]="newDiaLibre"></ion-input>
+        </ion-item>
+        <ion-button color="secondary" (click)="addDiaLibre()">Añadir</ion-button>
+      </div>
+
+      <div class="dias-libres-list" *ngIf="barber.diasLibres && barber.diasLibres.length > 0">
+        <ion-chip *ngFor="let dia of barber.diasLibres; let i = index" color="primary">
+          <ion-label>{{ dia | date:'dd/MM/yyyy' }}</ion-label>
+          <ion-icon name="close-circle" (click)="removeDiaLibre(i)"></ion-icon>
+        </ion-chip>
+      </div>
+      <p class="schedule-slot-empty" *ngIf="!barber.diasLibres || barber.diasLibres.length === 0">
+        No hay días libres configurados.
+      </p>
+    </div>
 
     <div class="barberia-actions-footer">
+      <ion-button expand="block" color="primary" class="save-visual-btn" (click)="saveChanges()" [disabled]="saving">
+        <ion-icon slot="start" name="save-outline"></ion-icon>
+        {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
+      </ion-button>
+      <br>
       <ion-button expand="block" color="danger" fill="outline" (click)="confirmRemoveBarber()" [disabled]="saving">
         <ion-icon slot="start" name="trash-outline"></ion-icon>
-        {{ saving ? 'Eliminando...' : 'Eliminar barbero' }}
+        Eliminar barbero
       </ion-button>
     </div>
   </div>

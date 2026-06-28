@@ -205,4 +205,41 @@ export class ApiService {
       this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios/${servicioId}`, { headers })
     );
   }
+
+  // --- SOLICITUDES (BARBERO) ---
+  async createSolicitud(data: any) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/solicitud`, data, { headers })
+    );
+  }
+
+  async getMisSolicitudes() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/solicitud/mis-solicitudes`, { headers })
+    );
+  }
+
+  async deleteSolicitud(id: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/solicitud/${id}`, { headers })
+    );
+  }
+
+  // --- SOLICITUDES (ADMIN) ---
+  async getSolicitudesEquipo() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/solicitud/equipo`, { headers })
+    );
+  }
+
+  async responderSolicitud(id: string, estado: string, respuestaAdmin?: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/solicitud/${id}/responder`, { estado, respuestaAdmin }, { headers })
+    );
+  }
 }

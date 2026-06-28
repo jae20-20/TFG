@@ -11,7 +11,8 @@ import {
     getUserById,
     getUserByUsername,
     updateUserPassword,
-    updateUserProfile
+    updateUserProfile,
+    updateUser
 } from "../models/userModel.js";
 
 //****OBTENER USUARIOS *****
@@ -264,5 +265,36 @@ export const deleteUserAccount = async (req, res) => {
     } catch (error) {
         console.error("Error al eliminar usuario:", error);
         res.status(500).json({ error: "Error al eliminar usuario" });
+    }
+};
+
+// ACTUALIZAR HORARIO ESPECÍFICO DE BARBERO
+export const updateBarberoHorario = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { horarioPersonal, diasLibres, vacaciones } = req.body;
+        
+        // Verificar permisos
+        if (req.user.rol !== "admin" && req.user.id !== id) {
+            return res.status(403).json({ error: "No tienes permiso para actualizar este horario" });
+        }
+
+        const barbero = await getUserById(id);
+        if (!barbero) {
+            return res.status(404).json({ error: "Barbero no encontrado" });
+        }
+
+        const updatedData = {};
+        if (horarioPersonal !== undefined) updatedData.horarioPersonal = horarioPersonal;
+        if (diasLibres !== undefined) updatedData.diasLibres = diasLibres;
+        if (vacaciones !== undefined) updatedData.vacaciones = vacaciones;
+        updatedData.updatedAt = new Date();
+
+        await updateUser(id, updatedData);
+
+        res.json({ message: "Horario del barbero actualizado exitosamente" });
+    } catch (error) {
+        console.error("Error al actualizar horario del barbero:", error);
+        res.status(500).json({ error: "Error al actualizar horario del barbero" });
     }
 };
