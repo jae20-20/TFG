@@ -100,7 +100,7 @@ export class RegisterBarberiaPage implements OnInit {
         header: '¡Barbería Registrada!',
         subHeader: `Código: ${response.barberia.codigo}`,
         message: 'Guarda este código y compártelo con tus barberos para que puedan registrarse en tu barbería.',
-        cssClass: 'codigo-alert',
+        cssClass: 'premium-alert codigo-alert',
         buttons: [
           {
             text: 'Entendido',

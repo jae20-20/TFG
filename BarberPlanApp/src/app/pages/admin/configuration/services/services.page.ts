@@ -92,6 +92,7 @@ export class ServicesPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Eliminar servicio',
       message: `¿Estás seguro de que deseas eliminar "${servicio.nombre}"?`,
+      cssClass: 'premium-alert',
       buttons: [
         {
           text: 'Cancelar',

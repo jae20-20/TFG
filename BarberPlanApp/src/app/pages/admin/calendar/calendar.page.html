@@ -118,4 +118,50 @@
       </ng-container>
     </div>
   </div>
+
+  <!-- Modal para añadir franjas múltiples al abrir un día especial -->
+  <ion-modal [isOpen]="isSlotsModalOpen" (didDismiss)="cancelSlotsModal()" class="premium-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Apertura Especial</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cancelSlotsModal()" style="color: #94a3b8; font-weight: 500;">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <p class="ion-margin-bottom" style="color: #94a3b8; font-size: 0.95rem;">
+          Añade las franjas horarias en las que estará abierto este día.
+        </p>
+
+        <div *ngFor="let slot of currentSlots; let i = index" class="slot-container">
+          <ion-item class="time-item" lines="none" style="flex: 1;">
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Inicio</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.start"></ion-input>
+          </ion-item>
+          <ion-item class="time-item" lines="none" style="flex: 1;">
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Fin</ion-label>
+            <ion-input type="time" [(ngModel)]="slot.end"></ion-input>
+          </ion-item>
+          <ion-button fill="clear" color="danger" (click)="removeSlot(i)" [disabled]="currentSlots.length === 1" style="margin-top: 25px;">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <ion-button expand="block" class="premium-modal-button ion-margin-top" (click)="addSlot()">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Añadir Franja
+        </ion-button>
+      </ion-content>
+      <ion-footer>
+        <ion-toolbar>
+          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="slotsModalTarget === 'global' ? applyGlobalSlots() : applyBarberSlots()">
+            Guardar Horario
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
 </ion-content>

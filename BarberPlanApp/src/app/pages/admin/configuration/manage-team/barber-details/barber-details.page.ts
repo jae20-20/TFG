@@ -156,6 +156,7 @@ export class BarberDetailsPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar eliminación',
       message: `¿Estás seguro de que deseas eliminar a ${this.barber?.nombre} ${this.barber?.apellido} de la barbería?`,
+      cssClass: 'premium-alert',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Eliminar', role: 'destructive', handler: () => { this.removeBarber(); } }

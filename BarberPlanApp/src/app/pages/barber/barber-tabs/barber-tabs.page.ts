@@ -87,6 +87,7 @@ export class BarberTabsPage implements OnInit, OnDestroy {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Sesión',
       message: '¿Estás seguro de que quieres cerrar sesión?',
+      cssClass: 'premium-alert',
       buttons: [
         {
           text: 'Cancelar',

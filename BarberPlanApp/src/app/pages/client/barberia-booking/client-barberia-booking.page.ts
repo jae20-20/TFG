@@ -201,6 +201,7 @@ export class ClientBarberiaBookingPage implements OnInit {
           const alert = await this.alertCtrl.create({
             header: 'Día Cerrado',
             message: 'La barbería no abre en la fecha seleccionada. Por favor, elige otro día.',
+            cssClass: 'premium-alert',
             buttons: ['Aceptar']
           });
           await alert.present();

@@ -109,6 +109,7 @@ export class SolicitudesPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Eliminar solicitud',
       message: '¿Estás seguro de que quieres cancelar esta solicitud?',
+      cssClass: 'premium-alert',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Sí, eliminar', role: 'destructive', handler: () => this.deleteSolicitud(id) }

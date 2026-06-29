@@ -86,6 +86,7 @@ export class ClientProfilePage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Sesión',
       message: '¿Estás seguro de que quieres cerrar sesión?',
+      cssClass: 'premium-alert',
       buttons: [
         {
           text: 'Cancelar',

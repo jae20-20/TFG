@@ -48,6 +48,11 @@ export class CalendarPage implements OnInit {
   scheduleLimitsText: string | null = null;
   barberAbsence: { start: string, end: string } | null = null;
 
+  // Modal para abrir días con múltiples franjas
+  isSlotsModalOpen = false;
+  slotsModalTarget: 'global' | 'barber' = 'global';
+  currentSlots: { start: string, end: string }[] = [];
+
   constructor(
     private apiService: ApiService,
     private storage: Storage,
@@ -224,43 +229,44 @@ export class CalendarPage implements OnInit {
   }
 
   async pedirHorasAbrirDiaGlobal() {
-    const alert = await this.alertCtrl.create({
-      header: 'Abrir Barbería',
-      message: 'La barbería está cerrada este día por su horario habitual. Para abrirla hoy, introduce las horas de apertura.',
-      cssClass: 'premium-alert',
-      inputs: [
-        { name: 'start', type: 'time', placeholder: 'Hora de inicio' },
-        { name: 'end', type: 'time', placeholder: 'Hora de cierre' }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Abrir',
-          handler: async (data) => {
-            if (data.start && data.end) {
-              this.horarioBarberia.exceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date !== this.selectedDateKey);
-              this.horarioBarberia.exceptions.push({
-                date: this.selectedDateKey,
-                type: 'custom',
-                start: data.start,
-                end: data.end
-              });
-              try {
-                await this.apiService.updateMyHorario({ horario: this.horarioBarberia });
-                const toast = await this.toastCtrl.create({ message: 'Día abierto globalmente.', duration: 2000, color: 'success' });
-                toast.present();
-                this.buildCalendar(this.currentMonthDate);
-                this.updateSelectedDayAppointments();
-              } catch (e) {
-                const toast = await this.toastCtrl.create({ message: 'Error al actualizar.', duration: 2000, color: 'danger' });
-                toast.present();
-              }
-            }
-          }
-        }
-      ]
+    this.slotsModalTarget = 'global';
+    this.currentSlots = [{ start: '', end: '' }];
+    this.isSlotsModalOpen = true;
+  }
+
+  async applyGlobalSlots() {
+    if (!this.horarioBarberia) return;
+    
+    // Filtrar franjas vacías
+    const validSlots = this.currentSlots.filter(s => s.start && s.end);
+    if (validSlots.length === 0) {
+      const toast = await this.toastCtrl.create({ message: 'Añade al menos una franja válida.', duration: 2000, color: 'warning' });
+      toast.present();
+      return;
+    }
+
+    this.horarioBarberia.exceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date !== this.selectedDateKey);
+    
+    validSlots.forEach(slot => {
+      this.horarioBarberia.exceptions.push({
+        date: this.selectedDateKey,
+        type: 'custom',
+        start: slot.start,
+        end: slot.end
+      });
     });
-    await alert.present();
+
+    try {
+      await this.apiService.updateMyHorario({ horario: this.horarioBarberia });
+      const toast = await this.toastCtrl.create({ message: 'Día abierto globalmente.', duration: 2000, color: 'success' });
+      toast.present();
+      this.isSlotsModalOpen = false;
+      this.buildCalendar(this.currentMonthDate);
+      this.updateSelectedDayAppointments();
+    } catch (e) {
+      const toast = await this.toastCtrl.create({ message: 'Error al actualizar.', duration: 2000, color: 'danger' });
+      toast.present();
+    }
   }
 
   getSelectedBarberName(): string {
@@ -459,32 +465,21 @@ export class CalendarPage implements OnInit {
   }
 
   async pedirHorasAbrirDiaBarbero() {
-    const alert = await this.alertCtrl.create({
-      header: 'Abrir Día',
-      message: 'El día está cerrado por horario habitual. Introduce las horas en las que el barbero estará DISPONIBLE.',
-      cssClass: 'premium-alert',
-      inputs: [
-        { name: 'start', type: 'time', placeholder: 'Hora de inicio' },
-        { name: 'end', type: 'time', placeholder: 'Hora de fin' }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Abrir Día',
-          handler: (data) => {
-            if (data.start && data.end) {
-              this.aplicarAperturaBarbero(data.start, data.end);
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
+    this.slotsModalTarget = 'barber';
+    this.currentSlots = [{ start: '', end: '' }];
+    this.isSlotsModalOpen = true;
   }
 
-  async aplicarAperturaBarbero(start: string, end: string) {
+  async applyBarberSlots() {
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
     if (!barber) return;
+    
+    const validSlots = this.currentSlots.filter(s => s.start && s.end);
+    if (validSlots.length === 0) {
+      const toast = await this.toastCtrl.create({ message: 'Añade al menos una franja válida.', duration: 2000, color: 'warning' });
+      toast.present();
+      return;
+    }
     
     if (!barber.horarioPersonal) {
       barber.horarioPersonal = { enabled: true, timezone: 'Europe/Madrid', weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, exceptions: [] };
@@ -492,15 +487,34 @@ export class CalendarPage implements OnInit {
     if (!barber.horarioPersonal.exceptions) barber.horarioPersonal.exceptions = [];
     barber.horarioPersonal.enabled = true;
     
-    const newEx = { date: this.selectedDateKey, type: 'custom', start, end, isAbsence: false };
-    const exIndex = barber.horarioPersonal.exceptions.findIndex((ex: any) => ex.date === this.selectedDateKey);
-    if (exIndex >= 0) {
-      barber.horarioPersonal.exceptions[exIndex] = newEx;
-    } else {
-      barber.horarioPersonal.exceptions.push(newEx);
-    }
+    // Eliminar las excepciones custom anteriores para ese día
+    barber.horarioPersonal.exceptions = barber.horarioPersonal.exceptions.filter((ex: any) => !(ex.date === this.selectedDateKey && (ex.type === 'custom' || ex.type === 'closed')));
     
+    validSlots.forEach(slot => {
+      barber.horarioPersonal.exceptions.push({
+        date: this.selectedDateKey,
+        type: 'custom',
+        start: slot.start,
+        end: slot.end,
+        isAbsence: false
+      });
+    });
+    
+    this.isSlotsModalOpen = false;
     await this.saveBarberSchedule(barber, 'Día abierto con horario especial.');
+  }
+
+  addSlot() {
+    this.currentSlots.push({ start: '', end: '' });
+  }
+
+  removeSlot(index: number) {
+    this.currentSlots.splice(index, 1);
+  }
+
+  cancelSlotsModal() {
+    this.isSlotsModalOpen = false;
+    this.currentSlots = [];
   }
 
   private async saveBarberSchedule(barber: any, successMessage: string) {
@@ -607,16 +621,17 @@ export class CalendarPage implements OnInit {
     // 1. Comprobar Horario Personal del Barbero (tiene prioridad)
     if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
       if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
-        const exception = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
-        if (exception) {
-          if (exception.type === 'closed') {
-             return;
-          } else if (exception.type === 'custom' && !exception.isAbsence && exception.start && exception.end) {
-             this.dayOpenTime = exception.start;
-             this.dayCloseTime = exception.end;
-             this.scheduleLimitsText = `${exception.start} - ${exception.end}`;
-             return;
-          }
+        const closedEx = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
+        if (closedEx) return;
+
+        const customExceptions = barber.horarioPersonal.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && !ex.isAbsence && ex.start && ex.end);
+        if (customExceptions.length > 0) {
+           // Sort them by start time
+           customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
+           this.dayOpenTime = customExceptions[0].start;
+           this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
+           this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
+           return;
         }
       }
 
@@ -637,17 +652,16 @@ export class CalendarPage implements OnInit {
     if (!this.horarioBarberia) return;
    
     if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
-      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
-      if (exception) {
-        if (exception.type === 'closed') {
-           // Cerrado todo el día
-           return;
-        } else if (exception.type === 'custom' && exception.start && exception.end) {
-           this.dayOpenTime = exception.start;
-           this.dayCloseTime = exception.end;
-           this.scheduleLimitsText = `${exception.start} - ${exception.end}`;
-           return;
-        }
+      const closedEx = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
+      if (closedEx) return; // Cerrado todo el día
+
+      const customExceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && ex.start && ex.end);
+      if (customExceptions.length > 0) {
+         customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
+         this.dayOpenTime = customExceptions[0].start;
+         this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
+         this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
+         return;
       }
     }
 
@@ -825,9 +839,10 @@ export class CalendarPage implements OnInit {
     // Nivel 3 y 4: Horario personal del barbero
     if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
       if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
-        const ex = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey);
-        if (ex && ex.type === 'closed') return true;
-        if (ex && ex.type === 'custom' && !ex.isAbsence) return false;
+        const closedEx = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey && e.type === 'closed');
+        if (closedEx) return true;
+        const customEx = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey && e.type === 'custom' && !e.isAbsence);
+        if (customEx) return false;
       }
       
       const dateObj = this.parseDateKey(dateKey);
@@ -849,8 +864,8 @@ export class CalendarPage implements OnInit {
     // Check if barber has a custom opening exception
     if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
       if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
-        const ex = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey);
-        if (ex && ex.type === 'custom' && !ex.isAbsence) {
+        const customEx = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey && e.type === 'custom' && !e.isAbsence);
+        if (customEx) {
            const dateObj = this.parseDateKey(dateKey);
            const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
            const dayKey = dayNames[dateObj.getDay()];
@@ -866,8 +881,8 @@ export class CalendarPage implements OnInit {
     
     // Fallback to global shop
     if (this.horarioBarberia && this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
-      const ex = this.horarioBarberia.exceptions.find((e: any) => e.date === dateKey);
-      if (ex && ex.type === 'custom') {
+      const customEx = this.horarioBarberia.exceptions.find((e: any) => e.date === dateKey && e.type === 'custom');
+      if (customEx) {
          const dateObj = this.parseDateKey(dateKey);
          const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
          const dayKey = dayNames[dateObj.getDay()];
