@@ -15,6 +15,7 @@ interface CalendarDay {
   hasAppointments: boolean;
   appointmentCount: number;
   isClosed: boolean;
+  isSpecialOpen?: boolean;
 }
 
 @Component({
@@ -168,22 +169,46 @@ export class CalendarPage implements OnInit {
     const isClosed = this.isDayClosed(this.selectedDateKey);
 
     if (isClosed) {
+      const prevLength = this.horarioBarberia.exceptions.length;
       this.horarioBarberia.exceptions = this.horarioBarberia.exceptions.filter(
         (ex: any) => !(ex.date === this.selectedDateKey && ex.type === 'closed')
       );
+      if (this.horarioBarberia.exceptions.length === prevLength) {
+         this.pedirHorasAbrirDiaGlobal();
+         return;
+      }
+      this.ejecutarToggleGlobal(isClosed);
     } else {
-      this.horarioBarberia.exceptions.push({
-        date: this.selectedDateKey,
-        type: 'closed'
+      const confirm = await this.alertCtrl.create({
+        header: 'Cierre Global',
+        message: 'Cerrar la barbería entera anulará el horario de <b>todos los barberos</b> para este día, incluyendo a los que tengan horarios especiales. ¿Deseas continuar?',
+        cssClass: 'premium-alert',
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Cerrar Todo',
+            handler: () => {
+              this.horarioBarberia.exceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date !== this.selectedDateKey);
+              this.horarioBarberia.exceptions.push({
+                date: this.selectedDateKey,
+                type: 'closed'
+              });
+              this.ejecutarToggleGlobal(isClosed);
+            }
+          }
+        ]
       });
+      await confirm.present();
     }
+  }
 
+  private async ejecutarToggleGlobal(wasClosed: boolean) {
     try {
       await this.apiService.updateMyHorario({ horario: this.horarioBarberia });
       
       const toast = await this.toastCtrl.create({
-        message: isClosed ? 'Día abierto para todos.' : 'Día cerrado para todos.',
-        duration: 2000, color: 'success'
+        message: wasClosed ? 'Día restaurado a horario habitual.' : 'Día cerrado para todos los barberos.',
+        duration: 3000, color: 'success'
       });
       toast.present();
       
@@ -196,6 +221,46 @@ export class CalendarPage implements OnInit {
       });
       toast.present();
     }
+  }
+
+  async pedirHorasAbrirDiaGlobal() {
+    const alert = await this.alertCtrl.create({
+      header: 'Abrir Barbería',
+      message: 'La barbería está cerrada este día por su horario habitual. Para abrirla hoy, introduce las horas de apertura.',
+      cssClass: 'premium-alert',
+      inputs: [
+        { name: 'start', type: 'time', placeholder: 'Hora de inicio' },
+        { name: 'end', type: 'time', placeholder: 'Hora de cierre' }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Abrir',
+          handler: async (data) => {
+            if (data.start && data.end) {
+              this.horarioBarberia.exceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date !== this.selectedDateKey);
+              this.horarioBarberia.exceptions.push({
+                date: this.selectedDateKey,
+                type: 'custom',
+                start: data.start,
+                end: data.end
+              });
+              try {
+                await this.apiService.updateMyHorario({ horario: this.horarioBarberia });
+                const toast = await this.toastCtrl.create({ message: 'Día abierto globalmente.', duration: 2000, color: 'success' });
+                toast.present();
+                this.buildCalendar(this.currentMonthDate);
+                this.updateSelectedDayAppointments();
+              } catch (e) {
+                const toast = await this.toastCtrl.create({ message: 'Error al actualizar.', duration: 2000, color: 'danger' });
+                toast.present();
+              }
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   getSelectedBarberName(): string {
@@ -349,9 +414,14 @@ export class CalendarPage implements OnInit {
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
     if (!barber) return;
     if (!barber.diasLibres) barber.diasLibres = [];
+    
+    if (barber.horarioPersonal && barber.horarioPersonal.exceptions) {
+      barber.horarioPersonal.exceptions = barber.horarioPersonal.exceptions.filter((ex: any) => ex.date !== this.selectedDateKey);
+    }
+    
     if (!barber.diasLibres.includes(this.selectedDateKey)) {
       barber.diasLibres.push(this.selectedDateKey);
-      await this.saveBarberDiasLibres(barber, 'Día cerrado para el barbero.');
+      await this.saveBarberSchedule(barber, 'Día cerrado para el barbero.');
     } else {
       const toast = await this.toastCtrl.create({
         message: 'El día ya estaba cerrado.',
@@ -364,21 +434,81 @@ export class CalendarPage implements OnInit {
   async abrirDiaBarbero() {
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
     if (!barber) return;
+    
+    let changed = false;
     if (barber.diasLibres && barber.diasLibres.includes(this.selectedDateKey)) {
       barber.diasLibres = barber.diasLibres.filter((d: string) => d !== this.selectedDateKey);
-      await this.saveBarberDiasLibres(barber, 'Día abierto para el barbero.');
-    } else {
-      const toast = await this.toastCtrl.create({
-        message: 'El día ya estaba abierto.',
-        duration: 2000, color: 'warning'
-      });
-      toast.present();
+      changed = true;
     }
+    
+    if (barber.horarioPersonal && barber.horarioPersonal.exceptions) {
+      const prevLen = barber.horarioPersonal.exceptions.length;
+      barber.horarioPersonal.exceptions = barber.horarioPersonal.exceptions.filter((ex: any) => !(ex.date === this.selectedDateKey && (ex.type === 'closed' || ex.isAbsence === true)));
+      if (barber.horarioPersonal.exceptions.length < prevLen) changed = true;
+    }
+
+    if (changed) {
+      const stillClosed = this.isBarberDayClosed(this.selectedDateKey);
+      if (!stillClosed) {
+         await this.saveBarberSchedule(barber, 'Día restaurado a su horario habitual.');
+         return;
+      }
+    }
+    
+    this.pedirHorasAbrirDiaBarbero();
   }
 
-  private async saveBarberDiasLibres(barber: any, successMessage: string) {
+  async pedirHorasAbrirDiaBarbero() {
+    const alert = await this.alertCtrl.create({
+      header: 'Abrir Día',
+      message: 'El día está cerrado por horario habitual. Introduce las horas en las que el barbero estará DISPONIBLE.',
+      cssClass: 'premium-alert',
+      inputs: [
+        { name: 'start', type: 'time', placeholder: 'Hora de inicio' },
+        { name: 'end', type: 'time', placeholder: 'Hora de fin' }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Abrir Día',
+          handler: (data) => {
+            if (data.start && data.end) {
+              this.aplicarAperturaBarbero(data.start, data.end);
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async aplicarAperturaBarbero(start: string, end: string) {
+    const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
+    if (!barber) return;
+    
+    if (!barber.horarioPersonal) {
+      barber.horarioPersonal = { enabled: true, timezone: 'Europe/Madrid', weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, exceptions: [] };
+    }
+    if (!barber.horarioPersonal.exceptions) barber.horarioPersonal.exceptions = [];
+    barber.horarioPersonal.enabled = true;
+    
+    const newEx = { date: this.selectedDateKey, type: 'custom', start, end, isAbsence: false };
+    const exIndex = barber.horarioPersonal.exceptions.findIndex((ex: any) => ex.date === this.selectedDateKey);
+    if (exIndex >= 0) {
+      barber.horarioPersonal.exceptions[exIndex] = newEx;
+    } else {
+      barber.horarioPersonal.exceptions.push(newEx);
+    }
+    
+    await this.saveBarberSchedule(barber, 'Día abierto con horario especial.');
+  }
+
+  private async saveBarberSchedule(barber: any, successMessage: string) {
     try {
-      await this.apiService.updateBarbero(this.selectedBarberId, { diasLibres: barber.diasLibres });
+      await this.apiService.updateBarbero(this.selectedBarberId, { 
+        diasLibres: barber.diasLibres,
+        horarioPersonal: barber.horarioPersonal
+      });
       const toast = await this.toastCtrl.create({
         message: successMessage,
         duration: 2000, color: 'success'
@@ -428,7 +558,8 @@ export class CalendarPage implements OnInit {
         isSelected: key === this.selectedDateKey,
         hasAppointments: appointments.length > 0,
         appointmentCount: appointments.length,
-        isClosed: this.isBarberDayClosed(key)
+        isClosed: this.isBarberDayClosed(key),
+        isSpecialOpen: this.isSpecialOpenDay(key)
       };
     });
 
@@ -458,7 +589,7 @@ export class CalendarPage implements OnInit {
     this.scheduleLimitsText = null;
     this.barberAbsence = null;
 
-    if (!this.horarioBarberia || !this.selectedDateKey) return;
+    if (!this.selectedDateKey) return;
 
     // Verificar si el barbero tiene un cierre parcial
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
@@ -473,6 +604,37 @@ export class CalendarPage implements OnInit {
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const dayKey = dayNames[dateObj.getDay()];
 
+    // 1. Comprobar Horario Personal del Barbero (tiene prioridad)
+    if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
+      if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
+        const exception = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
+        if (exception) {
+          if (exception.type === 'closed') {
+             return;
+          } else if (exception.type === 'custom' && !exception.isAbsence && exception.start && exception.end) {
+             this.dayOpenTime = exception.start;
+             this.dayCloseTime = exception.end;
+             this.scheduleLimitsText = `${exception.start} - ${exception.end}`;
+             return;
+          }
+        }
+      }
+
+      const weeklyTemplate = barber.horarioPersonal.weeklyTemplate;
+      if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+        const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
+        if (slots.length > 0) {
+          this.dayOpenTime = slots[0].start;
+          this.dayCloseTime = slots[slots.length - 1].end;
+          this.scheduleLimitsText = slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
+          return;
+        } else {
+          return; // No hay turnos definidos, está cerrado
+        }
+      }
+    }
+
+    if (!this.horarioBarberia) return;
    
     if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
       const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
@@ -518,7 +680,36 @@ export class CalendarPage implements OnInit {
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const dayKey = dayNames[dateObj.getDay()];
 
-    if (this.horarioBarberia) {
+    const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
+    let usingBarberTemplate = false;
+
+    if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
+      usingBarberTemplate = true;
+      if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
+        const exception = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
+        if (exception && exception.type === 'custom' && !exception.isAbsence && exception.start && exception.end) {
+           limits.push(exception.start);
+           limits.push(exception.end);
+        }
+      }
+      
+      if (limits.length === 0) {
+        const weeklyTemplate = barber.horarioPersonal.weeklyTemplate;
+        if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+          const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
+          if (slots.length > 0) {
+            for (let i = 0; i < slots.length; i++) {
+              limits.push(slots[i].start);
+              if (i === slots.length - 1) {
+                limits.push(slots[i].end);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!usingBarberTemplate && this.horarioBarberia) {
       if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
         const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
         if (exception && exception.type === 'custom' && exception.start && exception.end) {
@@ -610,6 +801,8 @@ export class CalendarPage implements OnInit {
 
   isBarberDayClosed(dateKey: string): boolean {
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
+    
+    // Nivel 1: Ausencias explícitas del barbero
     if (barber) {
       if (barber.diasLibres && barber.diasLibres.includes(dateKey)) {
         return true;
@@ -620,7 +813,72 @@ export class CalendarPage implements OnInit {
         }
       }
     }
+
+    // Nivel 2: Cierre global de la barbería
+    if (this.horarioBarberia && this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
+      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === dateKey);
+      if (exception && exception.type === 'closed') {
+        return true; 
+      }
+    }
+    
+    // Nivel 3 y 4: Horario personal del barbero
+    if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
+      if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
+        const ex = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey);
+        if (ex && ex.type === 'closed') return true;
+        if (ex && ex.type === 'custom' && !ex.isAbsence) return false;
+      }
+      
+      const dateObj = this.parseDateKey(dateKey);
+      const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const dayKey = dayNames[dateObj.getDay()];
+      const weeklyTemplate = barber.horarioPersonal.weeklyTemplate;
+      if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+        return weeklyTemplate[dayKey].length === 0;
+      }
+    }
+    
+    // Nivel 5: Horario semanal global (fallback)
     return this.isDayClosed(dateKey);
+  }
+
+  isSpecialOpenDay(dateKey: string): boolean {
+    const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
+    
+    // Check if barber has a custom opening exception
+    if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
+      if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
+        const ex = barber.horarioPersonal.exceptions.find((e: any) => e.date === dateKey);
+        if (ex && ex.type === 'custom' && !ex.isAbsence) {
+           const dateObj = this.parseDateKey(dateKey);
+           const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+           const dayKey = dayNames[dateObj.getDay()];
+           const weeklyTemplate = barber.horarioPersonal.weeklyTemplate;
+           if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+             if (weeklyTemplate[dayKey].length === 0) return true;
+           }
+        }
+      }
+      // If barber has personal schedule but no exception, it's not a special open day
+      return false; 
+    }
+    
+    // Fallback to global shop
+    if (this.horarioBarberia && this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
+      const ex = this.horarioBarberia.exceptions.find((e: any) => e.date === dateKey);
+      if (ex && ex.type === 'custom') {
+         const dateObj = this.parseDateKey(dateKey);
+         const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+         const dayKey = dayNames[dateObj.getDay()];
+         const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
+         if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+           if (weeklyTemplate[dayKey].length === 0) return true;
+         }
+      }
+    }
+    
+    return false;
   }
 
   private parseDateKey(dateKey: string) {

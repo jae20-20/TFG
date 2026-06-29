@@ -35,8 +35,9 @@
 
     <div class="schedule-editor-head">
       <div>
-        <h3>Horario Especial</h3>
-        <p>Aplica un horario diferente al de la barbería.</p>
+        <h3>Horario Especial de {{ barber.nombre }}</h3>
+        
+        <br>
       </div>
       <ion-toggle color="success" [checked]="barber.horarioPersonal?.enabled" (ionChange)="toggleHorarioEspecial($event)"></ion-toggle>
     </div>
@@ -78,8 +79,9 @@
 
     <div class="schedule-editor-head">
       <div>
-        <h3>Días Libres</h3>
-        <p>Añade días específicos en los que el barbero no trabaja.</p>
+        <h3>Días Libres de {{ barber.nombre}}</h3>
+
+        <br>
       </div>
     </div>
 

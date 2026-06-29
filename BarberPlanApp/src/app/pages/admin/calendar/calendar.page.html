@@ -40,6 +40,7 @@
         [class.selected]="day.isSelected"
         [class.has-appointments]="day.hasAppointments"
         [class.closed-day]="day.isClosed"
+        [class.special-open-day]="day.isSpecialOpen"
         (click)="selectDay(day)"
       >
         <span class="calendar-day-number">{{ day.dayNumber }}</span>
