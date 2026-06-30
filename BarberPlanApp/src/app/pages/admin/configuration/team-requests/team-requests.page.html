@@ -1,4 +1,11 @@
-<ion-header>
+<ion-header class="ion-no-border">
+  <div class="custom-page-header">
+    <div class="custom-header-left">
+      <ion-back-button defaultHref="/admin/configuration" class="small-golden-back"></ion-back-button>
+    </div>
+    <div class="custom-header-center">Solicitudes de Equipo</div>
+    <div class="custom-header-right"></div>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
@@ -24,8 +31,17 @@
       </div>
       
       <div class="solicitud-body">
-        <p><strong>Tipo:</strong> {{ solicitud.tipo }}</p>
-        <p><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }} <strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
+        <p><strong>Tipo:</strong> {{ getTipoLabel(solicitud.tipo) }}</p>
+        <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }} <strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.tipo !== 'vacaciones'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
+        
+        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
+          <strong>Horas solicitadas:</strong>
+          <ul style="margin: 5px 0; padding-left: 20px; color: #94a3b8;">
+            <li *ngFor="let franja of solicitud.franjas">{{ franja.start }} - {{ franja.end }}</li>
+          </ul>
+        </div>
+        
         <p *ngIf="solicitud.motivo"><strong>Motivo:</strong> {{ solicitud.motivo }}</p>
       </div>
       

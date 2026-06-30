@@ -61,4 +61,11 @@ export class TeamRequestsPage implements OnInit {
       await toast.present();
     }
   }
+
+  getTipoLabel(tipo: string): string {
+    if (tipo === 'dia_libre') return 'Día Libre';
+    if (tipo === 'vacaciones') return 'Vacaciones';
+    if (tipo === 'horas_puntuales') return 'Horas Puntuales';
+    return tipo;
+  }
 }

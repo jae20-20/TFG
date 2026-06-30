@@ -1,19 +1,5 @@
-<ion-header>
-  <ion-toolbar color="dark">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/barber/configuration" text="" color="light"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Mis Solicitudes</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="toggleForm()">
-        <ion-icon slot="icon-only" [name]="showForm ? 'close' : 'add'"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
-  
   <div *ngIf="showForm" class="nueva-solicitud-card">
     <h3>Nueva Solicitud</h3>
     <p>Envía una petición al administrador para días libres o vacaciones.</p>
@@ -24,18 +10,44 @@
         <ion-select [(ngModel)]="newSolicitud.tipo">
           <ion-select-option value="dia_libre">Día Libre</ion-select-option>
           <ion-select-option value="vacaciones">Vacaciones</ion-select-option>
+          <ion-select-option value="horas_puntuales">Horas Puntuales</ion-select-option>
         </ion-select>
       </ion-item>
 
-      <ion-item lines="none" class="input-item">
+      <ion-item lines="none" class="input-item" *ngIf="newSolicitud.tipo !== 'vacaciones'">
+        <ion-label position="stacked">Día</ion-label>
+        <ion-input type="date" [(ngModel)]="newSolicitud.fechaInicio"></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="input-item" *ngIf="newSolicitud.tipo === 'vacaciones'">
         <ion-label position="stacked">Desde</ion-label>
         <ion-input type="date" [(ngModel)]="newSolicitud.fechaInicio"></ion-input>
       </ion-item>
 
-      <ion-item lines="none" class="input-item">
+      <ion-item lines="none" class="input-item" *ngIf="newSolicitud.tipo === 'vacaciones'">
         <ion-label position="stacked">Hasta</ion-label>
         <ion-input type="date" [(ngModel)]="newSolicitud.fechaFin"></ion-input>
       </ion-item>
+
+      <div *ngIf="newSolicitud.tipo === 'horas_puntuales'" style="margin-top: 10px; width: 100%;">
+        <div *ngFor="let franja of newSolicitud.franjas; let i = index" class="slot-container" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.12); border-radius: 8px;">
+          <ion-item class="time-item" lines="none" style="flex: 1; --background: transparent;">
+            <ion-label position="stacked" style="color: #64748b;">Inicio</ion-label>
+            <ion-input type="time" [(ngModel)]="franja.start"></ion-input>
+          </ion-item>
+          <ion-item class="time-item" lines="none" style="flex: 1; --background: transparent;">
+            <ion-label position="stacked" style="color: #64748b;">Fin</ion-label>
+            <ion-input type="time" [(ngModel)]="franja.end"></ion-input>
+          </ion-item>
+          <ion-button fill="clear" color="danger" (click)="removeFranja(i)" [disabled]="newSolicitud.franjas.length === 1" style="margin-top: 25px;">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        <ion-button expand="block" fill="outline" (click)="addFranja()" class="ion-margin-bottom" style="--color: #d4af37; --border-color: rgba(212, 175, 55, 0.5);">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Añadir Franja
+        </ion-button>
+      </div>
 
       <ion-item lines="none" class="input-item">
         <ion-label position="stacked">Motivo (opcional)</ion-label>
@@ -58,15 +70,23 @@
   <ion-list class="solicitudes-list" *ngIf="!loading && solicitudes.length > 0">
     <div class="solicitud-card" *ngFor="let solicitud of solicitudes">
       <div class="solicitud-header">
-        <h3 class="sol-tipo">{{ solicitud.tipo === 'dia_libre' ? 'Día Libre' : 'Vacaciones' }}</h3>
+        <h3 class="sol-tipo">{{ getTipoLabel(solicitud.tipo) }}</h3>
         <ion-badge [color]="solicitud.estado === 'pendiente' ? 'warning' : (solicitud.estado === 'aprobada' ? 'success' : 'danger')">
           {{ solicitud.estado | uppercase }}
         </ion-badge>
       </div>
       
       <div class="solicitud-body">
-        <p><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
-        <p><strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.tipo !== 'vacaciones'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
+        
+        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
+          <strong>Horas solicitadas:</strong>
+          <ul style="margin: 5px 0; padding-left: 20px; color: #94a3b8;">
+            <li *ngFor="let franja of solicitud.franjas">{{ franja.start }} - {{ franja.end }}</li>
+          </ul>
+        </div>
         <p *ngIf="solicitud.motivo"><strong>Motivo:</strong> {{ solicitud.motivo }}</p>
         
         <div class="respuesta-admin" *ngIf="solicitud.respuestaAdmin">
@@ -88,5 +108,12 @@
     <h2>Sin Solicitudes</h2>
     <p>No has enviado ninguna solicitud de momento.</p>
   </div>
+
+  <!-- Botón flotante alternativo por si la lista es muy larga -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!showForm">
+    <ion-fab-button (click)="toggleForm()" style="--background: linear-gradient(135deg, #d4af37, #f3e5ab); --color: #1a1a1a;">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

@@ -15,6 +15,7 @@ interface CalendarDay {
   hasAppointments: boolean;
   appointmentCount: number;
   isClosed: boolean;
+  isSpecialOpen?: boolean;
 }
 
 @Component({
@@ -40,6 +41,8 @@ export class BarberCalendarPage implements OnInit {
   horarioBarberia: any = null;
   dayOpenTime: string | null = null;
   dayCloseTime: string | null = null;
+  scheduleLimitsText: string | null = null;
+  barberAbsence: { start: string, end: string } | null = null;
 
   constructor(
     private apiService: ApiService,
@@ -71,6 +74,16 @@ export class BarberCalendarPage implements OnInit {
     try {
       const citas = await this.apiService.getCitasBarbero();
       this.citas = Array.isArray(citas) ? citas : [];
+
+      try {
+        const profile = await this.apiService.getMyProfile();
+        if (profile) {
+          this.user = profile;
+          await this.storage.set('user', this.user);
+        }
+      } catch (err) {
+        console.warn('No se pudo cargar el perfil del usuario:', err);
+      }
 
       // Cargar horario (necesitamos un endpoint u obtenerlo, probemos getMyHorario() que usa barberiaId del usuario)
       // wait, the apiService has getMyHorario() which gets the schedule for the authenticated user's barberia. Since barber belongs to barberia, let's try it.
@@ -144,7 +157,8 @@ export class BarberCalendarPage implements OnInit {
         isSelected: key === this.selectedDateKey,
         hasAppointments: appointments.length > 0,
         appointmentCount: appointments.length,
-        isClosed: this.isDayClosed(key)
+        isClosed: this.isDayClosed(key),
+        isSpecialOpen: this.isSpecialOpenDay(key)
       };
     });
 
@@ -166,43 +180,77 @@ export class BarberCalendarPage implements OnInit {
     this.updateScheduleLimits();
     this.buildCalendar(this.currentMonthDate);
   }
-  //para las lineas de los limites en las citas en calendario
   private updateScheduleLimits() {
     this.dayOpenTime = null;
     this.dayCloseTime = null;
+    this.scheduleLimitsText = null;
+    this.barberAbsence = null;
 
-    if (!this.horarioBarberia || !this.selectedDateKey) return;
+    if (!this.selectedDateKey) return;
+
+    if (this.user && this.user.horarioPersonal && this.user.horarioPersonal.exceptions) {
+      const bEx = this.user.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
+      if (bEx && bEx.type === 'custom' && bEx.isAbsence) {
+        this.barberAbsence = { start: bEx.start, end: bEx.end };
+      }
+    }
 
     const dateObj = this.parseDateKey(this.selectedDateKey);
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const dayKey = dayNames[dateObj.getDay()];
 
-    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
-      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
-      if (exception) {
-        if (exception.type === 'closed') {
+    if (this.user && this.user.horarioPersonal && this.user.horarioPersonal.enabled) {
+      if (this.user.horarioPersonal.exceptions && Array.isArray(this.user.horarioPersonal.exceptions)) {
+        const closedEx = this.user.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
+        if (closedEx) return;
+
+        const customExceptions = this.user.horarioPersonal.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && !ex.isAbsence && ex.start && ex.end);
+        if (customExceptions.length > 0) {
+           customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
+           this.dayOpenTime = customExceptions[0].start;
+           this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
+           this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
            return;
-        } else if (exception.type === 'custom' && exception.start && exception.end) {
-           this.dayOpenTime = exception.start;
-           this.dayCloseTime = exception.end;
-           return;
+        }
+      }
+
+      const weeklyTemplate = this.user.horarioPersonal.weeklyTemplate;
+      if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+        const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
+        if (slots.length > 0) {
+          this.dayOpenTime = slots[0].start;
+          this.dayCloseTime = slots[slots.length - 1].end;
+          this.scheduleLimitsText = slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
+          return;
+        } else {
+          return;
         }
       }
     }
 
-    // 2. Regular schedule
+    if (!this.horarioBarberia) return;
+   
+    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
+      const closedEx = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
+      if (closedEx) return;
+
+      const customExceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && ex.start && ex.end);
+      if (customExceptions.length > 0) {
+         customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
+         this.dayOpenTime = customExceptions[0].start;
+         this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
+         this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
+         return;
+      }
+    }
+
     const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
     if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
-      const slots = weeklyTemplate[dayKey];
+      const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
       if (slots.length > 0) {
-        let minStart = '23:59';
-        let maxEnd = '00:00';
-        for (const slot of slots) {
-          if (slot.start && slot.start < minStart) minStart = slot.start;
-          if (slot.end && slot.end > maxEnd) maxEnd = slot.end;
-        }
-        if (minStart !== '23:59') this.dayOpenTime = minStart;
-        if (maxEnd !== '00:00') this.dayCloseTime = maxEnd;
+        this.dayOpenTime = slots[0].start;
+        this.dayCloseTime = slots[slots.length - 1].end;
+        this.scheduleLimitsText = slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
       }
     }
   }
@@ -220,28 +268,70 @@ export class BarberCalendarPage implements OnInit {
   }
 
   private isDayClosed(dateKey: string): boolean {
-    if (!this.horarioBarberia) return false;
+    if (!this.user) return false;
 
+    // Nivel 1: Vacaciones y diasLibres del usuario
+    if (this.user.diasLibres && this.user.diasLibres.includes(dateKey)) return true;
+    if (this.user.vacaciones) {
+      for (const vac of this.user.vacaciones) {
+        if (dateKey >= vac.fechaInicio && dateKey <= vac.fechaFin) return true;
+      }
+    }
+
+    // Nivel 2: Cierre global
+    if (this.horarioBarberia && this.horarioBarberia.exceptions) {
+      const globalEx = this.horarioBarberia.exceptions.find((e: any) => e.date === dateKey && e.type === 'closed');
+      if (globalEx) return true;
+    }
+
+    // Nivel 3: Excepción personal custom o closed
+    if (this.user.horarioPersonal && this.user.horarioPersonal.enabled) {
+      if (this.user.horarioPersonal.exceptions) {
+        const customEx = this.user.horarioPersonal.exceptions.find((e: any) => e.date === dateKey);
+        if (customEx) {
+           if (customEx.type === 'closed') return true;
+           if (customEx.type === 'custom' && !customEx.isAbsence) return false;
+        }
+      }
+      // Nivel 4: Plantilla semanal del barbero
+      const dateObj = this.parseDateKey(dateKey);
+      const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const dayKey = dayNames[dateObj.getDay()];
+      const weeklyTemplate = this.user.horarioPersonal.weeklyTemplate;
+      if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+        return weeklyTemplate[dayKey].length === 0;
+      }
+    }
+
+    // Nivel 5: Horario global fallback
+    if (!this.horarioBarberia) return false;
     const dateObj = this.parseDateKey(dateKey);
     const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const dayKey = dayNames[dateObj.getDay()];
-
-    // 1. Verificar excepciones
-    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
-      const exception = this.horarioBarberia.exceptions.find((ex: any) => ex.date === dateKey);
-      if (exception && exception.type === 'closed') {
-        return true;
-      }
-    }
-
-    // 2. Verificar horario habitual
     const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
     if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
-      if (weeklyTemplate[dayKey].length === 0) {
-        return true;
-      }
+      return weeklyTemplate[dayKey].length === 0;
     }
 
+    return false;
+  }
+
+  private isSpecialOpenDay(dateKey: string): boolean {
+    if (!this.user) return false;
+    if (this.user.horarioPersonal && this.user.horarioPersonal.enabled) {
+      if (this.user.horarioPersonal.exceptions) {
+        const customEx = this.user.horarioPersonal.exceptions.find((e: any) => e.date === dateKey && e.type === 'custom' && !e.isAbsence);
+        if (customEx) {
+           const dateObj = this.parseDateKey(dateKey);
+           const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+           const dayKey = dayNames[dateObj.getDay()];
+           const weeklyTemplate = this.user.horarioPersonal.weeklyTemplate;
+           if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
+             if (weeklyTemplate[dayKey].length === 0) return true;
+           }
+        }
+      }
+    }
     return false;
   }
 

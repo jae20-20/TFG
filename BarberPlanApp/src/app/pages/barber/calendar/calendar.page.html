@@ -4,14 +4,6 @@
   
 
   <ion-list>
-    <ion-item button detail>
-      <ion-icon slot="start" name="calendar-outline" color="success"></ion-icon>
-      <ion-label>
-        <h2>Citas</h2>
-        <p>Ver y gestionar todas las citas</p>
-      </ion-label>
-    </ion-item>
-
     <div class="calendar-card">
       <div class="calendar-header">
         <div>
@@ -49,6 +41,7 @@
           [class.selected]="day.isSelected"
           [class.has-appointments]="day.hasAppointments"
           [class.closed-day]="day.isClosed"
+          [class.special-open-day]="day.isSpecialOpen"
           (click)="selectDay(day)"
         >
           <span class="calendar-day-number">{{ day.dayNumber }}</span>
@@ -64,8 +57,15 @@
         </div>
 
         <ng-container *ngIf="!loadingCitas">
-        <div class="schedule-delimiter" *ngIf="dayOpenTime">
-          <span>{{ dayOpenTime }}</span>
+        <div class="schedule-delimiter closed-partial" *ngIf="barberAbsence" style="color: var(--ion-color-danger); border-color: var(--ion-color-danger);">
+          <span>-- CERRADO DE  {{ barberAbsence.start }} A {{ barberAbsence.end }} --</span>
+        </div>
+
+        <div class="schedule-delimiter" *ngIf="scheduleLimitsText">
+          <span>Horario: {{ scheduleLimitsText }}</span>
+        </div>
+        <div class="schedule-delimiter" *ngIf="!scheduleLimitsText && dayOpenTime">
+          <span>Horario: {{ dayOpenTime }} a {{ dayCloseTime }}</span>
         </div>
 
         <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
@@ -89,8 +89,8 @@
           </div>
         </ng-template>
 
-        <div class="schedule-delimiter" *ngIf="dayCloseTime">
-          <span>{{ dayCloseTime }}</span>
+        <div class="schedule-delimiter" *ngIf="!scheduleLimitsText && dayCloseTime">
+          <span>Fin de jornada: {{ dayCloseTime }}</span>
         </div>
       </ng-container>
       </div>

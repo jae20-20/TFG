@@ -22,7 +22,8 @@ export class SolicitudesPage implements OnInit {
     tipo: 'dia_libre',
     fechaInicio: '',
     fechaFin: '',
-    motivo: ''
+    motivo: '',
+    franjas: [{ start: '', end: '' }]
   };
   submitting = false;
 
@@ -61,11 +62,36 @@ export class SolicitudesPage implements OnInit {
       tipo: 'dia_libre',
       fechaInicio: '',
       fechaFin: '',
-      motivo: ''
+      motivo: '',
+      franjas: [{ start: '', end: '' }]
     };
   }
 
+  addFranja() {
+    if (!this.newSolicitud.franjas) {
+      this.newSolicitud.franjas = [];
+    }
+    this.newSolicitud.franjas.push({ start: '', end: '' });
+  }
+
+  removeFranja(index: number) {
+    if (this.newSolicitud.franjas && this.newSolicitud.franjas.length > 1) {
+      this.newSolicitud.franjas.splice(index, 1);
+    }
+  }
+
+  getTipoLabel(tipo: string): string {
+    if (tipo === 'dia_libre') return 'Día Libre';
+    if (tipo === 'vacaciones') return 'Vacaciones';
+    if (tipo === 'horas_puntuales') return 'Horas Puntuales';
+    return tipo;
+  }
+
   async submitSolicitud() {
+    if (this.newSolicitud.tipo === 'dia_libre' || this.newSolicitud.tipo === 'horas_puntuales') {
+      this.newSolicitud.fechaFin = this.newSolicitud.fechaInicio;
+    }
+
     if (!this.newSolicitud.fechaInicio || !this.newSolicitud.fechaFin) {
       const toast = await this.toastCtrl.create({
         message: 'Por favor, selecciona las fechas.',

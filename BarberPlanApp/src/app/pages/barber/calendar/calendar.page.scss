@@ -159,6 +159,18 @@ ion-list ion-item p {
   opacity: 0.8;
 }
 
+.calendar-day.special-open-day {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0%, #13161b 100%);
+  color: #86efac;
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.25);
+  
+  &.selected {
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+}
+
 .calendar-detail {
 	margin-top: 16px;
 	padding-top: 16px;
