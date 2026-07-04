@@ -59,17 +59,14 @@
     <div class="client-bottom-menu">
       <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('inicio')" (click)="goToTab('inicio')">
         <ion-icon name="home-outline"></ion-icon>
-        <span>Inicio</span>
       </button>
 
       <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('citas')" (click)="goToTab('citas')">
         <ion-icon name="calendar-outline"></ion-icon>
-        <span>Mis citas</span>
       </button>
 
       <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('perfil')" (click)="goToTab('perfil')">
         <ion-icon name="person-outline"></ion-icon>
-        <span>Perfil</span>
       </button>
     </div>
   </ion-toolbar>

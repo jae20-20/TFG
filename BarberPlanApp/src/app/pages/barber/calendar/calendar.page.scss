@@ -193,6 +193,20 @@ ion-list ion-item p {
 		color: #cbd5e1;
 		font-size: 13px;
 	}
+
+	ion-button.mini-icon-btn {
+		margin: 0;
+		--border-radius: 12px;
+		--padding-start: 0;
+		--padding-end: 0;
+		width: 42px;
+		height: 42px;
+		--background-hover: rgba(212, 175, 55, 0.15);
+
+		ion-icon {
+			font-size: 26px;
+		}
+	}
 }
 
 .calendar-error {

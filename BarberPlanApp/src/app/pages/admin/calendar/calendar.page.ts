@@ -170,6 +170,22 @@ export class CalendarPage implements OnInit {
     this.updateSelectedDayAppointments();
   }
 
+  prevBarber() {
+    if (!this.teamBarbers.length) return;
+    const currentIndex = this.teamBarbers.findIndex(b => b._id === this.selectedBarberId);
+    const prevIndex = (currentIndex - 1 + this.teamBarbers.length) % this.teamBarbers.length;
+    this.selectedBarberId = this.teamBarbers[prevIndex]._id;
+    this.onBarberChange();
+  }
+
+  nextBarber() {
+    if (!this.teamBarbers.length) return;
+    const currentIndex = this.teamBarbers.findIndex(b => b._id === this.selectedBarberId);
+    const nextIndex = (currentIndex + 1) % this.teamBarbers.length;
+    this.selectedBarberId = this.teamBarbers[nextIndex]._id;
+    this.onBarberChange();
+  }
+
   isGlobalDayClosed(dateKey: string): boolean {
     return this.isDayClosed(dateKey);
   }

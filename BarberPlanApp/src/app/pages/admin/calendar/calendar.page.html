@@ -50,33 +50,41 @@
 
     <div class="calendar-detail">
       <div class="calendar-detail-head">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="date-header-row">
           <h3>{{ selectedDateLabel | titlecase }}</h3>
-          <ion-button fill="outline" [color]="isGlobalDayClosed(selectedDateKey) ? 'danger' : 'warning'" size="small" (click)="toggleCerrarDiaGlobal()">
-            <ion-icon slot="start" [name]="isGlobalDayClosed(selectedDateKey) ? 'lock-open-outline' : 'lock-closed-outline'"></ion-icon>
-            {{ isGlobalDayClosed(selectedDateKey) ? 'Abrir Día' : 'Cerrar Día' }}
+          <ion-button fill="clear" class="lock-icon-btn" [class.is-closed]="isGlobalDayClosed(selectedDateKey)" (click)="toggleCerrarDiaGlobal()" [title]="isGlobalDayClosed(selectedDateKey) ? 'Barbería cerrada (Haz clic para abrir)' : 'Barbería abierta (Haz clic para cerrar)'">
+            <ion-icon slot="icon-only" [name]="isGlobalDayClosed(selectedDateKey) ? 'lock-closed-outline' : 'lock-open-outline'"></ion-icon>
           </ion-button>
         </div>
         <p *ngIf="loadingCitas">Cargando citas...</p>
         <p class="calendar-error" *ngIf="calendarError">{{ calendarError }}</p>
       </div>
 
-      <!-- Segmento de filtrado por Barberos (Pasa páginas horizontal) -->
-      <ion-segment *ngIf="!loadingCitas && teamBarbers.length > 0" scrollable="true" [(ngModel)]="selectedBarberId" (ionChange)="onBarberChange()" class="barber-segment">
-        <ion-segment-button *ngFor="let barber of teamBarbers" [value]="barber._id">
-          <ion-label>{{ barber.displayName }}</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+      <!--  Navegación de Barbero y Acciones -->
+      <div class="barber-agenda-pill" *ngIf="!loadingCitas && teamBarbers.length > 0">
+        <div class="barber-nav-section">
+          <ion-button fill="clear" class="barber-arrow-btn" (click)="prevBarber()" [disabled]="teamBarbers.length <= 1" title="Barbero anterior">
+            <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+          </ion-button>
+          
+          <div class="barber-info-display">
+            <!-- <span class="barber-sublabel">BARBERO SELECCIONADO</span> -->
+            <h4 class="barber-current-name">{{ getSelectedBarberName() }}</h4>
+          </div>
+          
+          <ion-button fill="clear" class="barber-arrow-btn" (click)="nextBarber()" [disabled]="teamBarbers.length <= 1" title="Siguiente barbero">
+            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
 
-      <div class="calendar-admin-actions" *ngIf="!loadingCitas && teamBarbers.length > 0">
-        <ion-button fill="outline" color="warning" size="small" (click)="gestionarDiaBarbero()">
-          <ion-icon slot="start" name="settings-outline"></ion-icon>
-          Gestionar Horario de {{ getSelectedBarberName() }}
-        </ion-button>
-        <ion-button fill="solid" color="primary" size="small" (click)="openNewCitaModal()" *ngIf="!isBarberDayClosed(selectedDateKey)" style="margin-left: 8px;">
-          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-          Añadir Cita
-        </ion-button>
+        <div class="barber-pill-actions">
+          <ion-button fill="clear" color="warning" class="mini-icon-btn" [title]="'Gestionar horario de ' + getSelectedBarberName()" (click)="gestionarDiaBarbero()">
+            <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="warning" class="mini-icon-btn" [title]="'Añadir cita'" (click)="openNewCitaModal()" *ngIf="!isBarberDayClosed(selectedDateKey)">
+            <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
       </div>
 
       <ng-container *ngIf="!loadingCitas">

@@ -760,46 +760,21 @@ ion-content {
 
 .admin-footer {
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+  height: 64px;
+
+  ion-tab-button {
+    background: transparent;
+
+    ion-icon {
+      font-size: 30px;
+    }
+  }
 
   ion-toolbar {
     --background: var(--ion-color-light);
     --min-height: 74px;
     --padding-start: 10px;
     --padding-end: 10px;
-  }
-}
-
-.admin-bottom-menu {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: center;
-  gap: 10px;
-  justify-items: center;
-
-  ion-button {
-    margin: 0;
-    --background: #ffffff;
-    --background-hover: #ffffff;
-    --background-focused: #ffffff;
-    --color: var(--ion-color-medium);
-    --padding-start: 0;
-    --padding-end: 0;
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-
-    ion-icon {
-      font-size: 24px;
-    }
-  }
-
-  ion-button.is-active {
-    --background: var(--ion-color-primary);
-    --background-hover: var(--ion-color-primary);
-    --background-focused: var(--ion-color-primary);
-    --color: #ffffff;
   }
 }
 
