@@ -10,11 +10,11 @@ const db = client.db("BarberPlan");
 export const createCita = async (citaData) => {
     const cita = {
         ...citaData,
-        clienteId: new ObjectId(citaData.clienteId),
+        clienteId: citaData.clienteId ? new ObjectId(citaData.clienteId) : null,
         barberoId: new ObjectId(citaData.barberoId),
         barberiaId: new ObjectId(citaData.barberiaId),
         servicioId: new ObjectId(citaData.servicioId),
-        estado: "pendiente", // pendiente, confirmada, completada, cancelada
+        estado: citaData.estado || "pendiente", // pendiente, confirmada, completada, cancelada
         createdAt: new Date(),
         updatedAt: new Date()
     };

@@ -88,6 +88,84 @@ export const crearCita = async (req, res) => {
     }
 };
 
+// CREAR CITA MANUAL (ADMIN O BARBERO)
+export const crearCitaManual = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const userRol = req.user.rol;
+        const { barberoId, servicioId, fecha, horaInicio, clienteNombre } = req.body;
+
+        if (!barberoId || !servicioId || !fecha || !horaInicio) {
+            return res.status(400).json({ error: "Barbero, servicio, fecha y hora son obligatorios" });
+        }
+
+        const barbero = await getUserById(barberoId);
+        if (!barbero || !barbero.barberiaId) {
+            return res.status(404).json({ error: "Barbero no encontrado o no asociado a una barbería" });
+        }
+
+        const barberiaId = barbero.barberiaId.toString();
+
+        if (userRol === "barbero" && userId !== barberoId) {
+            return res.status(403).json({ error: "No puedes crear citas para otros barberos" });
+        }
+
+        if (userRol === "admin") {
+            const isAdmin = await isUserAdminOfBarberia(userId, barberiaId);
+            if (!isAdmin && req.user.barberiaId !== barberiaId) {
+                return res.status(403).json({ error: "No tienes permiso para gestionar citas en esta barbería" });
+            }
+        }
+
+        const servicio = await getServicioById(barberiaId, servicioId);
+        if (!servicio) {
+            return res.status(404).json({ error: "Servicio no encontrado en esta barbería" });
+        }
+
+        const [horas, minutos] = horaInicio.split(":").map(Number);
+        const fechaInicio = new Date();
+        fechaInicio.setHours(horas, minutos, 0, 0);
+        fechaInicio.setMinutes(fechaInicio.getMinutes() + (servicio.duracion || 30));
+        const horaFin = `${String(fechaInicio.getHours()).padStart(2, "0")}:${String(fechaInicio.getMinutes()).padStart(2, "0")}`;
+
+        const disponible = await checkBarberoDisponibilidad(barberoId, fecha, horaInicio, horaFin);
+        if (!disponible) {
+            return res.status(409).json({ error: "El barbero no está disponible en ese horario" });
+        }
+
+        const nuevaCita = await createCita({
+            clienteId: null,
+            clienteNombre: clienteNombre?.trim() || "Reserva manual",
+            barberoId,
+            barberiaId,
+            servicioId,
+            fecha,
+            horaInicio,
+            horaFin,
+            servicioNombre: servicio.nombre,
+            servicioPrecio: servicio.precio,
+            servicioDuracion: servicio.duracion || 30,
+            estado: "confirmada"
+        });
+
+        res.status(201).json({
+            message: "Cita manual creada correctamente",
+            cita: {
+                id: nuevaCita.insertedId,
+                fecha,
+                horaInicio,
+                horaFin,
+                servicio: servicio.nombre,
+                clienteNombre: clienteNombre?.trim() || "Reserva manual",
+                estado: "confirmada"
+            }
+        });
+    } catch (error) {
+        console.error("Error al crear cita manual:", error);
+        res.status(500).json({ error: "Error al crear cita manual" });
+    }
+};
+
 //  OBTENER CITAS
 
 // Obtener mis citas (cliente)

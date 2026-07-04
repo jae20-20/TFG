@@ -73,6 +73,10 @@
           <ion-icon slot="start" name="settings-outline"></ion-icon>
           Gestionar Horario de {{ getSelectedBarberName() }}
         </ion-button>
+        <ion-button fill="solid" color="primary" size="small" (click)="openNewCitaModal()" *ngIf="!isBarberDayClosed(selectedDateKey)" style="margin-left: 8px;">
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          Añadir Cita
+        </ion-button>
       </div>
 
       <ng-container *ngIf="!loadingCitas">
@@ -93,7 +97,7 @@
                 <h2>{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</h2>
                 <p>{{ item.cita.servicioNombre || item.cita.servicio?.nombre || item.cita.servicio }}</p>
                 <p>
-                  Cliente: {{ item.cita.cliente?.nombre }} {{ item.cita.cliente?.apellido }}
+                  Cliente: {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}
                   <span *ngIf="item.cita.estado">· {{ item.cita.estado | titlecase }}</span>
                 </p>
               </ion-label>
@@ -120,13 +124,13 @@
   </div>
 
   <!-- Modal para añadir franjas múltiples al abrir un día especial -->
-  <ion-modal [isOpen]="isSlotsModalOpen" (didDismiss)="cancelSlotsModal()" class="premium-modal">
+  <ion-modal #slotsModal [isOpen]="isSlotsModalOpen" (didDismiss)="cancelSlotsModal()" class="premium-modal">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Apertura Especial</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="cancelSlotsModal()" style="color: #94a3b8; font-weight: 500;">Cerrar</ion-button>
+            <ion-button (click)="slotsModal.dismiss(); cancelSlotsModal()" style="color: #94a3b8; font-weight: 500;">Cerrar</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -158,6 +162,60 @@
         <ion-toolbar>
           <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="slotsModalTarget === 'global' ? applyGlobalSlots() : applyBarberSlots()">
             Guardar Horario
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal para añadir cita manual -->
+  <ion-modal #newCitaModal [isOpen]="isNewCitaModalOpen" (didDismiss)="cancelNewCitaModal()" class="premium-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Añadir Cita</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="newCitaModal.dismiss(); cancelNewCitaModal()" style="color: #94a3b8; font-weight: 500;">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <p class="ion-margin-bottom" style="color: #94a3b8; font-size: 0.95rem;">
+          Crear cita manual para <b>{{ getSelectedBarberName() }}</b> el <b>{{ selectedDateLabel }}</b>.
+        </p>
+
+        <ion-item class="time-item ion-margin-bottom" lines="none">
+          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Servicio *</ion-label>
+          <ion-select [(ngModel)]="selectedServicioId" placeholder="Selecciona un servicio" interface="action-sheet">
+            <ion-select-option *ngFor="let s of serviciosBarberia" [value]="s._id">
+              {{ s.nombre }} ({{ s.duracion }} min - {{ s.precio }}€)
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item class="time-item ion-margin-bottom" lines="none">
+          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Hora de inicio *</ion-label>
+          <div *ngIf="loadingHoras" style="padding: 10px 0; color: #94a3b8;">Cargando horas disponibles...</div>
+          <ion-select *ngIf="!loadingHoras && horasDisponibles.length > 0" [(ngModel)]="selectedHoraInicio" placeholder="Selecciona una hora" interface="action-sheet">
+            <ion-select-option *ngFor="let hora of horasDisponibles" [value]="hora">
+              {{ hora }}
+            </ion-select-option>
+          </ion-select>
+          <div *ngIf="!loadingHoras && horasDisponibles.length === 0" style="padding: 10px 0; color: #ef4444; font-size: 0.9rem;">
+            No hay franjas horarias disponibles en este día.
+          </div>
+        </ion-item>
+
+        <ion-item class="time-item ion-margin-bottom" lines="none">
+          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre del Cliente (Opcional)</ion-label>
+          <ion-input type="text" [(ngModel)]="clienteNombreManual" placeholder="Ej. Cliente Walk-in"></ion-input>
+        </ion-item>
+      </ion-content>
+      <ion-footer>
+        <ion-toolbar>
+          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
+            <ion-spinner *ngIf="creandoCita" name="crescent"></ion-spinner>
+            <span *ngIf="!creandoCita">Guardar Cita</span>
           </ion-button>
         </ion-toolbar>
       </ion-footer>

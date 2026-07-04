@@ -1331,6 +1331,8 @@ ion-list ion-item p {
 .calendar-admin-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 0 16px 12px;
   
   ion-button {

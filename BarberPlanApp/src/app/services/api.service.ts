@@ -102,6 +102,20 @@ export class ApiService {
     );
   }
 
+  // Crear cita manual (admin o barbero)
+  async crearCitaManual(data: {
+    barberoId: string;
+    servicioId: string;
+    fecha: string;
+    horaInicio: string;
+    clienteNombre?: string;
+  }) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/cita/manual`, data, { headers })
+    );
+  }
+
   // Obtener citas de una barbería 
   async getCitasBarberia(barberiaId: string) {
     const headers = await this.getAuthHeaders();

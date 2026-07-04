@@ -53,6 +53,16 @@ export class CalendarPage implements OnInit {
   slotsModalTarget: 'global' | 'barber' = 'global';
   currentSlots: { start: string, end: string }[] = [];
 
+  // Modal para añadir cita manual
+  isNewCitaModalOpen = false;
+  serviciosBarberia: any[] = [];
+  selectedServicioId: string = '';
+  selectedHoraInicio: string = '';
+  horasDisponibles: string[] = [];
+  loadingHoras = false;
+  clienteNombreManual: string = '';
+  creandoCita = false;
+
   constructor(
     private apiService: ApiService,
     private storage: Storage,
@@ -515,6 +525,77 @@ export class CalendarPage implements OnInit {
   cancelSlotsModal() {
     this.isSlotsModalOpen = false;
     this.currentSlots = [];
+  }
+
+  async openNewCitaModal() {
+    if (!this.selectedBarberId || !this.selectedDateKey) {
+      const toast = await this.toastCtrl.create({ message: 'Selecciona un barbero y una fecha.', duration: 2000, color: 'warning' });
+      toast.present();
+      return;
+    }
+    this.selectedServicioId = '';
+    this.selectedHoraInicio = '';
+    this.clienteNombreManual = '';
+    this.horasDisponibles = [];
+    this.isNewCitaModalOpen = true;
+
+    try {
+      this.serviciosBarberia = await this.apiService.getServiciosBarberia(this.user.barberiaId);
+      await this.loadHorasDisponibles();
+    } catch (e) {
+      console.error('Error cargando datos para nueva cita:', e);
+      const toast = await this.toastCtrl.create({ message: 'Error al cargar servicios o disponibilidad.', duration: 2000, color: 'danger' });
+      toast.present();
+    }
+  }
+
+  async loadHorasDisponibles() {
+    if (!this.selectedBarberId || !this.selectedDateKey || !this.user?.barberiaId) return;
+    this.loadingHoras = true;
+    try {
+      const res = await this.apiService.getDisponibilidadBarbero(this.selectedBarberId, this.selectedDateKey, this.user.barberiaId);
+      this.horasDisponibles = res?.horariosDisponibles || [];
+    } catch (e) {
+      console.error('Error al cargar horas disponibles:', e);
+      this.horasDisponibles = [];
+    } finally {
+      this.loadingHoras = false;
+    }
+  }
+
+  async confirmarCitaManual() {
+    if (!this.selectedServicioId || !this.selectedHoraInicio) {
+      const toast = await this.toastCtrl.create({ message: 'Por favor, selecciona un servicio y una hora.', duration: 2000, color: 'warning' });
+      toast.present();
+      return;
+    }
+
+    this.creandoCita = true;
+    try {
+      await this.apiService.crearCitaManual({
+        barberoId: this.selectedBarberId,
+        servicioId: this.selectedServicioId,
+        fecha: this.selectedDateKey,
+        horaInicio: this.selectedHoraInicio,
+        clienteNombre: this.clienteNombreManual?.trim() || undefined
+      });
+
+      const toast = await this.toastCtrl.create({ message: 'Cita añadida correctamente.', duration: 2000, color: 'success' });
+      toast.present();
+      this.isNewCitaModalOpen = false;
+      await this.loadBarberiaCitas();
+    } catch (e: any) {
+      console.error('Error al crear cita:', e);
+      const errMsg = e?.error?.error || 'No se pudo crear la cita.';
+      const toast = await this.toastCtrl.create({ message: errMsg, duration: 3000, color: 'danger' });
+      toast.present();
+    } finally {
+      this.creandoCita = false;
+    }
+  }
+
+  cancelNewCitaModal() {
+    this.isNewCitaModalOpen = false;
   }
 
   private async saveBarberSchedule(barber: any, successMessage: string) {

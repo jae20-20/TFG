@@ -5,6 +5,7 @@ import {
     completarCita,
     confirmarCita,
     crearCita,
+    crearCitaManual,
     getCita,
     getCitasBarberia,
     getCitasBarbero,
@@ -24,7 +25,8 @@ const router = express.Router();
 // ==================== RUTAS PÚBLICAS ====================
 router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);  
 
-// ==================== RUTAS DE CLIENTE ====================
+// ==================== RUTAS DE CREACIÓN ====================
+router.post("/manual", verifyToken, isAdminOrBarbero, crearCitaManual);
 router.post("/", verifyToken, isCliente, crearCita);
 router.get("/mis-citas", verifyToken, isCliente, getMisCitas);
 
