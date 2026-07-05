@@ -7,7 +7,8 @@ import {
     getCitasByBarberoAndFecha,
     getCitasByBarberoId,
     getCitasByClienteId,
-    updateCitaEstado
+    updateCitaEstado,
+    updateCitaPago
 } from "../models/citaModel.js";
 
 import { getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
@@ -261,7 +262,20 @@ export const confirmarCita = async (req, res) => {
         }
 
         await updateCitaEstado(id, "confirmada");
-        res.json({ message: "Cita confirmada correctamente" });
+        const citaActualizada = await getCitaById(id);
+        console.log(`[DEBUG] Cita ${id} confirmada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: confirmada`);
+        res.json({
+            message: "Cita confirmada correctamente",
+            debug: {
+                action: "confirmarCita",
+                citaId: id,
+                previousEstado: cita.estado,
+                newEstado: "confirmada",
+                modifiedBy: userId,
+                timestamp: new Date().toISOString()
+            },
+            cita: citaActualizada
+        });
 
     } catch (error) {
         console.error("Error al confirmar cita:", error);
@@ -288,7 +302,20 @@ export const completarCita = async (req, res) => {
         }
 
         await updateCitaEstado(id, "completada");
-        res.json({ message: "Cita completada correctamente" });
+        const citaActualizada = await getCitaById(id);
+        console.log(`[DEBUG] Cita ${id} completada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: completada`);
+        res.json({
+            message: "Cita completada correctamente",
+            debug: {
+                action: "completarCita",
+                citaId: id,
+                previousEstado: cita.estado,
+                newEstado: "completada",
+                modifiedBy: userId,
+                timestamp: new Date().toISOString()
+            },
+            cita: citaActualizada
+        });
 
     } catch (error) {
         console.error("Error al completar cita:", error);
@@ -307,7 +334,7 @@ export const cancelarCita = async (req, res) => {
             return res.status(404).json({ error: "Cita no encontrada" });
         }
 
-        const isCliente = cita.clienteId.toString() === userId;
+        const isCliente = cita.clienteId?.toString() === userId;
         const isBarbero = cita.barberoId.toString() === userId;
         const isAdmin = await isUserAdminOfBarberia(userId, cita.barberiaId.toString());
 
@@ -316,7 +343,20 @@ export const cancelarCita = async (req, res) => {
         }
 
         await updateCitaEstado(id, "cancelada");
-        res.json({ message: "Cita cancelada correctamente" });
+        const citaActualizada = await getCitaById(id);
+        console.log(`[DEBUG] Cita ${id} cancelada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: cancelada`);
+        res.json({
+            message: "Cita cancelada correctamente",
+            debug: {
+                action: "cancelarCita",
+                citaId: id,
+                previousEstado: cita.estado,
+                newEstado: "cancelada",
+                modifiedBy: userId,
+                timestamp: new Date().toISOString()
+            },
+            cita: citaActualizada
+        });
 
     } catch (error) {
         console.error("Error al cancelar cita:", error);
@@ -417,5 +457,52 @@ export const getDisponibilidad = async (req, res) => {
     } catch (error) {
         console.error("Error al obtener disponibilidad:", error);
         res.status(500).json({ error: "Error al obtener disponibilidad" });
+    }
+};
+
+// Actualizar pago e importe de cita (barbero o admin)
+export const actualizarPagoCita = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { pagado, importePagado } = req.body;
+        const userId = req.user.id;
+
+        const cita = await getCitaById(id);
+        if (!cita) {
+            return res.status(404).json({ error: "Cita no encontrada" });
+        }
+
+        const isBarbero = cita.barberoId.toString() === userId;
+        const isAdmin = await isUserAdminOfBarberia(userId, cita.barberiaId.toString());
+
+        if (!isBarbero && !isAdmin) {
+            return res.status(403).json({ error: "No tienes permiso para modificar esta cita" });
+        }
+
+        const nuevoImporte = importePagado !== undefined ? Number(importePagado) : (cita.importePagado !== undefined ? cita.importePagado : cita.servicioPrecio);
+
+        await updateCitaPago(id, Boolean(pagado), nuevoImporte);
+        const citaActualizada = await getCitaById(id);
+        console.log(`[DEBUG] Cita ${id} pago actualizado por usuario ${userId}. Pagado: ${cita.pagado} -> ${Boolean(pagado)}, Importe: ${cita.importePagado} -> ${nuevoImporte}`);
+        res.json({
+            message: "Estado de pago actualizado correctamente",
+            pagado: Boolean(pagado),
+            importePagado: nuevoImporte,
+            debug: {
+                action: "actualizarPagoCita",
+                citaId: id,
+                previousPagado: cita.pagado,
+                newPagado: Boolean(pagado),
+                previousImporte: cita.importePagado,
+                newImporte: nuevoImporte,
+                modifiedBy: userId,
+                timestamp: new Date().toISOString()
+            },
+            cita: citaActualizada
+        });
+
+    } catch (error) {
+        console.error("Error al actualizar pago de cita:", error);
+        res.status(500).json({ error: "Error al actualizar pago de cita" });
     }
 };

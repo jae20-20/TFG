@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 
@@ -57,7 +57,8 @@ export class BarberCalendarPage implements OnInit {
   constructor(
     private apiService: ApiService,
     private storage: Storage,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) { }
 
   async ngOnInit() {
@@ -438,5 +439,113 @@ export class BarberCalendarPage implements OnInit {
     const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
     const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     return `${normalizedDate.getFullYear()}-${String(normalizedDate.getMonth() + 1).padStart(2, '0')}-${String(normalizedDate.getDate()).padStart(2, '0')}`;
+  }
+
+  async onTogglePago(cita: any, event?: any) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const nuevoPagado = !cita.pagado;
+    const importe = cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0);
+    try {
+      await this.apiService.updateCitaPago(cita._id || cita.id, nuevoPagado, importe);
+      cita.pagado = nuevoPagado;
+      if (nuevoPagado) {
+        const toast = await this.toastCtrl.create({ message: 'Cita marcada como pagada.', duration: 1500, color: 'success' });
+        toast.present();
+      } else {
+        const toast = await this.toastCtrl.create({ message: 'Cita marcada como pendiente.', duration: 1500, color: 'medium' });
+        toast.present();
+      }
+    } catch (e) {
+      console.error('Error al actualizar pago:', e);
+      const toast = await this.toastCtrl.create({ message: 'Error al actualizar el estado de pago.', duration: 2000, color: 'danger' });
+      toast.present();
+      if (event?.target) {
+        event.target.checked = cita.pagado;
+      }
+    }
+  }
+
+  async modificarImporte(cita: any, event?: any) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const importeActual = cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0);
+    const alert = await this.alertCtrl.create({
+      header: 'Modificar Importe',
+      subHeader: `${cita.servicioNombre || cita.servicio?.nombre || 'Servicio'}`,
+      inputs: [
+        {
+          name: 'importe',
+          type: 'number',
+          placeholder: 'Ej: 15',
+          value: importeActual,
+          attributes: {
+            step: 'any',
+            min: '0'
+          }
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Guardar',
+          handler: async (data) => {
+            const num = parseFloat(data.importe);
+            if (isNaN(num) || num < 0) {
+              const toast = await this.toastCtrl.create({ message: 'Introduce un importe válido.', duration: 2000, color: 'warning' });
+              toast.present();
+              return false;
+            }
+            try {
+              await this.apiService.updateCitaPago(cita._id || cita.id, true, num);
+              cita.pagado = true;
+              cita.importePagado = num;
+              const toast = await this.toastCtrl.create({ message: 'Importe actualizado a ' + num + '€', duration: 1500, color: 'success' });
+              toast.present();
+            } catch (e) {
+              console.error('Error al actualizar importe:', e);
+              const toast = await this.toastCtrl.create({ message: 'No se pudo actualizar el importe.', duration: 2000, color: 'danger' });
+              toast.present();
+            }
+            return true;
+          }
+        }
+      ],
+      cssClass: 'premium-alert'
+    });
+    await alert.present();
+  }
+
+  async confirmarCancelarCita(cita: any, event?: any) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const alert = await this.alertCtrl.create({
+      header: 'Cancelar Cita',
+      message: `¿Estás seguro de que deseas cancelar la cita de <b>${cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual'}</b> a las <b>${cita.horaInicio}</b>?`,
+      buttons: [
+        { text: 'Volver', role: 'cancel' },
+        {
+          text: 'Sí, Cancelar',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.apiService.cancelarCita(cita._id || cita.id);
+              const toast = await this.toastCtrl.create({ message: 'Cita cancelada correctamente.', duration: 2000, color: 'success' });
+              toast.present();
+              await this.loadBarberiaCitas();
+            } catch (e) {
+              console.error('Error al cancelar cita:', e);
+              const toast = await this.toastCtrl.create({ message: 'No se pudo cancelar la cita.', duration: 2000, color: 'danger' });
+              toast.present();
+            }
+          }
+        }
+      ],
+      cssClass: 'premium-alert'
+    });
+    await alert.present();
   }
 }

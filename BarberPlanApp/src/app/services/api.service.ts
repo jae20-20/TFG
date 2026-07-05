@@ -132,6 +132,22 @@ export class ApiService {
     );
   }
 
+  // Actualizar estado de pago e importe de una cita
+  async updateCitaPago(id: string, pagado: boolean, importePagado: number) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/cita/${id}/pago`, { pagado, importePagado }, { headers })
+    );
+  }
+
+  // Cancelar una cita
+  async cancelarCita(id: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/cita/${id}/cancelar`, {}, { headers })
+    );
+  }
+
   // Obtener la barbería completa asociada al admin autenticado
   async getMyBarberia() {
     const headers = await this.getAuthHeaders();

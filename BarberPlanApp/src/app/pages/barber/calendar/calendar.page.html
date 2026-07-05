@@ -7,7 +7,7 @@
     <div class="calendar-card">
       <div class="calendar-header">
         <div>
-          <p class="calendar-eyebrow">Agenda mensual</p>
+          <!-- <p class="calendar-eyebrow">Agenda mensual</p> -->
           <h2>{{ calendarMonthLabel }}</h2>
         </div>
 
@@ -74,17 +74,32 @@
         </div>
 
         <ion-list *ngIf="selectedDayAppointments.length > 0; else emptyAppointments" lines="none">
-          <ion-item *ngFor="let cita of selectedDayAppointments">
-            <ion-icon slot="start" name="calendar-outline" color="primary"></ion-icon>
-            <ion-label>
-              <h2>{{ cita.horaInicio }} - {{ cita.horaFin }}</h2>
-              <p>{{ cita.servicioNombre || cita.servicio?.nombre || cita.servicio }}</p>
-              <p>
-                Cliente: {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}
-                <span *ngIf="cita.estado">· {{ cita.estado | titlecase }}</span>
-              </p>
-            </ion-label>
-          </ion-item>
+            <div class="compact-cita-card" *ngFor="let cita of selectedDayAppointments">
+              <div class="cita-info-col">
+                <div class="cita-header">
+                  <span class="cita-time">{{ cita.horaInicio }} - {{ cita.horaFin }}</span>
+                  <span class="cita-client">{{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}</span>
+                </div>
+                <div class="cita-body">
+                  <span class="cita-service">{{ cita.servicioNombre || cita.servicio?.nombre || 'Corte' }}</span>
+                  <span class="cita-dot">·</span>
+                  <span class="cita-price" [class.editable-price]="cita.pagado" (click)="cita.pagado ? modificarImporte(cita, $event) : null" [title]="cita.pagado ? 'Haz clic para modificar importe' : ''">
+                    PVP: {{ cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0) }}€
+                    <ion-icon name="pencil-outline" *ngIf="cita.pagado" class="price-edit-icon"></ion-icon>
+                  </span>
+                </div>
+              </div>
+
+              <div class="cita-actions-col">
+                <div class="pago-toggle-wrapper" (click)="$event.stopPropagation()">
+                  <ion-toggle [checked]="cita.pagado" (ionChange)="onTogglePago(cita, $event)" color="success"></ion-toggle>
+                  <span class="pago-label" [class.paid]="cita.pagado">{{ cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
+                </div>
+                <ion-button fill="clear" class="cita-delete-btn" (click)="confirmarCancelarCita(cita, $event)" title="Cancelar cita">
+                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
         </ion-list>
         
         <ng-template #emptyAppointments>

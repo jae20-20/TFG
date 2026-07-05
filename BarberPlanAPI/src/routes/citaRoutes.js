@@ -10,7 +10,8 @@ import {
     getCitasBarberia,
     getCitasBarbero,
     getDisponibilidad,
-    getMisCitas
+    getMisCitas,
+    actualizarPagoCita
 } from "../controllers/citaControllers.js";
 import {
     isAdmin,
@@ -40,6 +41,7 @@ router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);
 router.get("/:id", verifyToken, getCita);
 router.put("/:id/confirmar", verifyToken, isAdminOrBarbero, confirmarCita);
 router.put("/:id/completar", verifyToken, isAdminOrBarbero, completarCita);
+router.put("/:id/pago", verifyToken, isAdminOrBarbero, actualizarPagoCita);
 router.put("/:id/cancelar", verifyToken, cancelarCita);
 
 export default router;

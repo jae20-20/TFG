@@ -15,6 +15,8 @@ export const createCita = async (citaData) => {
         barberiaId: new ObjectId(citaData.barberiaId),
         servicioId: new ObjectId(citaData.servicioId),
         estado: citaData.estado || "pendiente", // pendiente, confirmada, completada, cancelada
+        pagado: citaData.pagado !== undefined ? Boolean(citaData.pagado) : false,
+        importePagado: citaData.importePagado !== undefined ? Number(citaData.importePagado) : (Number(citaData.servicioPrecio) || 0),
         createdAt: new Date(),
         updatedAt: new Date()
     };
@@ -139,6 +141,14 @@ export const updateCitaEstado = async (id, estado) => {
     return await db.collection("Citas").updateOne(
         { _id: new ObjectId(id) },
         { $set: { estado, updatedAt: new Date() } }
+    );
+};
+
+// Cambiar estado de pago e importe de una cita
+export const updateCitaPago = async (id, pagado, importePagado) => {
+    return await db.collection("Citas").updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { pagado: Boolean(pagado), importePagado: Number(importePagado), updatedAt: new Date() } }
     );
 };
 
