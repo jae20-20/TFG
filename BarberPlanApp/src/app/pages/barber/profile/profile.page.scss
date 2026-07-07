@@ -60,7 +60,7 @@ ion-content.barber-premium-content {
 	.field-display {
 		padding: 12px 14px;
 		border-radius: 12px;
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--custom-surface);
 		border: 1px solid rgba(212, 175, 55, 0.2);
 		font-size: 14px;
 		color: var(--custom-text-primary);
@@ -68,11 +68,11 @@ ion-content.barber-premium-content {
 	}
 
 	.field-display-muted {
-		color: #a8adb8;
+		color: var(--custom-text-muted);
 	}
 
 	.field-input {
-		--background: rgba(255, 255, 255, 0.05);
+		--background: var(--custom-surface);
 		--border-radius: 12px;
 		--color: var(--custom-text-primary);
 		--padding-start: 14px;
@@ -98,9 +98,9 @@ ion-content.barber-premium-content {
 
 	ion-button[color="primary"] {
 		--background: var(--custom-gold);
-		--background-hover: #c9a227;
-		--background-focused: #c9a227;
-		--color: #171717;
+		--background-hover: var(--custom-gold-dark);
+		--background-focused: var(--custom-gold-dark);
+		--color: var(--ion-background-color);
 		--border-radius: 12px;
 		font-weight: 700;
 		text-transform: none;
@@ -109,7 +109,7 @@ ion-content.barber-premium-content {
 
 	.cancel-btn {
 		--border-color: rgba(212, 175, 55, 0.35);
-		--color: #f1d78d;
+		--color: var(--custom-gold-light);
 		--border-width: 1px;
 	}
 }
@@ -120,6 +120,6 @@ ion-content.barber-premium-content {
 	border-radius: 12px;
 	background: rgba(239, 68, 68, 0.1);
 	border: 1px solid rgba(239, 68, 68, 0.3);
-	color: #fca5a5;
+	color: var(--custom-danger-light);
 	font-size: 13px;
 }

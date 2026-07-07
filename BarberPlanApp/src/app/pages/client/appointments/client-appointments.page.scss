@@ -3,18 +3,18 @@
 	--premium-text: var(--custom-text-primary);
 	--premium-gold: var(--custom-gold);
 	--ion-color-primary: var(--custom-gold);
-	--ion-color-primary-contrast: #171717;
+	--ion-color-primary-contrast: var(--ion-background-color);
 }
 
 ion-content.client-premium-content {
 	--background:
-		radial-gradient(circle at top, rgba(212, 175, 55, 0.13), transparent 36%),
-		linear-gradient(180deg, #111316 0%, #0a0c0f 100%);
+		radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 36%),
+		var(--ion-background-color);
 	--padding-bottom: 92px;
 }
 
 .client-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
+	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	--border-color: rgba(212, 175, 55, 0.26);
 	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
 }
@@ -42,7 +42,7 @@ ion-content.client-premium-content {
 
 	p {
 		margin: 8px 0 0;
-		color: #c4c9d4;
+		color: var(--custom-text-secondary);
 		font-size: 14px;
 		max-width: 560px;
 	}
@@ -62,7 +62,7 @@ ion-content.client-premium-content {
 	padding: 18px;
 	border-radius: 16px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	color: var(--premium-text);
 	display: flex;
 	align-items: center;
@@ -76,7 +76,7 @@ ion-content.client-premium-content {
 	border-color: rgba(248, 113, 113, 0.35);
 
 	p {
-		color: #fecaca;
+		color: var(--custom-danger-light);
 	}
 }
 
@@ -90,7 +90,7 @@ ion-content.client-premium-content {
 	padding: 14px;
 	border-radius: 18px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	box-shadow: 0 16px 30px rgba(0, 0, 0, 0.32);
 }
 
@@ -102,7 +102,7 @@ ion-content.client-premium-content {
 
 	h2 {
 		margin: 0;
-		color: #fff7df;
+		color: var(--custom-text-heading);
 		font-size: 17px;
 		font-weight: 800;
 	}
@@ -129,7 +129,7 @@ ion-content.client-premium-content {
 
 	&.confirmada {
 		background: rgba(34, 197, 94, 0.14);
-		color: #86efac;
+		color: var(--custom-success-light);
 	}
 
 	&.completada {
@@ -139,7 +139,7 @@ ion-content.client-premium-content {
 
 	&.cancelada {
 		background: rgba(248, 113, 113, 0.14);
-		color: #fca5a5;
+		color: var(--custom-danger-light);
 	}
 }
 
@@ -164,18 +164,18 @@ ion-content.client-premium-content {
 
 .appointment-location {
 	margin: 10px 0 0;
-	color: #b7bfcb;
+	color: var(--custom-text-secondary);
 	font-size: 12px;
 	line-height: 1.4;
 }
 
 .client-footer {
-	background: #16191d;
+	background: var(--custom-surface);
 	border-top: 1px solid rgba(212, 175, 55, 0.16);
 	box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.28);
 
 	ion-toolbar {
-		--background: #16191d;
+		--background: var(--custom-surface);
 		--border-color: transparent;
 		--min-height: 68px;
 	}
@@ -191,7 +191,7 @@ ion-content.client-premium-content {
 .client-bottom-item {
 	border: 0;
 	background: transparent;
-	color: #8c93a3;
+	color: var(--custom-text-muted);
 	display: flex;
 	flex-direction: column;
 	align-items: center;

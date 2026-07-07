@@ -53,9 +53,9 @@ ion-content {
   padding: 16px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at top left, rgba(82, 95, 112, 0.18), transparent 35%),
-    linear-gradient(180deg, var(--ion-background-color) 0%, #0b1220 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.06), transparent 35%),
+    linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);
+  border: 1px solid var(--custom-border-subtle);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
@@ -92,7 +92,7 @@ ion-content {
     width: 38px;
     height: 38px;
     --border-radius: 6px;
-    --color: #e2e8f0;
+    --color: var(--custom-text-secondary);
     margin: 0;
   }
 }
@@ -124,14 +124,14 @@ ion-content {
   border-radius: 14px;
   min-height: 58px;
   padding: 8px;
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
-  color: #e2e8f0;
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
+  color: var(--custom-text-secondary);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
   position: relative;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+  box-shadow: inset 0 0 0 1px var(--custom-border-subtle);
 
   &:active {
     transform: scale(0.98);
@@ -151,7 +151,7 @@ ion-content {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(96, 165, 250, 0.16);
+  background: var(--custom-gold-soft);
   color: #93c5fd;
   font-size: 11px;
   font-weight: 800;
@@ -159,7 +159,7 @@ ion-content {
 
 .calendar-day.outside-month {
   opacity: 0.28;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(10, 15, 25, 0.92) 100%);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }
 
 .calendar-day.today {
@@ -167,7 +167,7 @@ ion-content {
 }
 
 .calendar-day.selected {
-  background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
+  background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
   color: #121212;
 
   .calendar-day-count {
@@ -177,19 +177,19 @@ ion-content {
 }
 
 .calendar-day.has-appointments {
-  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, #13161b 100%);
+  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, var(--custom-surface) 100%);
 }
 
 .calendar-day.closed-day {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, #13161b 100%);
-  color: #fca5a5;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, var(--custom-surface) 100%);
+  color: var(--custom-danger-light);
   box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.15);
   opacity: 0.8;
 }
 
 .calendar-day.special-open-day {
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0%, #13161b 100%);
-  color: #86efac;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0%, var(--custom-surface) 100%);
+  color: var(--custom-success-light);
   box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.25);
   
   &.selected {
@@ -207,7 +207,7 @@ ion-content {
 .calendar-detail {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--custom-border-subtle);
 }
 
 .config-accordion-group {
@@ -218,8 +218,8 @@ ion-content {
   margin-bottom: 12px;
   border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--ion-background-color) 0%, #0b1220 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);
+  border: 1px solid var(--custom-border-subtle);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
 }
 
@@ -251,8 +251,8 @@ ion-content {
 .config-placeholder-card {
   padding: 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--custom-surface);
+  border: 1px solid var(--custom-border-subtle);
   color: var(--custom-text-muted);
   font-size: 14px;
 }
@@ -264,7 +264,10 @@ ion-content {
 .schedule-editor-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  padding: 24px !important;
+  margin-bottom: 32px !important;
+  width: 100%;
 }
 
 .schedule-editor-head {
@@ -293,16 +296,24 @@ ion-content {
 
 .schedule-week-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 14px;
 }
 
-.schedule-day-card,
-.schedule-exceptions-card {
-  padding: 14px;
+.schedule-day-card {
+  padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--custom-surface);
+  border: 1px solid var(--custom-border-subtle);
+}
+
+.schedule-exceptions-card {
+  padding: 20px !important;
+  border-radius: 16px;
+  background: var(--custom-surface) !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  margin-top: 12px;
+  box-shadow: none !important;
 }
 
 .schedule-day-card-head {
@@ -336,10 +347,10 @@ ion-content {
 .schedule-slot-empty {
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px dashed rgba(148, 163, 184, 0.24);
+  border: 1px dashed var(--custom-border-strong);
   color: var(--custom-text-muted);
   font-size: 13px;
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--custom-surface);
 }
 
 .schedule-slot-row {
@@ -352,13 +363,13 @@ ion-content {
 
 .schedule-time-item,
 .schedule-exception-item {
-  --background: rgba(15, 23, 42, 0.6);
+  --background: var(--custom-surface);
   --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
   --min-height: 54px;
   --inner-padding-end: 0;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--custom-border-subtle);
   border-radius: 12px;
 
   ion-label {
@@ -408,8 +419,8 @@ ion-content {
   gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--custom-surface);
+  border: 1px solid var(--custom-border-subtle);
 
   h4 {
     margin: 0 0 4px;
@@ -443,8 +454,8 @@ ion-content {
 .services-form-card {
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--custom-surface);
+  border: 1px solid var(--custom-border-subtle);
 
   h3 {
     margin: 0 0 4px;
@@ -468,13 +479,13 @@ ion-content {
 }
 
 .service-input-item {
-  --background: rgba(15, 23, 42, 0.6);
+  --background: var(--custom-surface);
   --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
   --min-height: 58px;
   --inner-padding-end: 0;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--custom-border-subtle);
   border-radius: 12px;
 
   ion-label {
@@ -504,8 +515,8 @@ ion-content {
 .service-card {
   padding: 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--custom-surface);
+  border: 1px solid var(--custom-border-subtle);
 }
 
 .service-card-head {
@@ -556,9 +567,9 @@ ion-content {
   padding: 20px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at top left, rgba(82, 95, 112, 0.18), transparent 35%),
-    linear-gradient(180deg, var(--ion-background-color) 0%, #0b1220 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.06), transparent 35%),
+    linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);
+  border: 1px solid var(--custom-border-subtle);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
@@ -569,7 +580,7 @@ ion-content {
   gap: 16px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--custom-border-subtle);
 
   .barberia-title {
     flex: 1;
@@ -627,8 +638,8 @@ ion-content {
   .field-display {
     padding: 12px 14px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: var(--custom-surface);
+    border: 1px solid var(--custom-border-subtle);
     font-size: 14px;
     color: var(--custom-text-primary);
     line-height: 1.5;
@@ -636,8 +647,8 @@ ion-content {
   }
 
   .field-input {
-    --background: rgba(255, 255, 255, 0.05);
-    --border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    --background: var(--custom-surface);
+    --border-bottom: 1px solid var(--custom-border-subtle);
     --border-radius: 12px;
     --color: var(--custom-text-primary);
     --padding-start: 14px;
@@ -650,8 +661,8 @@ ion-content {
     }
 
     &:focus {
-      --background: rgba(255, 255, 255, 0.08);
-      --border-bottom: 1px solid rgba(59, 130, 246, 0.5);
+      --background: var(--custom-border-subtle);
+      --border-bottom: 1px solid var(--custom-gold);
     }
   }
 }
@@ -659,7 +670,7 @@ ion-content {
 .barberia-info-section {
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--custom-border-subtle);
 
   .info-grid {
     display: grid;
@@ -670,8 +681,8 @@ ion-content {
   .info-item {
     padding: 12px 14px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    background: var(--custom-surface);
+    border: 1px solid var(--custom-border-subtle);
 
     span {
       display: block;
@@ -695,7 +706,7 @@ ion-content {
 .barberia-actions-footer {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--custom-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -720,7 +731,7 @@ ion-content {
   border-radius: 12px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  color: var(--custom-danger-light);
   font-size: 13px;
 }
 
@@ -749,8 +760,8 @@ ion-content {
 .calendar-empty {
   padding: 14px;
   border-radius: 14px;
-  background: rgba(24, 26, 31, 0.88);
-  color: #d6d6d6;
+  background: var(--custom-surface);
+  color: var(--custom-text-secondary);
   font-size: 14px;
   border: 1px solid rgba(212, 175, 55, 0.2);
 }
@@ -760,14 +771,14 @@ ion-content {
 }
 
 .calendar-detail ion-item {
-  --background: rgba(23, 25, 29, 0.7);
+  --background: var(--custom-surface);
   --padding-start: 0;
   --inner-padding-end: 0;
   margin-bottom: 8px;
   --border-radius: 14px;
   --padding-top: 8px;
   --padding-bottom: 8px;
-  color: #e2e8f0;
+  color: var(--custom-text-secondary);
   border: 1px solid rgba(212, 175, 55, 0.12);
 }
 
@@ -822,8 +833,8 @@ ion-content {
 
   ion-button.is-active {
     --background: var(--ion-color-primary, var(--custom-gold));
-    --background-hover: var(--ion-color-primary-shade, #bb9a30);
-    --background-focused: var(--ion-color-primary-shade, #bb9a30);
+    --background-hover: var(--ion-color-primary-shade, var(--custom-gold-dark));
+    --background-focused: var(--ion-color-primary-shade, var(--custom-gold-dark));
     --color: #121212;
   }
 }
@@ -836,8 +847,8 @@ ion-content {
   position: relative;
   border-radius: 22px;
   overflow: hidden;
-  background: #f3f4f6;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.24);
+  background: var(--custom-text-primary);
+  box-shadow: 0 16px 36px var(--custom-surface);
 }
 
 .preview-topbar {
@@ -847,7 +858,7 @@ ion-content {
   justify-content: space-between;
   gap: 10px;
   background: #ffffff;
-  border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+  border-bottom: 1px solid var(--custom-border);
 }
 
 .preview-business-chip {
@@ -879,7 +890,7 @@ ion-content {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #111827;
+  background: var(--custom-surface);
   background-size: cover;
   background-position: center;
   display: flex;
@@ -902,13 +913,13 @@ ion-content {
 
 .preview-cover-main {
   min-height: 240px;
-  background-color: #1f2937;
+  background-color: var(--custom-card-bg);
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #e2e8f0;
+  color: var(--custom-text-secondary);
   font-weight: 700;
   position: relative;
 }
@@ -923,7 +934,7 @@ ion-content {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.68);
+  background: var(--custom-surface);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: inline-flex;
   align-items: center;
@@ -947,7 +958,7 @@ ion-content {
   width: 86px;
   height: 86px;
   border-radius: 16px;
-  border: 4px solid #f3f4f6;
+  border: 4px solid var(--custom-text-primary);
   background: var(--ion-background-color);
   background-size: cover;
   background-position: center;
@@ -958,7 +969,7 @@ ion-content {
 }
 
 .preview-content {
-  background: #f3f4f6;
+  background: var(--custom-text-primary);
   color: var(--ion-background-color);
   padding: 54px 14px 16px;
 
@@ -1003,8 +1014,8 @@ ion-content {
   width: 28px;
   height: 28px;
   margin: 0;
-  --background: rgba(15, 23, 42, 0.45);
-  --color: #fca5a5;
+  --background: var(--custom-surface);
+  --color: var(--custom-danger-light);
 }
 
 .preview-gallery-uploader {
@@ -1050,7 +1061,7 @@ ion-content {
   --premium-text: var(--ion-text-color, var(--custom-text-primary));
   --premium-muted: var(--custom-text-muted, var(--custom-text-muted));
   --premium-gold: var(--custom-gold, var(--custom-gold));
-  --premium-gold-strong: var(--custom-gold-dark, #c9a227);
+  --premium-gold-strong: var(--custom-gold-dark, var(--custom-gold-dark));
   --premium-gold-soft: rgba(212, 175, 55, 0.16);
 
   /* Force Ionic semantic colors used in this page to the premium gold palette */
@@ -1058,21 +1069,21 @@ ion-content {
   --ion-color-primary-rgb: 212, 175, 55;
   --ion-color-primary-contrast: #121212;
   --ion-color-primary-contrast-rgb: 18, 18, 18;
-  --ion-color-primary-shade: var(--custom-gold-dark, #bb9a30);
+  --ion-color-primary-shade: var(--custom-gold-dark, var(--custom-gold-dark));
   --ion-color-primary-tint: var(--custom-gold-light, #d9b94b);
 
-  --ion-color-secondary: var(--custom-gold-dark, #c9a227);
+  --ion-color-secondary: var(--custom-gold-dark, var(--custom-gold-dark));
   --ion-color-secondary-rgb: 201, 162, 39;
   --ion-color-secondary-contrast: #121212;
   --ion-color-secondary-contrast-rgb: 18, 18, 18;
-  --ion-color-secondary-shade: #b18e22;
-  --ion-color-secondary-tint: #cfad3d;
+  --ion-color-secondary-shade: var(--custom-gold-dark);
+  --ion-color-secondary-tint: var(--custom-gold);
 
   --ion-color-success: var(--custom-gold, var(--custom-gold));
   --ion-color-success-rgb: 212, 175, 55;
   --ion-color-success-contrast: #121212;
   --ion-color-success-contrast-rgb: 18, 18, 18;
-  --ion-color-success-shade: #bb9a30;
+  --ion-color-success-shade: var(--custom-gold-dark);
   --ion-color-success-tint: #d9b94b;
 }
 
@@ -1081,7 +1092,7 @@ ion-content.admin-premium-content {
 }
 
 .admin-topbar {
-  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
+  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   --border-color: rgba(212, 175, 55, 0.26);
   border-bottom: 1px solid rgba(212, 175, 55, 0.26);
 }
@@ -1101,8 +1112,14 @@ ion-list ion-list-header {
 }
 
 ion-list ion-item {
-  --background: var(--premium-surface);
-  border: 1px solid rgba(212, 175, 55, 0.14);
+  --background: var(--custom-card-bg) !important;
+  background: var(--custom-card-bg) !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  --border-radius: 14px !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
 ion-list ion-item h2 {
@@ -1126,7 +1143,7 @@ ion-list ion-item p {
 }
 
 .calendar-header h2 {
-  color: var(--custom-gold-light);
+  color: var(--custom-text-primary) !important;
 }
 
 .calendar-nav ion-button {
@@ -1149,7 +1166,7 @@ ion-list ion-item p {
 }
 
 .calendar-day {
-  background: linear-gradient(180deg, #1d2026 0%, #13161b 100%);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--custom-surface) 100%);
   box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.12);
 }
 
@@ -1158,7 +1175,7 @@ ion-list ion-item p {
 }
 
 .calendar-day.selected {
-  background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
+  background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
   color: #121212;
 
   .calendar-day-count {
@@ -1168,19 +1185,19 @@ ion-list ion-item p {
 }
 
 .calendar-day.has-appointments {
-  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, #13161b 100%);
+  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, var(--custom-surface) 100%);
 }
 
 .calendar-day.closed-day {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, #13161b 100%);
-  color: #fca5a5;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, var(--custom-surface) 100%);
+  color: var(--custom-danger-light);
   box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.15);
   opacity: 0.8;
 }
 
 .calendar-day.special-open-day {
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0%, #13161b 100%);
-  color: #86efac;
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.2) 0%, var(--custom-surface) 100%);
+  color: var(--custom-success-light);
   box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.25);
   
   &.selected {
@@ -1210,7 +1227,7 @@ ion-list ion-item p {
 }
 
 .config-accordion-header p {
-  color: #c7ad63;
+  color: var(--custom-gold);
 }
 
 .config-placeholder-card,
@@ -1236,7 +1253,7 @@ ion-list ion-item p {
 .service-input-item,
 .schedule-time-item,
 .schedule-exception-item {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--custom-surface);
   border-color: rgba(212, 175, 55, 0.22);
 }
 
@@ -1254,12 +1271,12 @@ ion-list ion-item p {
   --background: var(--premium-gold);
   --background-hover: var(--premium-gold-strong);
   --background-focused: var(--premium-gold-strong);
-  --color: #171717;
+  --color: var(--ion-background-color);
 }
 
 .barberia-actions-footer .cancel-btn {
   --border-color: rgba(212, 175, 55, 0.34);
-  --color: #f2d78c;
+  --color: var(--custom-gold-light);
 }
 
 .service-card-head p,
@@ -1277,10 +1294,10 @@ ion-list ion-item p {
 }
 
 .admin-bottom-menu ion-button {
-  --background: #1f232b;
-  --background-hover: #252a33;
-  --background-focused: #252a33;
-  --color: #cab168;
+  --background: var(--custom-card-bg);
+  --background-hover: var(--custom-surface-hover);
+  --background-focused: var(--custom-surface-hover);
+  --color: var(--custom-gold);
   box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.22), 0 6px 14px rgba(0, 0, 0, 0.22);
 }
 
@@ -1288,7 +1305,7 @@ ion-list ion-item p {
   --background: var(--premium-gold);
   --background-hover: var(--premium-gold-strong);
   --background-focused: var(--premium-gold-strong);
-  --color: #171717;
+  --color: var(--ion-background-color);
 }
 
 .public-preview-shell,
@@ -1309,11 +1326,11 @@ ion-list ion-item p {
 
 .preview-business-chip p,
 .preview-content p {
-  color: #c0a55d;
+  color: var(--custom-gold);
 }
 
 .gallery-upload-tile {
   border-color: rgba(212, 175, 55, 0.44);
   background: rgba(212, 175, 55, 0.08);
-  color: #e6cc7a;
+  color: var(--custom-gold-light);
 }

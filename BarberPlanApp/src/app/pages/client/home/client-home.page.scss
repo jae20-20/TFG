@@ -1,30 +1,30 @@
 :host {
 	--premium-bg: var(--ion-background-color);
 	--premium-surface: var(--custom-card-bg);
-	--premium-surface-2: #1d2128;
+	--premium-surface-2: var(--custom-card-bg);
 	--premium-border: rgba(212, 175, 55, 0.2);
 	--premium-text: var(--custom-text-primary);
 	--premium-muted: var(--custom-text-muted);
 	--premium-gold: var(--custom-gold);
-	--premium-gold-strong: #c9a227;
+	--premium-gold-strong: var(--custom-gold-dark);
 
 	--ion-color-primary: var(--custom-gold);
 	--ion-color-primary-rgb: 212, 175, 55;
-	--ion-color-primary-contrast: #171717;
+	--ion-color-primary-contrast: var(--ion-background-color);
 	--ion-color-primary-contrast-rgb: 23, 23, 23;
-	--ion-color-primary-shade: #bb9a30;
+	--ion-color-primary-shade: var(--custom-gold-dark);
 	--ion-color-primary-tint: #d9b94b;
 }
 
 ion-content.client-premium-content {
 	--background:
-		radial-gradient(circle at top, rgba(212, 175, 55, 0.13), transparent 36%),
-		linear-gradient(180deg, #111316 0%, #0a0c0f 100%);
+		radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 36%),
+		var(--ion-background-color);
 	--padding-bottom: 92px;
 }
 
 .client-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
+	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	--border-color: rgba(212, 175, 55, 0.26);
 	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
 }
@@ -54,7 +54,7 @@ ion-content.client-premium-content {
 
 	p {
 		margin: 8px 0 0;
-		color: #c4c9d4;
+		color: var(--custom-text-secondary);
 		font-size: 14px;
 		max-width: 560px;
 	}
@@ -74,7 +74,7 @@ ion-content.client-premium-content {
 	padding: 18px;
 	border-radius: 16px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	color: var(--premium-text);
 	display: flex;
 	align-items: center;
@@ -92,7 +92,7 @@ ion-content.client-premium-content {
 	border-color: rgba(248, 113, 113, 0.35);
 
 	p {
-		color: #fecaca;
+		color: var(--custom-danger-light);
 	}
 }
 
@@ -107,7 +107,7 @@ ion-content.client-premium-content {
 	border-radius: 18px;
 	overflow: hidden;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
 	cursor: pointer;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -120,7 +120,7 @@ ion-content.client-premium-content {
 .barberia-cover {
 	position: relative;
 	min-height: 110px;
-	background-color: #1f2937;
+	background-color: var(--custom-card-bg);
 	background-size: cover;
 	background-position: center;
 }
@@ -169,7 +169,7 @@ ion-content.client-premium-content {
 
 	h2 {
 		margin: 0;
-		color: #fff7df;
+		color: var(--custom-text-heading);
 		font-size: 16px;
 		font-weight: 800;
 		line-height: 1.15;
@@ -179,14 +179,14 @@ ion-content.client-premium-content {
 
 .barberia-location {
 	margin: 4px 0 6px;
-	color: #e2cb85;
+	color: var(--custom-gold-light);
 	font-size: 11px;
 	line-height: 1.35;
 }
 
 .barberia-description {
 	margin: 0;
-	color: #b7bfcb;
+	color: var(--custom-text-secondary);
 	font-size: 11px;
 	line-height: 1.35;
 	min-height: 36px;
@@ -243,9 +243,9 @@ ion-content.client-premium-content {
 
 .reserve-btn {
 	--border-radius: 11px;
-	--background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
-	--background-hover: linear-gradient(180deg, #dab949 0%, #bf9527 100%);
-	--color: #171717;
+	--background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
+	--background-hover: linear-gradient(180deg, var(--custom-gold-light) 0%, var(--custom-gold-dark) 100%);
+	--color: var(--ion-background-color);
 	font-weight: 800;
 	text-transform: none;
 	min-height: 36px;
@@ -253,12 +253,12 @@ ion-content.client-premium-content {
 }
 
 .client-footer {
-	background: #16191d;
+	background: var(--custom-surface);
 	border-top: 1px solid rgba(212, 175, 55, 0.16);
 	box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.28);
 
 	ion-toolbar {
-		--background: #16191d;
+		--background: var(--custom-surface);
 		--border-color: transparent;
 		--min-height: 68px;
 	}
@@ -274,7 +274,7 @@ ion-content.client-premium-content {
 .client-bottom-item {
 	border: 0;
 	background: transparent;
-	color: #8c93a3;
+	color: var(--custom-text-muted);
 	display: flex;
 	flex-direction: column;
 	align-items: center;

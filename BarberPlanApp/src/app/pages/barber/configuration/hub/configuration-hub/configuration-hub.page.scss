@@ -17,10 +17,14 @@ ion-content.barber-premium-content {
 	}
 
 	ion-item {
-		--border-radius: 10px;
-		margin-bottom: 8px;
-		--background: var(--custom-card-bg);
-		border: 1px solid rgba(212, 175, 55, 0.14);
+		--border-radius: 14px !important;
+		border-radius: 14px !important;
+		overflow: hidden !important;
+		margin-bottom: 10px !important;
+		--background: var(--custom-card-bg) !important;
+		background: var(--custom-card-bg) !important;
+		border: 1px solid var(--custom-border-subtle) !important;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
 
 		ion-icon {
 			font-size: 24px;

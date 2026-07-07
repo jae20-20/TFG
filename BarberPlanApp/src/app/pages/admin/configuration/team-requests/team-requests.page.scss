@@ -1,7 +1,7 @@
 :host {
   --page-bg: var(--ion-background-color);
   --premium-gold: var(--custom-gold);
-  --premium-gold-dark: #b5952f;
+  --premium-gold-dark: var(--custom-gold-dark);
   --premium-gold-light: var(--custom-gold-light);
   --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }

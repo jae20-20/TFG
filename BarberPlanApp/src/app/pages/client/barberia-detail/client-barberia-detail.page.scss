@@ -3,7 +3,7 @@
   --premium-surface: var(--custom-card-bg);
   --premium-border: rgba(212, 175, 55, 0.2);
   --premium-text: var(--custom-text-primary);
-  --premium-muted: #a8b0bc;
+  --premium-muted: var(--custom-text-muted);
   --premium-gold: var(--custom-gold);
 
   --ion-color-primary: var(--custom-gold);
@@ -12,11 +12,11 @@
 ion-content.detail-premium-content {
   --background:
     radial-gradient(circle at top, rgba(212, 175, 55, 0.12), transparent 38%),
-    linear-gradient(180deg, #111316 0%, #0a0c0f 100%);
+    var(--ion-background-color);
 }
 
 .detail-topbar {
-  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
+  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border-bottom: 1px solid rgba(212, 175, 55, 0.24);
 }
 
@@ -34,7 +34,7 @@ ion-content.detail-premium-content {
   padding: 18px;
   border-radius: 16px;
   border: 1px solid var(--premium-border);
-  background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   color: var(--premium-text);
   display: flex;
   flex-direction: column;
@@ -51,7 +51,7 @@ ion-content.detail-premium-content {
   border-color: rgba(248, 113, 113, 0.35);
 
   p {
-    color: #fecaca;
+    color: var(--custom-danger-light);
   }
 }
 
@@ -67,7 +67,7 @@ ion-content.detail-premium-content {
 .hero-cover {
   min-height: 156px;
   position: relative;
-  background: #1f2937;
+  background: var(--custom-card-bg);
   background-size: cover;
   background-position: center;
 }
@@ -105,7 +105,7 @@ ion-content.detail-premium-content {
 
   h1 {
     margin: 0;
-    color: #fff7df;
+    color: var(--custom-text-heading);
     font-size: 26px;
     font-weight: 900;
     line-height: 1.1;
@@ -113,7 +113,7 @@ ion-content.detail-premium-content {
 
   p {
     margin: 7px 0 0;
-    color: #e2cb85;
+    color: var(--custom-gold-light);
     font-size: 13px;
   }
 }
@@ -196,7 +196,7 @@ ion-content.detail-premium-content {
   label {
     display: block;
     margin-bottom: 6px;
-    color: #d7b654;
+    color: var(--custom-gold-light);
     font-size: 12px;
     font-weight: 700;
   }
@@ -206,7 +206,7 @@ ion-content.detail-premium-content {
     width: 100%;
     border-radius: 10px;
     border: 1px solid rgba(212, 175, 55, 0.24);
-    background: #161a1f;
+    background: var(--custom-surface);
     color: var(--custom-text-primary);
     min-height: 42px;
     padding: 9px 11px;
@@ -249,15 +249,15 @@ ion-content.detail-premium-content {
     border: 1px solid rgba(212, 175, 55, 0.2);
     border-radius: 10px;
     min-height: 36px;
-    background: #1a1e24;
-    color: #f4f4f5;
+    background: var(--custom-card-bg);
+    color: var(--custom-text-primary);
     font-weight: 700;
   }
 
   button.selected {
     border-color: rgba(212, 175, 55, 0.7);
-    background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
-    color: #171717;
+    background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
+    color: var(--ion-background-color);
   }
 }
 
@@ -269,9 +269,9 @@ ion-content.detail-premium-content {
 
 .reserve-btn {
   --border-radius: 12px;
-  --background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
-  --background-hover: linear-gradient(180deg, #dab949 0%, #bf9527 100%);
-  --color: #171717;
+  --background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
+  --background-hover: linear-gradient(180deg, var(--custom-gold-light) 0%, var(--custom-gold-dark) 100%);
+  --color: var(--ion-background-color);
   font-weight: 800;
   text-transform: none;
   min-height: 44px;

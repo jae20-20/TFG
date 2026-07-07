@@ -1,0 +1,185 @@
+/*
+ * SISTEMA GLOBAL DE COMPONENTES Y ESTRUCTURA (BarberPlan Premium)
+
+/* 1. FONDOS DE PÁGINA (ion-content y contenedores principales) */
+ion-content.client-premium-content,
+ion-content.barber-premium-content,
+ion-content.admin-premium-content,
+ion-content.detail-premium-content,
+ion-content.booking-premium-content,
+ion-content.bg-dark-900,
+.premium-content {
+  --background:
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.06), transparent 40%),
+    var(--ion-background-color) !important;
+  background:
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.06), transparent 40%),
+    var(--ion-background-color) !important;
+}
+
+/* 2. CABECERAS Y TOPBARS UNIFICADOS */
+.client-topbar,
+.barber-topbar,
+.admin-topbar,
+.detail-topbar,
+.booking-topbar,
+.preview-topbar,
+.premium-topbar {
+  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%) !important;
+  --border-color: var(--custom-border-subtle) !important;
+  border-bottom: 1px solid var(--custom-border-subtle) !important;
+}
+
+.client-topbar-title,
+.barber-topbar-title,
+.admin-topbar-title,
+.detail-topbar-title,
+.booking-topbar-title,
+.premium-topbar-title {
+  color: var(--custom-text-primary) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 3. TARJETAS (CARDS) - ESTILO UNIFICADO Y MINIMALISTA */
+.premium-card,
+.barberia-card,
+.appointment-card,
+.profile-card,
+.booking-business-card,
+.booking-progress-card,
+.booking-summary-card,
+.booking-step-card,
+.services-form-card,
+.barberia-profile-card,
+.config-placeholder-card,
+.nueva-solicitud-card,
+.solicitud-card,
+.barbero-profile-card,
+.calendar-card,
+.welcome-card,
+.bg-dark-800 {
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%) !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38) !important;
+}
+
+/* Excepciones de preview público que son claros intencionalmente */
+.public-preview-shell .premium-card,
+.public-preview-shell .welcome-card,
+.public-preview-shell .preview-content {
+  background: #f3f4f6 !important;
+  border-color: #d1d5db !important;
+  color: var(--custom-surface) !important;
+}
+
+/* 4. BOTONES PRIMARIOS Y SECUNDARIOS */
+.reserve-btn,
+.submit-btn,
+.add-service-button,
+.save-visual-btn,
+.booking-step-btn.primary,
+.btn-primary,
+button.bg-gold-500,
+a.bg-gold-500 {
+  background: linear-gradient(135deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%) !important;
+  color: #121212 !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+}
+
+.reserve-btn:hover,
+.submit-btn:hover,
+.add-service-button:hover,
+.save-visual-btn:hover,
+.booking-step-btn.primary:hover,
+.btn-primary:hover,
+button.bg-gold-500:hover,
+a.bg-gold-500:hover {
+  background: linear-gradient(135deg, var(--custom-gold-light) 0%, var(--custom-gold) 100%) !important;
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Botones secundarios (cancelar, atrás) */
+.cancel-btn,
+.btn-secondary {
+  background: transparent !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  color: var(--custom-text-muted) !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+}
+
+.cancel-btn:hover,
+.btn-secondary:hover {
+  border-color: var(--custom-gold) !important;
+  color: var(--custom-gold-light) !important;
+}
+
+/* 5. INPUTS Y FORMULARIOS UNIFICADOS */
+input.bg-dark-700,
+select.bg-dark-700,
+textarea.bg-dark-700,
+.field-input,
+.input-item {
+  background: var(--custom-surface) !important;
+  border: 1px solid var(--custom-border) !important;
+  color: var(--custom-text-primary) !important;
+  border-radius: 10px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+input.bg-dark-700:focus,
+select.bg-dark-700:focus,
+textarea.bg-dark-700:focus,
+.field-input:focus,
+.input-item:focus-within {
+  border-color: var(--custom-gold) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+  outline: none !important;
+}
+
+/* 6. PIES DE PÁGINA Y MENÚS INFERIORES */
+.client-footer,
+.barber-footer,
+.admin-footer {
+  --background: linear-gradient(180deg, var(--custom-surface) 0%, var(--ion-background-color) 100%) !important;
+  border-top: 1px solid var(--custom-border-subtle) !important;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.25) !important;
+}
+
+.client-bottom-item.is-active,
+.admin-bottom-menu ion-button.is-active,
+.barber-footer ion-tab-button.tab-selected {
+  color: var(--custom-gold) !important;
+  --color: var(--custom-gold) !important;
+}
+
+/* 8. LISTAS SIN FONDO RECTANGULAR Y ITEMS REDONDEADOS */
+ion-list.config-hub-list,
+ion-list.solicitudes-list,
+.team-requests-container ion-list,
+ion-content ion-list {
+  background: transparent !important;
+  --background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+ion-list ion-item,
+.config-hub-list ion-item {
+  --background: var(--custom-card-bg) !important;
+  background: var(--custom-card-bg) !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  --border-radius: 14px !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  margin-bottom: 10px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}

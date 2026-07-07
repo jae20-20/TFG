@@ -3,7 +3,7 @@
   --premium-surface: var(--custom-card-bg);
   --premium-border: rgba(212, 175, 55, 0.2);
   --premium-text: var(--custom-text-primary);
-  --premium-muted: #a8b0bc;
+  --premium-muted: var(--custom-text-muted);
   --premium-gold: var(--custom-gold);
 
   --ion-color-primary: var(--custom-gold);
@@ -12,11 +12,11 @@
 ion-content.booking-premium-content {
   --background:
     radial-gradient(circle at top, rgba(212, 175, 55, 0.12), transparent 38%),
-    linear-gradient(180deg, #111316 0%, #0a0c0f 100%);
+    var(--ion-background-color);
 }
 
 .booking-topbar {
-  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
+  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border-bottom: 1px solid rgba(212, 175, 55, 0.24);
 }
 
@@ -34,7 +34,7 @@ ion-content.booking-premium-content {
   padding: 18px;
   border-radius: 16px;
   border: 1px solid var(--premium-border);
-  background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   color: var(--premium-text);
   display: flex;
   flex-direction: column;
@@ -51,7 +51,7 @@ ion-content.booking-premium-content {
   border-color: rgba(248, 113, 113, 0.35);
 
   p {
-    color: #fecaca;
+    color: var(--custom-danger-light);
   }
 }
 
@@ -99,7 +99,7 @@ ion-content.booking-premium-content {
 .booking-business-eyebrow,
 .booking-step-eyebrow {
   margin: 0 0 4px;
-  color: #d7b654;
+  color: var(--custom-gold-light);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -110,7 +110,7 @@ ion-content.booking-premium-content {
   h1,
   h2 {
     margin: 0;
-    color: #fff7df;
+    color: var(--custom-text-heading);
     font-weight: 900;
   }
 
@@ -120,7 +120,7 @@ ion-content.booking-premium-content {
 
   p {
     margin: 6px 0 0;
-    color: #c4c9d4;
+    color: var(--custom-text-secondary);
     font-size: 13px;
   }
 }
@@ -138,10 +138,10 @@ ion-content.booking-premium-content {
 .progress-bar {
   height: 4px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.16);
+  background: var(--custom-border-subtle);
 
   &.active {
-    background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
+    background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
   }
 }
 
@@ -175,7 +175,7 @@ ion-content.booking-premium-content {
   }
 
   strong {
-    color: #fff7df;
+    color: var(--custom-text-heading);
     font-size: 13px;
     font-weight: 800;
   }
@@ -253,7 +253,7 @@ ion-content.booking-premium-content {
   }
 
   strong {
-    color: #fff7df;
+    color: var(--custom-text-heading);
     font-size: 14px;
   }
 }
@@ -268,7 +268,7 @@ ion-content.booking-premium-content {
   label {
     display: block;
     margin-bottom: 6px;
-    color: #d7b654;
+    color: var(--custom-gold-light);
     font-size: 12px;
     font-weight: 700;
   }
@@ -278,7 +278,7 @@ ion-content.booking-premium-content {
     width: 100%;
     border-radius: 10px;
     border: 1px solid rgba(212, 175, 55, 0.24);
-    background: #161a1f;
+    background: var(--custom-surface);
     color: var(--custom-text-primary);
     min-height: 42px;
     padding: 9px 11px;
@@ -310,15 +310,15 @@ ion-content.booking-premium-content {
     border: 1px solid rgba(212, 175, 55, 0.2);
     border-radius: 10px;
     min-height: 36px;
-    background: #1a1e24;
-    color: #f4f4f5;
+    background: var(--custom-card-bg);
+    color: var(--custom-text-primary);
     font-weight: 700;
   }
 
   button.selected {
     border-color: rgba(212, 175, 55, 0.7);
-    background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
-    color: #171717;
+    background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
+    color: var(--ion-background-color);
   }
 }
 
@@ -346,9 +346,9 @@ ion-content.booking-premium-content {
 }
 
 .booking-step-btn.primary {
-  --background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
-  --background-hover: linear-gradient(180deg, #dab949 0%, #bf9527 100%);
-  --color: #171717;
+  --background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
+  --background-hover: linear-gradient(180deg, var(--custom-gold-light) 0%, var(--custom-gold-dark) 100%);
+  --color: var(--ion-background-color);
 }
 
 @media (max-width: 480px) {

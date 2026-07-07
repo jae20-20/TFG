@@ -1,5 +1,5 @@
 .barber-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg, var(--custom-card-bg)) 0%, var(--ion-background-color, #121417) 100%);
+	--background: linear-gradient(180deg, var(--custom-card-bg, var(--custom-card-bg)) 0%, var(--ion-background-color, var(--ion-background-color)) 100%);
 	--border-color: var(--custom-border-subtle, rgba(212, 175, 55, 0.26));
 	border-bottom: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.26));
 }
@@ -25,7 +25,7 @@ ion-content {
 	height: 64px;
 
 	ion-tab-button {
-		--color: var(--custom-text-muted, #cab168);
+		--color: var(--custom-text-muted, var(--custom-gold));
 		--color-selected: var(--custom-gold, var(--custom-gold));
 		background: transparent;
 		
