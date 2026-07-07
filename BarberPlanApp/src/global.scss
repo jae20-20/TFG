@@ -9,6 +9,8 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+@use './theme/variables.scss';
+
 /* Core CSS required for Ionic components to work properly */
 @tailwind base;
 @tailwind components;
@@ -88,15 +90,15 @@
 }
 
 .golden-page-badge {
-  background: linear-gradient(135deg, #d4af37, #f3e5ab);
-  color: #1a1a1a;
+  background: linear-gradient(135deg, var(--custom-gold, #d4af37), var(--custom-gold-light, #f3e5ab));
+  color: var(--ion-background-color, #121212);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 2px 4px var(--custom-border-subtle, rgba(212, 175, 55, 0.3));
 }
 
 body.dark .custom-page-header {
@@ -111,50 +113,50 @@ body.dark .custom-header-center {
 }
 
 .small-golden-back ion-icon {
-  color: #d4af37 !important;
+  color: var(--custom-gold, #d4af37) !important;
   font-size: 24px !important; 
 }
 
 /* Estilos para Alertas Premium */
 .premium-alert {
-  --background: #17191d;
+  --background: var(--custom-surface, #17191d);
   --backdrop-opacity: 0.7;
 
   .alert-wrapper {
-    background: linear-gradient(180deg, #17191d 0%, #111317 100%) !important;
-    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%) !important;
+    border: 1px solid var(--custom-border-strong, rgba(212, 175, 55, 0.3)) !important;
     border-radius: 16px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
   }
 
   .alert-title {
-    color: #f8fafc !important;
+    color: var(--ion-text-color, #f8fafc) !important;
     font-size: 20px !important;
     font-weight: 800 !important;
   }
 
   .alert-message {
-    color: #94a3b8 !important;
+    color: var(--custom-text-muted-alt, #94a3b8) !important;
     font-size: 14px !important;
   }
 
   .alert-button-group {
-    border-top: 1px solid rgba(212, 175, 55, 0.1) !important;
+    border-top: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1)) !important;
   }
 
   .alert-button {
-    color: #d4af37 !important;
+    color: var(--custom-gold, #d4af37) !important;
     font-weight: 600 !important;
     
     &.alert-button-role-cancel {
-      color: #94a3b8 !important;
+      color: var(--custom-text-muted-alt, #94a3b8) !important;
       font-weight: 500 !important;
     }
   }
 
   .alert-input {
     background: rgba(15, 23, 42, 0.6) !important;
-    color: #f8fafc !important;
+    color: var(--ion-text-color, #f8fafc) !important;
     border: 1px solid rgba(148, 163, 184, 0.12) !important;
     border-radius: 8px !important;
     
@@ -166,32 +168,32 @@ body.dark .custom-header-center {
 
 /* Estilos para Modales Premium */
 ion-modal.premium-modal {
-  --background: linear-gradient(180deg, #17191d 0%, #111317 100%);
+  --background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%);
   --backdrop-opacity: 0.7;
 
   ion-header {
     background: transparent;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1));
   }
 
   ion-toolbar {
     --background: transparent;
-    --color: #f8fafc;
+    --color: var(--ion-text-color, #f8fafc);
   }
 
   ion-title {
-    color: #d4af37;
+    color: var(--custom-gold, #d4af37);
     font-weight: 800;
   }
 
   ion-content {
     --background: transparent;
-    color: #f8fafc;
+    color: var(--ion-text-color, #f8fafc);
   }
 
   ion-footer {
     background: transparent;
-    border-top: 1px solid rgba(212, 175, 55, 0.1);
+    border-top: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1));
   }
   
   ion-footer ion-toolbar {
@@ -201,17 +203,17 @@ ion-modal.premium-modal {
   .premium-modal-button {
     --background: rgba(212, 175, 55, 0.1);
     --background-activated: rgba(212, 175, 55, 0.2);
-    --border-color: rgba(212, 175, 55, 0.5);
+    --border-color: var(--custom-border-strong, rgba(212, 175, 55, 0.5));
     --border-style: solid;
     --border-width: 1px;
-    --color: #d4af37;
+    --color: var(--custom-gold, #d4af37);
     --border-radius: 8px;
     font-weight: 600;
   }
   
   .premium-modal-button-solid {
-    --background: linear-gradient(135deg, #d4af37, #f3e5ab);
-    --color: #1a1a1a;
+    --background: linear-gradient(135deg, var(--custom-gold, #d4af37), var(--custom-gold-light, #f3e5ab));
+    --color: var(--ion-background-color, #1a1a1a);
     --border-radius: 8px;
     font-weight: 700;
   }

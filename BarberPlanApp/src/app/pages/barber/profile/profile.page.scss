@@ -1,6 +1,6 @@
 ion-content.barber-premium-content {
 	--padding-bottom: 88px;
-	--background: #0f0f0f;
+	--background: var(--ion-background-color);
 }
 
 .barbero-profile-card {
@@ -8,7 +8,7 @@ ion-content.barber-premium-content {
 	border-radius: 20px;
 	background:
 		radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 35%),
-		linear-gradient(180deg, #17191d 0%, #111317 100%);
+		linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	border: 1px solid rgba(212, 175, 55, 0.2);
 	box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
 }
@@ -24,13 +24,13 @@ ion-content.barber-premium-content {
 		margin: 0 0 4px;
 		font-size: 18px;
 		font-weight: 800;
-		color: #f8fafc;
+		color: var(--custom-text-primary);
 	}
 
 	p {
 		margin: 0;
 		font-size: 13px;
-		color: #9ca3af;
+		color: var(--custom-text-muted);
 	}
 
 	ion-button {
@@ -54,7 +54,7 @@ ion-content.barber-premium-content {
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: #d8bc67;
+		color: var(--custom-gold-light);
 	}
 
 	.field-display {
@@ -63,7 +63,7 @@ ion-content.barber-premium-content {
 		background: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(212, 175, 55, 0.2);
 		font-size: 14px;
-		color: #f8fafc;
+		color: var(--custom-text-primary);
 		line-height: 1.4;
 	}
 
@@ -74,7 +74,7 @@ ion-content.barber-premium-content {
 	.field-input {
 		--background: rgba(255, 255, 255, 0.05);
 		--border-radius: 12px;
-		--color: #f8fafc;
+		--color: var(--custom-text-primary);
 		--padding-start: 14px;
 		--padding-end: 14px;
 		--padding-top: 12px;
@@ -97,7 +97,7 @@ ion-content.barber-premium-content {
 	}
 
 	ion-button[color="primary"] {
-		--background: #d4af37;
+		--background: var(--custom-gold);
 		--background-hover: #c9a227;
 		--background-focused: #c9a227;
 		--color: #171717;

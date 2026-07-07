@@ -1,9 +1,9 @@
 :host {
-  --page-bg: #0f0f0f;
-  --premium-gold: #d4af37;
+  --page-bg: var(--ion-background-color);
+  --premium-gold: var(--custom-gold);
   --premium-gold-dark: #b5952f;
-  --premium-gold-light: #f3e5ab;
-  --panel-bg: linear-gradient(180deg, #17191d 0%, #111317 100%);
+  --premium-gold-light: var(--custom-gold-light);
+  --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }
 
 .admin-premium-content {
@@ -53,7 +53,7 @@
   }
 
   .solicitud-body {
-    color: #cbd5e1;
+    color: var(--custom-text-muted);
     font-size: 0.95rem;
 
     p {
@@ -83,7 +83,7 @@
   padding: 32px;
   margin-top: 20px;
   text-align: center;
-  color: #f8fafc;
+  color: var(--custom-text-primary);
   background: var(--panel-bg);
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 18px;
@@ -103,7 +103,7 @@
 
   p {
     margin: 12px 0 0;
-    color: #9ca3af;
+    color: var(--custom-text-muted);
     font-size: 1rem;
   }
 }

@@ -1,6 +1,6 @@
 ion-content.barber-premium-content {
 	--padding-bottom: 88px;
-	--background: #0f0f0f;
+	--background: var(--ion-background-color);
 }
 
 .config-hub-list {
@@ -8,7 +8,7 @@ ion-content.barber-premium-content {
 	background: transparent;
 
 	ion-list-header {
-		color: #e7ca72;
+		color: var(--custom-gold-light);
 		font-weight: 600;
 		font-size: 14px;
 		text-transform: uppercase;
@@ -19,7 +19,7 @@ ion-content.barber-premium-content {
 	ion-item {
 		--border-radius: 10px;
 		margin-bottom: 8px;
-		--background: #17191d;
+		--background: var(--custom-card-bg);
 		border: 1px solid rgba(212, 175, 55, 0.14);
 
 		ion-icon {
@@ -28,12 +28,12 @@ ion-content.barber-premium-content {
 
 		h2 {
 			font-weight: 600;
-			color: #f8fafc;
+			color: var(--custom-text-primary);
 		}
 
 		p {
 			font-size: 13px;
-			color: #9ca3af;
+			color: var(--custom-text-muted);
 		}
 	}
 }

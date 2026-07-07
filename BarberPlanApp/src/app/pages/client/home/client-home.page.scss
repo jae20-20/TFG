@@ -1,14 +1,14 @@
 :host {
-	--premium-bg: #0f0f0f;
-	--premium-surface: #17191d;
+	--premium-bg: var(--ion-background-color);
+	--premium-surface: var(--custom-card-bg);
 	--premium-surface-2: #1d2128;
 	--premium-border: rgba(212, 175, 55, 0.2);
-	--premium-text: #f8fafc;
-	--premium-muted: #9ca3af;
-	--premium-gold: #d4af37;
+	--premium-text: var(--custom-text-primary);
+	--premium-muted: var(--custom-text-muted);
+	--premium-gold: var(--custom-gold);
 	--premium-gold-strong: #c9a227;
 
-	--ion-color-primary: #d4af37;
+	--ion-color-primary: var(--custom-gold);
 	--ion-color-primary-rgb: 212, 175, 55;
 	--ion-color-primary-contrast: #171717;
 	--ion-color-primary-contrast-rgb: 23, 23, 23;
@@ -24,7 +24,7 @@ ion-content.client-premium-content {
 }
 
 .client-topbar {
-	--background: linear-gradient(180deg, #1a1d22 0%, #121417 100%);
+	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
 	--border-color: rgba(212, 175, 55, 0.26);
 	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
 }
@@ -47,7 +47,7 @@ ion-content.client-premium-content {
 		margin: 0;
 		font-size: 29px;
 		line-height: 1.1;
-		color: #fef7e0;
+		color: var(--custom-gold-light);
 		font-weight: 900;
 		letter-spacing: -0.02em;
 	}
@@ -66,7 +66,7 @@ ion-content.client-premium-content {
 	font-weight: 700;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: #e7ca72 !important;
+	color: var(--custom-gold-light) !important;
 }
 
 .client-state {
@@ -74,7 +74,7 @@ ion-content.client-premium-content {
 	padding: 18px;
 	border-radius: 16px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, #17191d 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
 	color: var(--premium-text);
 	display: flex;
 	align-items: center;
@@ -107,7 +107,7 @@ ion-content.client-premium-content {
 	border-radius: 18px;
 	overflow: hidden;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, #17191d 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
 	box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
 	cursor: pointer;
 	transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -138,8 +138,8 @@ ion-content.client-premium-content {
 	width: 48px;
 	height: 48px;
 	border-radius: 12px;
-	border: 3px solid #17191d;
-	background: #0f172a;
+	border: 3px solid var(--custom-card-bg);
+	background: var(--ion-background-color);
 	background-size: cover;
 	background-position: center;
 	display: flex;
@@ -148,7 +148,7 @@ ion-content.client-premium-content {
 	z-index: 1;
 
 	ion-icon {
-		color: #cbd5e1;
+		color: var(--custom-text-muted);
 		font-size: 22px;
 	}
 }
@@ -205,7 +205,7 @@ ion-content.client-premium-content {
 		padding: 5px 8px;
 		border-radius: 999px;
 		background: rgba(212, 175, 55, 0.15);
-		color: #f5d47a;
+		color: var(--custom-gold-light);
 		font-size: 11px;
 		font-weight: 700;
 	}
@@ -219,7 +219,7 @@ ion-content.client-premium-content {
 	border-radius: 999px;
 	background: rgba(18, 19, 22, 0.82);
 	border: 1px solid rgba(212, 175, 55, 0.32);
-	color: #f5d47a;
+	color: var(--custom-gold-light);
 	font-size: 10px;
 	font-weight: 800;
 	letter-spacing: 0.08em;
@@ -231,7 +231,7 @@ ion-content.client-premium-content {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	color: #f5d47a;
+	color: var(--custom-gold-light);
 	font-size: 12px;
 	font-weight: 800;
 	white-space: nowrap;
@@ -243,7 +243,7 @@ ion-content.client-premium-content {
 
 .reserve-btn {
 	--border-radius: 11px;
-	--background: linear-gradient(180deg, #d4af37 0%, #b88f1f 100%);
+	--background: linear-gradient(180deg, var(--custom-gold) 0%, #b88f1f 100%);
 	--background-hover: linear-gradient(180deg, #dab949 0%, #bf9527 100%);
 	--color: #171717;
 	font-weight: 800;
@@ -288,7 +288,7 @@ ion-content.client-premium-content {
 	}
 
 	&.is-active {
-		color: #f5d47a;
+		color: var(--custom-gold-light);
 		background: rgba(212, 175, 55, 0.08);
 	}
 }

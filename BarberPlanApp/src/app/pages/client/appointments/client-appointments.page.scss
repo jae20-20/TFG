@@ -1,8 +1,8 @@
 :host {
 	--premium-border: rgba(212, 175, 55, 0.2);
-	--premium-text: #f8fafc;
-	--premium-gold: #d4af37;
-	--ion-color-primary: #d4af37;
+	--premium-text: var(--custom-text-primary);
+	--premium-gold: var(--custom-gold);
+	--ion-color-primary: var(--custom-gold);
 	--ion-color-primary-contrast: #171717;
 }
 
@@ -14,7 +14,7 @@ ion-content.client-premium-content {
 }
 
 .client-topbar {
-	--background: linear-gradient(180deg, #1a1d22 0%, #121417 100%);
+	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, #121417 100%);
 	--border-color: rgba(212, 175, 55, 0.26);
 	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
 }
@@ -36,7 +36,7 @@ ion-content.client-premium-content {
 		margin: 0;
 		font-size: 25px;
 		line-height: 1.1;
-		color: #fef7e0;
+		color: var(--custom-gold-light);
 		font-weight: 900;
 	}
 
@@ -54,7 +54,7 @@ ion-content.client-premium-content {
 	font-weight: 700;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: #e7ca72 !important;
+	color: var(--custom-gold-light) !important;
 }
 
 .client-state {
@@ -62,7 +62,7 @@ ion-content.client-premium-content {
 	padding: 18px;
 	border-radius: 16px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, #17191d 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
 	color: var(--premium-text);
 	display: flex;
 	align-items: center;
@@ -90,7 +90,7 @@ ion-content.client-premium-content {
 	padding: 14px;
 	border-radius: 18px;
 	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, #17191d 0%, #101216 100%);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, #101216 100%);
 	box-shadow: 0 16px 30px rgba(0, 0, 0, 0.32);
 }
 
@@ -110,7 +110,7 @@ ion-content.client-premium-content {
 
 .appointment-eyebrow {
 	margin: 0 0 4px;
-	color: #9ca3af;
+	color: var(--custom-text-muted);
 	font-size: 11px;
 	text-transform: uppercase;
 	letter-spacing: 0.08em;
@@ -124,7 +124,7 @@ ion-content.client-premium-content {
 	font-weight: 800;
 	text-transform: capitalize;
 	background: rgba(212, 175, 55, 0.14);
-	color: #f5d47a;
+	color: var(--custom-gold-light);
 	white-space: nowrap;
 
 	&.confirmada {
@@ -156,7 +156,7 @@ ion-content.client-premium-content {
 		padding: 6px 10px;
 		border-radius: 999px;
 		background: rgba(212, 175, 55, 0.12);
-		color: #f5d47a;
+		color: var(--custom-gold-light);
 		font-size: 12px;
 		font-weight: 700;
 	}
@@ -205,7 +205,7 @@ ion-content.client-premium-content {
 	}
 
 	&.is-active {
-		color: #f5d47a;
+		color: var(--custom-gold-light);
 		background: rgba(212, 175, 55, 0.08);
 	}
 }

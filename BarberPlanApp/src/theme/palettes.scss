@@ -1,0 +1,55 @@
+/*
+ * Sistema de Paletas Modular - BarberPlan
+ */
+
+:root, body.theme-barber {
+  /* COLOR PRIMARIO: Dorado Brillante (Elegante y Premium) */
+  --ion-color-primary: #d4af37;
+  --ion-color-primary-rgb: 212, 175, 55;
+  --ion-color-primary-contrast: #121212;
+  --ion-color-primary-contrast-rgb: 18, 18, 18;
+  --ion-color-primary-shade: #bb9a30;
+  --ion-color-primary-tint: #d8b74b;
+
+  /* FONDOS (60% de la app) */
+  --ion-background-color: #121212;
+  --ion-background-color-rgb: 18, 18, 18;
+
+  /* TEXTOS */
+  --ion-text-color: #F5F5F7;
+  --ion-text-color-rgb: 245, 245, 247;
+
+  /* TOKENS PERSONALIZADOS GLOBALES */
+  --custom-card-bg: #1E1E1E;
+  --custom-border: #2C2C2E;
+  --custom-text-muted: #8E8E93;
+
+  /* TOKENS ADICIONALES PARA COMPONENTES */
+  --custom-surface: #17191d;
+  --custom-surface-hover: #1f2228;
+  --custom-gold: #d4af37;
+  --custom-gold-light: #f5d47a;
+  --custom-gold-dark: #b88f1f;
+  --custom-text-primary: #F5F5F7;
+  --custom-text-secondary: #cbd5e1;
+  --custom-text-muted-alt: #94a3b8;
+  --custom-border-subtle: rgba(212, 175, 55, 0.2);
+  --custom-border-strong: rgba(212, 175, 55, 0.4);
+  --custom-success: #22c55e;
+  --custom-danger: #ef4444;
+  --custom-warning: #f59e0b;
+
+  /* OVERRIDES PARA OTROS COLORES DE IONIC */
+  --ion-color-secondary: #1E1E1E;
+  --ion-color-secondary-rgb: 30, 30, 30;
+  --ion-color-secondary-contrast: #F5F5F7;
+  --ion-color-secondary-contrast-rgb: 245, 245, 247;
+  --ion-color-secondary-shade: #1a1a1a;
+  --ion-color-secondary-tint: #353535;
+
+  /* FONDO DE ITEMS, TARJETAS, BARRAS Y TABS */
+  --ion-item-background: #1E1E1E;
+  --ion-card-background: #1E1E1E;
+  --ion-toolbar-background: #1E1E1E;
+  --ion-tab-bar-background: #1E1E1E;
+}

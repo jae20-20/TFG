@@ -22,7 +22,7 @@
 // Estilos de la página
 ::ng-deep {
   ion-content.bg-dark-900 {
-    --background: #0f0f0f;
+    --background: var(--ion-background-color, #121212);
     --overflow: hidden;
   }
 
@@ -43,7 +43,7 @@
 
   // Efecto de enfoque mejorado
   input:focus {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(212, 175, 55, 0.3)) !important;
   }
 
   button[type="submit"]:active {
@@ -52,6 +52,6 @@
 
   // Efectos de hover en botones
   button:hover {
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 10px 30px var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
   }
 }

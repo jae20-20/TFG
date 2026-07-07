@@ -1,9 +1,9 @@
 :host {
-  --page-bg: #0f0f0f;
-  --premium-gold: #d4af37;
+  --page-bg: var(--ion-background-color);
+  --premium-gold: var(--custom-gold);
   --premium-gold-dark: #b5952f;
-  --premium-gold-light: #f3e5ab;
-  --panel-bg: linear-gradient(180deg, #17191d 0%, #111317 100%);
+  --premium-gold-light: var(--custom-gold-light);
+  --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }
 
 .barber-premium-content {
@@ -20,14 +20,14 @@
 
   h3 {
     margin: 0 0 4px;
-    color: #f8fafc;
+    color: var(--custom-text-primary);
     font-size: 18px;
     font-weight: 800;
   }
 
   p {
     margin: 0 0 16px;
-    color: #94a3b8;
+    color: var(--custom-text-muted);
     font-size: 13px;
   }
 
@@ -46,13 +46,13 @@
     border-radius: 12px;
 
     ion-label {
-      color: #cbd5e1;
+      color: var(--custom-text-muted);
       font-weight: 700;
       font-size: 12px;
     }
 
     ion-input, ion-select {
-      --color: #f8fafc;
+      --color: var(--custom-text-primary);
     }
   }
 
@@ -98,7 +98,7 @@
   }
 
   .solicitud-body {
-    color: #cbd5e1;
+    color: var(--custom-text-muted);
     font-size: 0.95rem;
 
     p {
@@ -135,7 +135,7 @@
 .placeholder-card {
   padding: 40px 20px;
   text-align: center;
-  color: #f8fafc;
+  color: var(--custom-text-primary);
   background: var(--panel-bg);
   border: 1px dashed rgba(212, 175, 55, 0.3);
   border-radius: 18px;
@@ -154,7 +154,7 @@
 
   p {
     margin: 10px 0 0;
-    color: #9ca3af;
+    color: var(--custom-text-muted);
     font-size: 14px;
   }
 }
@@ -170,5 +170,5 @@
 .calendar-empty {
   text-align: center;
   padding: 30px;
-  color: #cbd5e1;
+  color: var(--custom-text-muted);
 }

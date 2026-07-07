@@ -1,19 +1,19 @@
 ion-content.barber-premium-content {
-	--background: #0f0f0f;
+	--background: var(--ion-background-color);
 }
 
 .config-placeholder-card {
 	padding: 22px;
 	margin-top: 20px;
 	text-align: center;
-	color: #f8fafc;
-	background: linear-gradient(180deg, #17191d 0%, #111317 100%);
+	color: var(--custom-text-primary);
+	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 	border: 1px solid rgba(212, 175, 55, 0.2);
 	border-radius: 18px;
 
 	ion-icon {
 		font-size: 42px;
-		color: #d4af37;
+		color: var(--custom-gold);
 		margin-bottom: 10px;
 	}
 
@@ -25,6 +25,6 @@ ion-content.barber-premium-content {
 
 	p {
 		margin: 8px 0 0;
-		color: #9ca3af;
+		color: var(--custom-text-muted);
 	}
 }

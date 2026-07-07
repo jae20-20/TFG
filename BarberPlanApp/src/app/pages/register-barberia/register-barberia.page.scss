@@ -35,7 +35,7 @@
 // Estilos de la página
 ::ng-deep {
   ion-content.bg-dark-900 {
-    --background: #0f0f0f;
+    --background: var(--ion-background-color, #121212);
   }
 
   // Permitir scroll solo cuando sea necesario
@@ -71,7 +71,7 @@
   input:focus,
   select:focus,
   textarea:focus {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(212, 175, 55, 0.3)) !important;
   }
 
   // Efectos de botones
@@ -81,7 +81,7 @@
   }
 
   button:hover:not(:disabled) {
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 10px 30px var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
   }
 
   // Mejorar select styling
@@ -101,7 +101,7 @@
 
   // Spinner de carga
   ion-spinner {
-    --color: #d4af37;
+    --color: var(--custom-gold, #d4af37);
   }
 
   // Transiciones suaves en indicadores de paso
