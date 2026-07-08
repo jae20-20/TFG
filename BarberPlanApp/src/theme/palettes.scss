@@ -48,13 +48,19 @@
   --custom-gold: #d4af37;
   --custom-gold-light: #f5d47a;
   --custom-gold-dark: #b88f1f;
-  --custom-gold-soft: rgba(212, 175, 55, 0.15);
+  --custom-gold-soft: rgba(var(--ion-color-primary-rgb), 0.15);
+
+  /* ALIAS DE COMPATIBILIDAD CON SISTEMA ANTIGUO */
+  --premium-gold: var(--custom-gold);
+  --premium-gold-light: var(--custom-gold-light);
+  --premium-gold-dark: var(--custom-gold-dark);
+  --premium-gold-soft: var(--custom-gold-soft);
 
   /* 
    TOKENS DE BORDES
     */
-  --custom-border-subtle: rgba(212, 175, 55, 0.12);
-  --custom-border-strong: rgba(212, 175, 55, 0.35);
+  --custom-border-subtle: rgba(var(--ion-color-primary-rgb), 0.14);
+  --custom-border-strong: rgba(var(--ion-color-primary-rgb), 0.35);
 
   /* 
     TOKENS DE ESTADO
@@ -84,4 +90,150 @@
   --ion-card-background: #1E1E1E;
   --ion-toolbar-background: #1E1E1E;
   --ion-tab-bar-background: #1E1E1E;
+}
+
+
+   //TEMAS ADICIONALES (SELECTOR DE PALETAS)
+
+/*Zafiro Real (Azul) */
+body.theme-sapphire {
+  --ion-color-primary: #3b82f6;
+  --ion-color-primary-rgb: 59, 130, 246;
+  --ion-color-primary-shade: #2563eb;
+  --ion-color-primary-tint: #60a5fa;
+
+  --custom-gold: #3b82f6;
+  --custom-gold-light: #93c5fd;
+  --custom-gold-dark: #1d4ed8;
+  --custom-gold-soft: rgba(59, 130, 246, 0.15);
+  --custom-border-subtle: rgba(59, 130, 246, 0.16);
+  --custom-border-strong: rgba(59, 130, 246, 0.38);
+}
+
+/* Esmeralda Suizo (Verde) */
+body.theme-emerald {
+  --ion-color-primary: #10b981;
+  --ion-color-primary-rgb: 16, 185, 129;
+  --ion-color-primary-shade: #059669;
+  --ion-color-primary-tint: #34d399;
+
+  --custom-gold: #10b981;
+  --custom-gold-light: #6ee7b7;
+  --custom-gold-dark: #047857;
+  --custom-gold-soft: rgba(16, 185, 129, 0.15);
+  --custom-border-subtle: rgba(16, 185, 129, 0.16);
+  --custom-border-strong: rgba(16, 185, 129, 0.38);
+}
+
+/*Carmesí Velvet (Rojo/Vino) */
+body.theme-crimson {
+  --ion-color-primary: #ef4444;
+  --ion-color-primary-rgb: 239, 68, 68;
+  --ion-color-primary-shade: #dc2626;
+  --ion-color-primary-tint: #f87171;
+
+  --custom-gold: #ef4444;
+  --custom-gold-light: #fca5a5;
+  --custom-gold-dark: #b91c1c;
+  --custom-gold-soft: rgba(239, 68, 68, 0.15);
+  --custom-border-subtle: rgba(239, 68, 68, 0.16);
+  --custom-border-strong: rgba(239, 68, 68, 0.38);
+}
+
+/*Amatista Noble (Morado) */
+body.theme-amethyst {
+  --ion-color-primary: #8b5cf6;
+  --ion-color-primary-rgb: 139, 92, 246;
+  --ion-color-primary-shade: #7c3aed;
+  --ion-color-primary-tint: #a78bfa;
+
+  --custom-gold: #8b5cf6;
+  --custom-gold-light: #c4b5fd;
+  --custom-gold-dark: #6d28d9;
+  --custom-gold-soft: rgba(139, 92, 246, 0.15);
+  --custom-border-subtle: rgba(139, 92, 246, 0.16);
+  --custom-border-strong: rgba(139, 92, 246, 0.38);
+}
+
+
+/* =================================================================================
+ * MODO CLARO (LIGHT MODE) - BARBERPLAN
+ *  */
+body.light-mode {
+  /* FONDOS CLAROS */
+  --ion-background-color: #f8fafc;
+  --ion-background-color-rgb: 248, 250, 252;
+  --custom-card-bg: #ffffff;
+  --custom-surface: #f1f5f9;
+  --custom-surface-hover: #e2e8f0;
+  --custom-border: #cbd5e1;
+
+  /* TEXTOS OSCUROS */
+  --ion-text-color: #0f172a;
+  --ion-text-color-rgb: 15, 23, 42;
+  --custom-text-primary: #0f172a;
+  --custom-text-secondary: #334155;
+  --custom-text-muted: #64748b;
+  --custom-text-muted-alt: #94a3b8;
+  --custom-text-heading: #0f172a;
+
+  /* TOKENS DE BORDES EN MODO CLARO */
+  --custom-border-subtle: rgba(var(--ion-color-primary-rgb), 0.15);
+  --custom-border-strong: rgba(var(--ion-color-primary-rgb), 0.35);
+
+  /* OVERRIDES IONIC */
+  --ion-color-secondary: #f1f5f9;
+  --ion-color-secondary-rgb: 241, 245, 249;
+  --ion-color-secondary-contrast: #0f172a;
+  --ion-color-secondary-contrast-rgb: 15, 23, 42;
+
+  /* FONDOS DE COMPONENTES IONIC */
+  --ion-item-background: #ffffff;
+  --ion-card-background: #ffffff;
+  --ion-toolbar-background: transparent;
+  --ion-tab-bar-background: #ffffff;
+
+  /*
+   * AJUSTE DE PALETAS PARA MODO CLARO (ALTO CONTRASTE) asi los del modo oscuro se ven mejor
+   */
+  
+  /* Dorado -> Bronce Imperial */
+  &.theme-barber, &:not([class*="theme-"]) {
+    --ion-color-primary: #a2741d;
+    --ion-color-primary-rgb: 162, 116, 29;
+    --custom-gold: #a2741d;
+    --custom-gold-light: #d4af37;
+  }
+
+  /* Verde -> Verde Bosque */
+  &.theme-emerald {
+    --ion-color-primary: #047857;
+    --ion-color-primary-rgb: 4, 120, 87;
+    --custom-gold: #047857;
+    --custom-gold-light: #10b981;
+  }
+
+  /* Azul -> Azul Real */
+  &.theme-sapphire {
+    --ion-color-primary: #1d4ed8;
+    --ion-color-primary-rgb: 29, 78, 216;
+    --custom-gold: #1d4ed8;
+    --custom-gold-light: #3b82f6;
+  }
+
+  /* Carmesí -> Rojo Oscuro */
+  &.theme-crimson {
+    --ion-color-primary: #b91c1c;
+    --ion-color-primary-rgb: 185, 28, 28;
+    --custom-gold: #b91c1c;
+    --custom-gold-light: #ef4444;
+  }
+
+  /* Amatista -> Púrpura Profundo */
+  &.theme-amethyst {
+    --ion-color-primary: #6d28d9;
+    --ion-color-primary-rgb: 109, 40, 217;
+    --custom-gold: #6d28d9;
+    --custom-gold-light: #8b5cf6;
+  }
 }

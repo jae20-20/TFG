@@ -4,7 +4,7 @@
     
     <!-- Logo y título -->
     <div class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-white mb-2">BarberPlan</h1>
+      <h1 class="text-4xl font-bold text-dynamic-text mb-2">BarberPlan</h1>
       <p class="text-gold-400 text-lg">Gestión premium de barberías</p>
     </div>
 
@@ -14,8 +14,8 @@
         
         <!-- Header de la tarjeta -->
         <div class="px-8 pt-8 pb-4">
-          <h2 class="text-3xl font-bold text-white mb-2">Iniciar Sesión</h2>
-          <p class="text-gray-400 text-sm">Accede a tu cuenta de BarberPlan</p>
+          <h2 class="text-3xl font-bold text-dynamic-text mb-2">Iniciar Sesión</h2>
+          <p class="text-dynamic-muted text-sm">Accede a tu cuenta de BarberPlan</p>
         </div>
 
         <!-- Contenido del formulario -->
@@ -23,27 +23,27 @@
           <form (ngSubmit)="login()" class="space-y-6">
             <!-- Campo de Email -->
             <div>
-              <label class="block text-gray-300 text-sm font-medium mb-3">Email</label>
+              <label class="block text-dynamic-text text-sm font-medium mb-3">Email</label>
               <input
                 type="email"
                 [(ngModel)]="correo"
                 name="correo"
                 placeholder="tu@email.com"
                 required
-                class="w-full px-4 py-3 rounded-lg bg-dark-700 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-4 py-3 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               />
             </div>
 
             <!-- Campo de Contraseña -->
             <div>
-              <label class="block text-gray-300 text-sm font-medium mb-3">Contraseña</label>
+              <label class="block text-dynamic-text text-sm font-medium mb-3">Contraseña</label>
               <input
                 type="password"
                 [(ngModel)]="pw"
                 name="pw"
                 placeholder="Tu contraseña"
                 required
-                class="w-full px-4 py-3 rounded-lg bg-dark-700 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-4 py-3 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               />
             </div>
 
@@ -70,22 +70,22 @@
 
       <!-- Pie de página -->
       <div class="text-center mt-6">
-        <p class="text-gray-500 text-sm">
-          <span class="text-gray-400">¿Primera vez aquí?</span>
+        <p class="text-dynamic-muted text-sm">
+          <span class="text-dynamic-muted">¿Primera vez aquí?</span>
           <button
             type="button"
             (click)="goToRegister()"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Crea tu cuenta
           </button>
         </p>
-        <p class="text-gray-500 text-sm">
-          <span class="text-gray-400">¿Tienes una barbería?</span>
+        <p class="text-dynamic-muted text-sm">
+          <span class="text-dynamic-muted">¿Tienes una barbería?</span>
           <button
             type="button"
             (click)="goToBarberiaRegister()"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Regístrala aquí
           </button>

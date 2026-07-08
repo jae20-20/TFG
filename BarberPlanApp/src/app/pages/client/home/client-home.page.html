@@ -1,10 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="client-topbar">
-    <ion-title class="client-topbar-title">¡Hola, {{ user?.nombre || 'Cliente' }}!</ion-title>
+    <ion-title class="client-topbar-title boutique-title">BarberPlan</ion-title>
 
     <ion-buttons slot="end">
-      <div class="golden-page-badge" style="margin-right: 12px; font-size: 0.75rem;">Inicio</div>
-      <ion-button class="client-logout-btn" (click)="logout()">
+      <app-theme-header-btn></app-theme-header-btn>
+      <ion-button class="client-logout-btn" (click)="logout()" title="Cerrar sesión">
         <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>

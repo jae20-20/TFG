@@ -99,7 +99,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px var(--custom-border-subtle, rgba(212, 175, 55, 0.3));
+  box-shadow: 0 2px 4px var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.3));
 }
 
 body.dark .custom-page-header {
@@ -114,7 +114,7 @@ body.dark .custom-header-center {
 }
 
 .small-golden-back ion-icon {
-  color: var(--custom-gold, #d4af37) !important;
+  color: var(--custom-text-primary) !important;
   font-size: 24px !important; 
 }
 
@@ -125,7 +125,7 @@ body.dark .custom-header-center {
 
   .alert-wrapper {
     background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%) !important;
-    border: 1px solid var(--custom-border-strong, rgba(212, 175, 55, 0.3)) !important;
+    border: 1px solid var(--custom-border-strong, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
     border-radius: 16px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
   }
@@ -142,7 +142,7 @@ body.dark .custom-header-center {
   }
 
   .alert-button-group {
-    border-top: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1)) !important;
+    border-top: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.1)) !important;
   }
 
   .alert-button {
@@ -174,7 +174,7 @@ ion-modal.premium-modal {
 
   ion-header {
     background: transparent;
-    border-bottom: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1));
+    border-bottom: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.1));
   }
 
   ion-toolbar {
@@ -194,7 +194,7 @@ ion-modal.premium-modal {
 
   ion-footer {
     background: transparent;
-    border-top: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.1));
+    border-top: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.1));
   }
   
   ion-footer ion-toolbar {
@@ -202,9 +202,9 @@ ion-modal.premium-modal {
   }
 
   .premium-modal-button {
-    --background: rgba(212, 175, 55, 0.1);
-    --background-activated: rgba(212, 175, 55, 0.2);
-    --border-color: var(--custom-border-strong, rgba(212, 175, 55, 0.5));
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+    --background-activated: rgba(var(--ion-color-primary-rgb), 0.2);
+    --border-color: var(--custom-border-strong, rgba(var(--ion-color-primary-rgb), 0.5));
     --border-style: solid;
     --border-width: 1px;
     --color: var(--custom-gold, #d4af37);
@@ -235,4 +235,23 @@ ion-modal.premium-modal {
   ion-input, ion-datetime {
     color: var(--custom-text-primary) !important;
   }
+}
+
+/* UTILIDADES PARA ENLACES DE TEXTO (evita fondos grises por preflight deshabilitado) */
+.text-link-btn {
+  background: transparent !important;
+  color: var(--ion-color-primary) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 0 4px !important;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.text-link-btn:hover {
+  filter: brightness(1.2);
+  opacity: 0.9;
 }

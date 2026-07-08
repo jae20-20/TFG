@@ -1,14 +1,14 @@
 
 
-<ion-content class="ion-padding">
-  <ion-list>
-    <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}">
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <ion-list class="config-hub-list">
+    <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}" button detail>
+      <ion-icon slot="start" name="person-outline" color="primary"></ion-icon>
       <ion-label>
         <h2>{{ barber.nombre }} {{ barber.apellido }} <span *ngIf="isAdmin(barber)" class="admin-badge">(Tú)</span></h2>
         <p *ngIf="!isAdmin(barber)">{{ barber.cargo || 'Barbero' }}</p>
         <p *ngIf="isAdmin(barber)" class="admin-role-text">Admin</p>
       </ion-label>
-      <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
     </ion-item>
   </ion-list>
 </ion-content>

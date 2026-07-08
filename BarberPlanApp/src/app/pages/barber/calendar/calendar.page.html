@@ -56,7 +56,7 @@
             <p *ngIf="loadingCitas" style="margin: 4px 0 0;">Cargando citas...</p>
             <p class="calendar-error" *ngIf="calendarError" style="margin: 4px 0 0;">{{ calendarError }}</p>
           </div>
-          <ion-button *ngIf="!loadingCitas && !isDayClosed(selectedDateKey)" fill="clear" color="warning" class="mini-icon-btn" [title]="'Añadir cita'" (click)="openNewCitaModal()">
+          <ion-button *ngIf="!loadingCitas && !isDayClosed(selectedDateKey)" fill="clear" class="mini-icon-btn add-cita-btn" [title]="'Añadir cita'" (click)="openNewCitaModal()">
             <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
           </ion-button>
         </div>

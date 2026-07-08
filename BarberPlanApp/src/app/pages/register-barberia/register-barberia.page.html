@@ -4,7 +4,7 @@
     
     <!-- Logo y título -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-white mb-1">BarberPlan</h1>
+      <h1 class="text-3xl font-bold text-dynamic-text mb-1">BarberPlan</h1>
       <p class="text-gold-400 text-sm">Registra tu barbería</p>
     </div>
 
@@ -33,11 +33,11 @@
         <div class="flex flex-col items-center flex-1">
           <div 
             [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ' +
-                     (currentStep >= 2 ? 'bg-gold-500 text-dark-900 ring-2 ring-gold-500' : 'bg-dark-700 text-gray-400 ring-2 ring-dark-600')"
+                     (currentStep >= 2 ? 'bg-gold-500 text-dark-900 ring-2 ring-gold-500' : 'bg-dark-700 text-dynamic-muted ring-2 ring-dark-600')"
           >
             2
           </div>
-          <p class="text-xs text-gray-400 mt-2 text-center">Admin</p>
+          <p class="text-xs text-dynamic-muted mt-2 text-center">Admin</p>
         </div>
       </div>
     </div>
@@ -52,33 +52,33 @@
             
             <!-- Header -->
             <div class="px-8 pt-8 pb-4">
-              <h2 class="text-2xl font-bold text-white mb-2">Datos de la Barbería</h2>
-              <p class="text-gray-400 text-sm">Información de tu negocio</p>
+              <h2 class="text-2xl font-bold text-dynamic-text mb-2">Datos de la Barbería</h2>
+              <p class="text-dynamic-muted text-sm mb-6">Información principal de tu negocio</p>
             </div>
 
             <!-- Contenido -->
             <div class="px-8 pb-8 space-y-5">
               <!-- Nombre barbería -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Nombre de la Barbería *</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Nombre de la Barbería *</label>
                 <input
                   type="text"
                   [(ngModel)]="formData.nombreBarberia"
                   name="nombreBarberia"
                   placeholder="Ej: Javi2Barber"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Ciudad -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Ciudad *</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Ciudad *</label>
                 <select
                   [(ngModel)]="formData.ciudad"
                   name="ciudad"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-4 py-3 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 >
                   <option value="" disabled>Selecciona una ciudad</option>
                   <option *ngFor="let ciudad of ciudades" [value]="ciudad">{{ ciudad }}</option>
@@ -87,38 +87,38 @@
 
               <!-- Dirección -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Dirección *</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Dirección Completa *</label>
                 <input
                   type="text"
                   [(ngModel)]="formData.direccion"
                   name="direccion"
                   placeholder="Calle Principal 123"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Teléfono -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Teléfono</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Teléfono *</label>
                 <input
                   type="tel"
                   [(ngModel)]="formData.telefono"
                   name="telefono"
                   placeholder="+34 600 123 456"
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Descripción -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Descripción</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Descripción</label>
                 <textarea
                   [(ngModel)]="formData.descripcion"
                   name="descripcion"
                   placeholder="Describe tu barbería..."
                   rows="3"
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300 resize-none"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300 resize-none"
                 ></textarea>
               </div>
 
@@ -130,7 +130,7 @@
                 [class]="'w-full py-3 px-4 rounded-lg font-bold transition duration-300 transform ' +
                          (isStep1Valid() 
                           ? 'bg-gold-500 hover:bg-gold-600 text-dark-900 hover:scale-105 shadow-lg' 
-                          : 'bg-dark-600 text-gray-500 cursor-not-allowed')"
+                          : 'bg-dark-600 text-dynamic-muted cursor-not-allowed')"
               >
                 Siguiente
                 <span class="ml-2">→</span>
@@ -145,8 +145,8 @@
             
             <!-- Header -->
             <div class="px-8 pt-8 pb-4">
-              <h2 class="text-2xl font-bold text-white mb-2">Tu Cuenta de Admin</h2>
-              <p class="text-gray-400 text-sm">Datos para acceder como administrador</p>
+              <h2 class="text-2xl font-bold text-dynamic-text mb-2">Tu Cuenta de Admin</h2>
+              <p class="text-dynamic-muted text-sm">Datos para acceder como administrador</p>
             </div>
 
             <!-- Contenido -->
@@ -154,60 +154,60 @@
               <!-- Fila: Nombre y Apellido -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-gray-300 text-xs font-medium mb-2">Nombre *</label>
+                  <label class="block text-dynamic-text text-sm font-medium mb-2">Nombre *</label>
                   <input
                     type="text"
                     [(ngModel)]="formData.nombre"
                     name="nombre"
                     placeholder="Tu nombre"
                     required
-                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-gray-300 text-xs font-medium mb-2">Apellido *</label>
+                  <label class="block text-dynamic-text text-sm font-medium mb-2">Apellidos *</label>
                   <input
                     type="text"
                     [(ngModel)]="formData.apellido"
                     name="apellido"
                     placeholder="Tu apellido"
                     required
-                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                   />
                 </div>
               </div>
 
               <!-- Usuario -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Usuario *</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Usuario *</label>
                 <input
                   type="text"
                   [(ngModel)]="formData.usuario"
                   name="usuario"
                   placeholder="Tu usuario"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Email -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Correo electrónico *</label>
+                <label class="block text-dynamic-text text-sm font-medium mb-2">Correo electrónico *</label>
                 <input
                   type="email"
                   [(ngModel)]="formData.correo"
                   name="correo"
                   placeholder="tu@email.com"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Fila: Contraseña y Confirmar -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-gray-300 text-xs font-medium mb-2">Contraseña *</label>
+                  <label class="block text-dynamic-text text-sm font-medium mb-2">Contraseña *</label>
                   <div class="relative">
                     <input
                       [type]="showPassword ? 'text' : 'password'"
@@ -215,7 +215,7 @@
                       name="pw"
                       placeholder="Mínimo 6 caracteres"
                       required
-                      class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300 pr-8"
+                      class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300 pr-8"
                     />
                     <button
                       type="button"
@@ -235,7 +235,7 @@
                     name="confirmPw"
                     placeholder="Repite contraseña"
                     required
-                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                    class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                   />
                 </div>
               </div>
@@ -274,7 +274,7 @@
           <button
             type="button"
             routerLink="/login"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Inicia sesión
           </button>

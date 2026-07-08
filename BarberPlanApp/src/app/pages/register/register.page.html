@@ -4,7 +4,7 @@
     
     <!-- Logo y título -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-white mb-1">BarberPlan</h1>
+      <h1 class="text-3xl font-bold text-dynamic-text mb-1">BarberPlan</h1>
       <p class="text-gold-400 text-sm">Gestión premium de barberías</p>
     </div>
 
@@ -14,8 +14,8 @@
         
         <!-- Header de la tarjeta -->
         <div class="px-8 pt-8 pb-4">
-          <h2 class="text-3xl font-bold text-white mb-2">Crear Cuenta</h2>
-          <p class="text-gray-400 text-sm">Únete a BarberPlan en segundos</p>
+          <h2 class="text-3xl font-bold text-dynamic-text mb-2">Crear Cuenta</h2>
+          <p class="text-dynamic-muted text-sm">Únete a BarberPlan en segundos</p>
         </div>
 
         <!-- Contenido del formulario -->
@@ -26,65 +26,65 @@
             <div class="grid grid-cols-2 gap-4">
               <!-- Campo Nombre -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Nombre</label>
+                <label class="block text-dynamic-text text-xs font-medium mb-2">Nombre</label>
                 <input
                   type="text"
                   [(ngModel)]="nombre"
                   name="nombre"
                   placeholder="Tu nombre"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Campo Apellido -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Apellido</label>
+                <label class="block text-dynamic-text text-xs font-medium mb-2">Apellido</label>
                 <input
                   type="text"
                   [(ngModel)]="apellido"
                   name="apellido"
                   placeholder="Tu apellido"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
             </div>
 
             <!-- Campo Usuario -->
             <div>
-              <label class="block text-gray-300 text-xs font-medium mb-2">Usuario</label>
+              <label class="block text-dynamic-text text-xs font-medium mb-2">Usuario</label>
               <input
                 type="text"
                 [(ngModel)]="usuario"
                 name="usuario"
                 placeholder="Tu nombre de usuario"
                 required
-                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               />
             </div>
 
             <!-- Campo Email -->
             <div>
-              <label class="block text-gray-300 text-xs font-medium mb-2">Email</label>
+              <label class="block text-dynamic-text text-xs font-medium mb-2">Email</label>
               <input
                 type="email"
                 [(ngModel)]="correo"
                 name="correo"
                 placeholder="tu@email.com"
                 required
-                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               />
             </div>
 
             <!-- Campo Rol -->
             <div>
-              <label class="block text-gray-300 text-xs font-medium mb-2">Tipo de Cuenta</label>
+              <label class="block text-dynamic-text text-xs font-medium mb-2">Tipo de Cuenta</label>
               <select
                 [(ngModel)]="rol"
                 name="rol"
                 required
-                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               >
                 <option value="" disabled selected>Selecciona un tipo</option>
                 <option value="cliente">Cliente</option>
@@ -94,12 +94,12 @@
 
             <!-- Ciudad (solo cliente) -->
             <div *ngIf="rol === 'cliente'">
-              <label class="block text-gray-300 text-xs font-medium mb-2">Ciudad *</label>
+              <label class="block text-dynamic-text text-xs font-medium mb-2">Ciudad *</label>
               <select
                 [(ngModel)]="ciudad"
                 name="ciudad"
                 required
-                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               >
                 <option value="" disabled selected>Selecciona una ciudad</option>
                 <option *ngFor="let city of ciudades" [value]="city">{{ city }}</option>
@@ -108,43 +108,43 @@
 
             <!-- Campo Código de Barbería (visible solo si es barbero) -->
             <div *ngIf="rol === 'barbero'">
-              <label class="block text-gray-300 text-xs font-medium mb-2">Código de Barbería</label>
+              <label class="block text-dynamic-text text-xs font-medium mb-2">Código de Barbería</label>
               <input
                 type="text"
                 [(ngModel)]="code"
                 name="codigoBarberia"
                 placeholder="Código proporcionado"
                 required
-                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
               />
-              <p class="text-gray-500 text-xs mt-1">Solicita el código a tu barbería</p>
+              <p class="text-dynamic-muted text-xs mt-1">Solicita el código a tu barbería</p>
             </div>
 
             <!-- Fila: Contraseña y Confirmar -->
             <div class="grid grid-cols-2 gap-4">
               <!-- Campo Contraseña -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Contraseña</label>
+                <label class="block text-dynamic-text text-xs font-medium mb-2">Contraseña</label>
                 <input
                   type="password"
                   [(ngModel)]="pw"
                   name="pw"
                   placeholder="Mínimo 6 caracteres"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
 
               <!-- Campo Confirmar Contraseña -->
               <div>
-                <label class="block text-gray-300 text-xs font-medium mb-2">Confirmar</label>
+                <label class="block text-dynamic-text text-xs font-medium mb-2">Confirmar</label>
                 <input
                   type="password"
                   [(ngModel)]="confirmPw"
                   name="confirmPw"
                   placeholder="Repite contraseña"
                   required
-                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
+                  class="w-full px-3 py-2 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text text-sm placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
                 />
               </div>
             </div>
@@ -170,22 +170,22 @@
 
       <!-- Pie de página -->
       <div class="text-center mt-6">
-        <p class="text-gray-500 text-xs">
-          <span class="text-gray-400">¿Ya tienes cuenta?</span>
+        <p class="text-dynamic-muted text-xs">
+          <span class="text-dynamic-muted">¿Ya tienes cuenta?</span>
           <button
             type="button"
             (click)="goToLogin()"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Inicia sesión aquí
           </button>
         </p>
-        <p class="text-gray-500 text-xs">
-          <span class="text-gray-400">¿Tienes una barbería?</span>
+        <p class="text-dynamic-muted text-xs">
+          <span class="text-dynamic-muted">¿Tienes una barbería?</span>
           <button
             type="button"
             (click)="goToBarberiaRegister()"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Regístrala aquí
           </button>

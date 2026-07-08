@@ -43,7 +43,7 @@
             <ion-icon name="trash" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
-        <ion-button expand="block" fill="outline" (click)="addFranja()" class="ion-margin-bottom" style="--color: #d4af37; --border-color: rgba(212, 175, 55, 0.5);">
+        <ion-button expand="block" fill="outline" (click)="addFranja()" class="ion-margin-bottom" style="--color: var(--custom-gold); --border-color: rgba(var(--ion-color-primary-rgb), 0.5);">
           <ion-icon name="add" slot="start"></ion-icon>
           Añadir Franja
         </ion-button>
@@ -83,7 +83,7 @@
         
         <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
           <strong>Horas solicitadas:</strong>
-          <ul style="margin: 5px 0; padding-left: 20px; color: #94a3b8;">
+          <ul style="margin: 5px 0; padding-left: 20px;">
             <li *ngFor="let franja of solicitud.franjas">{{ franja.start }} - {{ franja.end }}</li>
           </ul>
         </div>
@@ -111,7 +111,7 @@
 
   <!-- Botón flotante alternativo por si la lista es muy larga -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!showForm">
-    <ion-fab-button (click)="toggleForm()" style="--background: linear-gradient(135deg, #d4af37, #f3e5ab); --color: #1a1a1a;">
+    <ion-fab-button (click)="toggleForm()" style="--background: linear-gradient(135deg, var(--custom-gold), #f3e5ab); --color: #1a1a1a;">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

@@ -11,6 +11,7 @@ import {
     chevronBackOutline,
     chevronForwardOutline,
     closeOutline,
+    colorPaletteOutline,
     cutOutline,
     imageOutline,
     imagesOutline,
@@ -27,6 +28,7 @@ import {
 } from 'ionicons/icons';
 
 addIcons({
+  'color-palette-outline': colorPaletteOutline,
   'log-out-outline': logOutOutline,
   'calendar-outline': calendarOutline,
   'camera-outline': cameraOutline,

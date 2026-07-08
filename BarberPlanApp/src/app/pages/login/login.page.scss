@@ -43,15 +43,11 @@
 
   // Efecto de enfoque mejorado
   input:focus {
-    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(212, 175, 55, 0.3)) !important;
+    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
   }
 
   button[type="submit"]:active {
     transform: scale(0.98);
   }
 
-  // Efectos de hover en botones
-  button:hover {
-    box-shadow: 0 10px 30px var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
-  }
 }

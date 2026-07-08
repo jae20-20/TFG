@@ -71,7 +71,7 @@
   input:focus,
   select:focus,
   textarea:focus {
-    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(212, 175, 55, 0.3)) !important;
+    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
   }
 
   // Efectos de botones
@@ -80,14 +80,10 @@
     transform: scale(0.98);
   }
 
-  button:hover:not(:disabled) {
-    box-shadow: 0 10px 30px var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
-  }
-
   // Mejorar select styling
   select {
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 0.5rem center;
     background-size: 1.5em 1.5em;
@@ -101,7 +97,7 @@
 
   // Spinner de carga
   ion-spinner {
-    --color: var(--custom-gold, #d4af37);
+    --color: var(--custom-gold, var(--custom-gold));
   }
 
   // Transiciones suaves en indicadores de paso

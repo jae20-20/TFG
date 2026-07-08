@@ -1,8 +1,8 @@
 :host {
   --page-bg: var(--ion-background-color);
-  --premium-gold: var(--custom-gold);
-  --premium-gold-dark: var(--custom-gold-dark);
-  --premium-gold-light: var(--custom-gold-light);
+  --custom-gold: var(--custom-gold);
+  --custom-gold-dark: var(--custom-gold-dark);
+  --custom-gold-light: var(--custom-gold-light);
   --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }
 
@@ -12,7 +12,7 @@
 
 .solicitud-card {
   background: var(--panel-bg);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
@@ -22,7 +22,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
     padding-bottom: 12px;
     margin-bottom: 12px;
 
@@ -34,12 +34,12 @@
       ion-avatar {
         width: 40px;
         height: 40px;
-        border: 2px solid var(--premium-gold);
+        border: 2px solid var(--custom-gold);
       }
 
       h3 {
         margin: 0;
-        color: #fff;
+        color: var(--custom-text-primary);
         font-size: 1.1rem;
         font-weight: 600;
       }
@@ -61,7 +61,8 @@
     }
 
     strong {
-      color: var(--premium-gold-light);
+      color: var(--custom-text-primary);
+      font-weight: 700;
     }
   }
 
@@ -85,12 +86,12 @@
   text-align: center;
   color: var(--custom-text-primary);
   background: var(--panel-bg);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
   border-radius: 18px;
 
   ion-icon {
     font-size: 48px;
-    color: var(--premium-gold);
+    color: var(--custom-gold);
     margin-bottom: 16px;
   }
 
@@ -98,7 +99,7 @@
     margin: 0;
     font-size: 22px;
     font-weight: 800;
-    color: #fff;
+    color: var(--custom-text-primary);
   }
 
   p {

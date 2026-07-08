@@ -19,10 +19,17 @@ module.exports = {
         },
         dark: {
           900: 'var(--ion-background-color, #121212)',
-          800: 'var(--custom-card-bg, #1E1E1E)',
-          700: 'var(--custom-border, #2C2C2E)',
+          800: 'var(--custom-surface, #1E1E1E)',
+          700: 'var(--custom-border-subtle, #2C2C2E)',
           600: 'var(--custom-text-muted, #8E8E93)',
         },
+        dynamic: {
+          text: 'var(--custom-text-primary, #ffffff)',
+          muted: 'var(--custom-text-muted, #9ca3af)',
+          bg: 'var(--ion-background-color, #121212)',
+          surface: 'var(--custom-surface, #1e1e1e)',
+          border: 'var(--custom-border-subtle, #374151)'
+        }
       },
       backgroundColor: {
         'gradient-dark': 'linear-gradient(135deg, var(--ion-background-color, #121212) 0%, var(--custom-card-bg, #1E1E1E) 100%)',

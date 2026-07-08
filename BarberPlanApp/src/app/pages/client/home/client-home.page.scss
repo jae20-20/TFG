@@ -2,31 +2,24 @@
 	--premium-bg: var(--ion-background-color);
 	--premium-surface: var(--custom-card-bg);
 	--premium-surface-2: var(--custom-card-bg);
-	--premium-border: rgba(212, 175, 55, 0.2);
+	--premium-border: rgba(var(--ion-color-primary-rgb), 0.2);
 	--premium-text: var(--custom-text-primary);
 	--premium-muted: var(--custom-text-muted);
-	--premium-gold: var(--custom-gold);
-	--premium-gold-strong: var(--custom-gold-dark);
-
-	--ion-color-primary: var(--custom-gold);
-	--ion-color-primary-rgb: 212, 175, 55;
-	--ion-color-primary-contrast: var(--ion-background-color);
-	--ion-color-primary-contrast-rgb: 23, 23, 23;
-	--ion-color-primary-shade: var(--custom-gold-dark);
-	--ion-color-primary-tint: #d9b94b;
+	--custom-gold: var(--custom-gold);
+	--custom-gold-strong: var(--custom-gold-dark);
 }
 
 ion-content.client-premium-content {
 	--background:
-		radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 36%),
+		radial-gradient(circle at top, rgba(var(--ion-color-primary-rgb), 0.08), transparent 36%),
 		var(--ion-background-color);
 	--padding-bottom: 92px;
 }
 
 .client-topbar {
 	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	--border-color: rgba(212, 175, 55, 0.26);
-	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
+	--border-color: rgba(var(--ion-color-primary-rgb), 0.26);
+	border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
 }
 
 .client-topbar-title {
@@ -36,7 +29,7 @@ ion-content.client-premium-content {
 }
 
 .client-logout-btn {
-	--color: var(--premium-gold);
+	--color: var(--custom-text-primary);
 }
 
 .client-hero {
@@ -204,7 +197,7 @@ ion-content.client-premium-content {
 		gap: 6px;
 		padding: 5px 8px;
 		border-radius: 999px;
-		background: rgba(212, 175, 55, 0.15);
+		background: rgba(var(--ion-color-primary-rgb), 0.15);
 		color: var(--custom-gold-light);
 		font-size: 11px;
 		font-weight: 700;
@@ -218,7 +211,7 @@ ion-content.client-premium-content {
 	padding: 4px 8px;
 	border-radius: 999px;
 	background: rgba(18, 19, 22, 0.82);
-	border: 1px solid rgba(212, 175, 55, 0.32);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.32);
 	color: var(--custom-gold-light);
 	font-size: 10px;
 	font-weight: 800;
@@ -254,7 +247,7 @@ ion-content.client-premium-content {
 
 .client-footer {
 	background: var(--custom-surface);
-	border-top: 1px solid rgba(212, 175, 55, 0.16);
+	border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.16);
 	box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.28);
 
 	ion-toolbar {
@@ -289,7 +282,7 @@ ion-content.client-premium-content {
 
 	&.is-active {
 		color: var(--custom-gold-light);
-		background: rgba(212, 175, 55, 0.08);
+		background: rgba(var(--ion-color-primary-rgb), 0.08);
 	}
 }
 

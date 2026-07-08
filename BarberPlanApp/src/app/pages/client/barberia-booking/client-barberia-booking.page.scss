@@ -1,23 +1,23 @@
 :host {
   --premium-bg: var(--ion-background-color);
   --premium-surface: var(--custom-card-bg);
-  --premium-border: rgba(212, 175, 55, 0.2);
+  --premium-border: rgba(var(--ion-color-primary-rgb), 0.2);
   --premium-text: var(--custom-text-primary);
   --premium-muted: var(--custom-text-muted);
-  --premium-gold: var(--custom-gold);
+  --custom-gold: var(--custom-gold);
 
   --ion-color-primary: var(--custom-gold);
 }
 
 ion-content.booking-premium-content {
   --background:
-    radial-gradient(circle at top, rgba(212, 175, 55, 0.12), transparent 38%),
+    radial-gradient(circle at top, rgba(var(--ion-color-primary-rgb), 0.12), transparent 38%),
     var(--ion-background-color);
 }
 
 .booking-topbar {
   --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.24);
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
 }
 
 .booking-topbar-title {
@@ -26,7 +26,7 @@ ion-content.booking-premium-content {
 }
 
 .back-btn {
-  --color: var(--premium-gold);
+  --color: var(--custom-gold);
 }
 
 .booking-state {
@@ -81,7 +81,7 @@ ion-content.booking-premium-content {
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  border: 2px solid rgba(212, 175, 55, 0.26);
+  border: 2px solid rgba(var(--ion-color-primary-rgb), 0.26);
   background: var(--ion-background-color);
   background-size: cover;
   background-position: center;
@@ -161,7 +161,7 @@ ion-content.booking-premium-content {
   > div {
     padding: 10px 12px;
     border-radius: 14px;
-    border: 1px solid rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.14);
     background: rgba(255, 255, 255, 0.03);
   }
 
@@ -204,7 +204,7 @@ ion-content.booking-premium-content {
 
 .booking-service-item {
   appearance: none;
-  border: 1px solid rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.14);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.03);
   color: inherit;
@@ -231,9 +231,9 @@ ion-content.booking-premium-content {
   }
 
   &.selected {
-    border-color: rgba(212, 175, 55, 0.56);
-    background: linear-gradient(180deg, rgba(212, 175, 55, 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
-    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.18);
+    border-color: rgba(var(--ion-color-primary-rgb), 0.56);
+    background: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
+    box-shadow: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.18);
   }
 }
 
@@ -246,7 +246,7 @@ ion-content.booking-premium-content {
   span {
     padding: 4px 8px;
     border-radius: 999px;
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
     color: var(--custom-gold-light);
     font-size: 11px;
     font-weight: 700;
@@ -277,7 +277,7 @@ ion-content.booking-premium-content {
   input {
     width: 100%;
     border-radius: 10px;
-    border: 1px solid rgba(212, 175, 55, 0.24);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
     background: var(--custom-surface);
     color: var(--custom-text-primary);
     min-height: 42px;
@@ -307,7 +307,7 @@ ion-content.booking-premium-content {
   gap: 8px;
 
   button {
-    border: 1px solid rgba(212, 175, 55, 0.2);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
     border-radius: 10px;
     min-height: 36px;
     background: var(--custom-card-bg);
@@ -316,7 +316,7 @@ ion-content.booking-premium-content {
   }
 
   button.selected {
-    border-color: rgba(212, 175, 55, 0.7);
+    border-color: rgba(var(--ion-color-primary-rgb), 0.7);
     background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
     color: var(--ion-background-color);
   }
@@ -339,7 +339,7 @@ ion-content.booking-premium-content {
   flex: 1;
   --border-radius: 12px;
   --color: var(--custom-text-primary);
-  --border-color: rgba(212, 175, 55, 0.18);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.18);
   min-height: 42px;
   text-transform: none;
   font-weight: 800;

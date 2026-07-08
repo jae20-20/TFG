@@ -53,7 +53,7 @@ ion-content {
   padding: 16px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.06), transparent 35%),
+    radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.06), transparent 35%),
     linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);
   border: 1px solid var(--custom-border-subtle);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
@@ -163,7 +163,7 @@ ion-content {
 }
 
 .calendar-day.today {
-  box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.65), 0 0 0 1px rgba(212, 175, 55, 0.28);
+  box-shadow: inset 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.65), 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.28);
 }
 
 .calendar-day.selected {
@@ -177,7 +177,7 @@ ion-content {
 }
 
 .calendar-day.has-appointments {
-  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, var(--custom-surface) 100%);
+  background-image: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.2) 0%, var(--custom-surface) 100%);
 }
 
 .calendar-day.closed-day {
@@ -567,7 +567,7 @@ ion-content {
   padding: 20px;
   border-radius: 20px;
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.06), transparent 35%),
+    radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.06), transparent 35%),
     linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);
   border: 1px solid var(--custom-border-subtle);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
@@ -763,7 +763,7 @@ ion-content {
   background: var(--custom-surface);
   color: var(--custom-text-secondary);
   font-size: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 }
 
 .calendar-detail ion-list {
@@ -779,7 +779,7 @@ ion-content {
   --padding-top: 8px;
   --padding-bottom: 8px;
   color: var(--custom-text-secondary);
-  border: 1px solid rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.12);
 }
 
 .calendar-detail h2 {
@@ -1057,34 +1057,12 @@ ion-content {
   --premium-bg: var(--ion-background-color, #121212);
   --premium-surface: var(--custom-card-bg, var(--custom-card-bg));
   --premium-surface-2: var(--custom-surface, var(--custom-card-bg));
-  --premium-border: var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
+  --premium-border: var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.2));
   --premium-text: var(--ion-text-color, var(--custom-text-primary));
   --premium-muted: var(--custom-text-muted, var(--custom-text-muted));
-  --premium-gold: var(--custom-gold, var(--custom-gold));
-  --premium-gold-strong: var(--custom-gold-dark, var(--custom-gold-dark));
-  --premium-gold-soft: rgba(212, 175, 55, 0.16);
-
-  /* Force Ionic semantic colors used in this page to the premium gold palette */
-  --ion-color-primary: var(--custom-gold, var(--custom-gold));
-  --ion-color-primary-rgb: 212, 175, 55;
-  --ion-color-primary-contrast: #121212;
-  --ion-color-primary-contrast-rgb: 18, 18, 18;
-  --ion-color-primary-shade: var(--custom-gold-dark, var(--custom-gold-dark));
-  --ion-color-primary-tint: var(--custom-gold-light, #d9b94b);
-
-  --ion-color-secondary: var(--custom-gold-dark, var(--custom-gold-dark));
-  --ion-color-secondary-rgb: 201, 162, 39;
-  --ion-color-secondary-contrast: #121212;
-  --ion-color-secondary-contrast-rgb: 18, 18, 18;
-  --ion-color-secondary-shade: var(--custom-gold-dark);
-  --ion-color-secondary-tint: var(--custom-gold);
-
-  --ion-color-success: var(--custom-gold, var(--custom-gold));
-  --ion-color-success-rgb: 212, 175, 55;
-  --ion-color-success-contrast: #121212;
-  --ion-color-success-contrast-rgb: 18, 18, 18;
-  --ion-color-success-shade: var(--custom-gold-dark);
-  --ion-color-success-tint: #d9b94b;
+  --custom-gold: var(--custom-gold, var(--custom-gold));
+  --custom-gold-strong: var(--custom-gold-dark, var(--custom-gold-dark));
+  --custom-gold-soft: rgba(var(--ion-color-primary-rgb), 0.16);
 }
 
 ion-content.admin-premium-content {
@@ -1093,8 +1071,8 @@ ion-content.admin-premium-content {
 
 .admin-topbar {
   --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  --border-color: rgba(212, 175, 55, 0.26);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.26);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.26);
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
 }
 
 .admin-topbar-title {
@@ -1104,7 +1082,7 @@ ion-content.admin-premium-content {
 }
 
 .admin-logout-btn {
-  --color: var(--premium-gold);
+  --color: var(--custom-text-primary);
 }
 
 ion-list ion-list-header {
@@ -1120,6 +1098,17 @@ ion-list ion-item {
   overflow: hidden !important;
   margin-bottom: 10px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+  --border-width: 0 !important;
+  --inner-border-width: 0 !important;
+  --border-color: transparent !important;
+  --inner-box-shadow: none !important;
+  --highlight-height: 0 !important;
+  lines: none !important;
+}
+
+ion-list ion-item::part(native) {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 ion-list ion-item h2 {
@@ -1132,7 +1121,7 @@ ion-list ion-item p {
 
 .calendar-card {
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 38%),
+    radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.16), transparent 38%),
     linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border: 1px solid var(--premium-border);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.42);
@@ -1152,9 +1141,9 @@ ion-list ion-item p {
   --border-radius: 6px;
   --color: var(--custom-gold-light, var(--custom-gold-light));
   --background: transparent;
-  --background-hover: rgba(212, 175, 55, 0.1);
-  --background-focused: rgba(212, 175, 55, 0.1);
-  --background-activated: rgba(212, 175, 55, 0.2);
+  --background-hover: rgba(var(--ion-color-primary-rgb), 0.1);
+  --background-focused: rgba(var(--ion-color-primary-rgb), 0.1);
+  --background-activated: rgba(var(--ion-color-primary-rgb), 0.2);
   --padding-start: 0;
   --padding-end: 0;
   margin: 0;
@@ -1167,11 +1156,11 @@ ion-list ion-item p {
 
 .calendar-day {
   background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--custom-surface) 100%);
-  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.12);
 }
 
 .calendar-day.today {
-  box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.65), 0 0 0 1px rgba(212, 175, 55, 0.28);
+  box-shadow: inset 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.65), 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.28);
 }
 
 .calendar-day.selected {
@@ -1185,7 +1174,7 @@ ion-list ion-item p {
 }
 
 .calendar-day.has-appointments {
-  background-image: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, var(--custom-surface) 100%);
+  background-image: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.2) 0%, var(--custom-surface) 100%);
 }
 
 .calendar-day.closed-day {
@@ -1213,7 +1202,7 @@ ion-list ion-item p {
 }
 
 .calendar-day-count {
-  background: var(--premium-gold-soft);
+  background: var(--custom-gold-soft);
   color: var(--custom-gold-light);
 }
 
@@ -1254,28 +1243,28 @@ ion-list ion-item p {
 .schedule-time-item,
 .schedule-exception-item {
   background: var(--custom-surface);
-  border-color: rgba(212, 175, 55, 0.22);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.22);
 }
 
 .barberia-field-group .field-input:focus,
 .service-input-item:focus-within,
 .schedule-time-item:focus-within,
 .schedule-exception-item:focus-within {
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.2);
 }
 
 .add-service-button,
 .save-visual-btn,
 .reserve-btn-preview,
 .barberia-actions-footer ion-button[fill='solid'] {
-  --background: var(--premium-gold);
-  --background-hover: var(--premium-gold-strong);
-  --background-focused: var(--premium-gold-strong);
+  --background: var(--custom-gold);
+  --background-hover: var(--custom-gold-strong);
+  --background-focused: var(--custom-gold-strong);
   --color: var(--ion-background-color);
 }
 
 .barberia-actions-footer .cancel-btn {
-  --border-color: rgba(212, 175, 55, 0.34);
+  --border-color: rgba(var(--ion-color-primary-rgb), 0.34);
   --color: var(--custom-gold-light);
 }
 
@@ -1290,7 +1279,7 @@ ion-list ion-item p {
 
 .admin-footer ion-toolbar {
   --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 }
 
 .admin-bottom-menu ion-button {
@@ -1298,13 +1287,13 @@ ion-list ion-item p {
   --background-hover: var(--custom-surface-hover);
   --background-focused: var(--custom-surface-hover);
   --color: var(--custom-gold);
-  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.22), 0 6px 14px rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.22), 0 6px 14px rgba(0, 0, 0, 0.22);
 }
 
 .admin-bottom-menu ion-button.is-active {
-  --background: var(--premium-gold);
-  --background-hover: var(--premium-gold-strong);
-  --background-focused: var(--premium-gold-strong);
+  --background: var(--custom-gold);
+  --background-hover: var(--custom-gold-strong);
+  --background-focused: var(--custom-gold-strong);
   --color: var(--ion-background-color);
 }
 
@@ -1330,7 +1319,7 @@ ion-list ion-item p {
 }
 
 .gallery-upload-tile {
-  border-color: rgba(212, 175, 55, 0.44);
-  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.44);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
   color: var(--custom-gold-light);
 }

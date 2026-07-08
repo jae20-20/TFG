@@ -1,7 +1,7 @@
 .barber-topbar {
 	--background: linear-gradient(180deg, var(--custom-card-bg, var(--custom-card-bg)) 0%, var(--ion-background-color, var(--ion-background-color)) 100%);
-	--border-color: var(--custom-border-subtle, rgba(212, 175, 55, 0.26));
-	border-bottom: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.26));
+	--border-color: var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.26));
+	border-bottom: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.26));
 }
 
 .barber-topbar-title {
@@ -11,7 +11,7 @@
 }
 
 .barber-logout-btn {
-	--color: var(--custom-gold, var(--custom-gold));
+	--color: var(--custom-text-primary);
 }
 
 ion-content {
@@ -20,7 +20,7 @@ ion-content {
 
 .barber-footer {
 	--background: linear-gradient(180deg, var(--custom-surface, var(--custom-card-bg)) 0%, var(--ion-background-color, var(--ion-background-color)) 100%);
-	border-top: 1px solid var(--custom-border-subtle, rgba(212, 175, 55, 0.2));
+	border-top: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.2));
 	box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15);
 	height: 64px;
 

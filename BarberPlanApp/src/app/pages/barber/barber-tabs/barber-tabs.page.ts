@@ -7,6 +7,7 @@ import { Storage } from '@ionic/storage-angular';
 import { AuthService } from '../../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline } from 'ionicons/icons';
 
@@ -23,7 +24,7 @@ addIcons({
   templateUrl: './barber-tabs.page.html',
   styleUrls: ['./barber-tabs.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
 })
 export class BarberTabsPage implements OnInit, OnDestroy {
   user: any = null;

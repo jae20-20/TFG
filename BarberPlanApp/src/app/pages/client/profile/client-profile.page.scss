@@ -1,22 +1,22 @@
 :host {
-	--premium-border: rgba(212, 175, 55, 0.2);
+	--premium-border: rgba(var(--ion-color-primary-rgb), 0.2);
 	--premium-text: var(--custom-text-primary);
-	--premium-gold: var(--custom-gold);
+	--custom-gold: var(--custom-gold);
 	--ion-color-primary: var(--custom-gold);
 	--ion-color-primary-contrast: var(--ion-background-color);
 }
 
 ion-content.client-premium-content {
 	--background:
-		radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 36%),
+		radial-gradient(circle at top, rgba(var(--ion-color-primary-rgb), 0.08), transparent 36%),
 		var(--ion-background-color);
 	--padding-bottom: 92px;
 }
 
 .client-topbar {
 	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	--border-color: rgba(212, 175, 55, 0.26);
-	border-bottom: 1px solid rgba(212, 175, 55, 0.26);
+	--border-color: rgba(var(--ion-color-primary-rgb), 0.26);
+	border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
 }
 
 .client-topbar-title {
@@ -25,7 +25,7 @@ ion-content.client-premium-content {
 }
 
 .client-logout-btn {
-	--color: var(--premium-gold);
+	--color: var(--custom-text-primary);
 }
 
 .profile-hero {
@@ -54,7 +54,7 @@ ion-content.client-premium-content {
 	width: 64px;
 	height: 64px;
 	border-radius: 18px;
-	background: linear-gradient(180deg, rgba(212, 175, 55, 0.2) 0%, rgba(184, 143, 31, 0.34) 100%);
+	background: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.2) 0%, rgba(184, 143, 31, 0.34) 100%);
 	color: var(--custom-gold-light);
 	display: flex;
 	align-items: center;
@@ -62,7 +62,7 @@ ion-content.client-premium-content {
 	font-size: 20px;
 	font-weight: 900;
 	letter-spacing: 0.04em;
-	border: 1px solid rgba(212, 175, 55, 0.28);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.28);
 }
 
 .client-eyebrow {
@@ -131,7 +131,7 @@ ion-content.client-premium-content {
 
 .client-footer {
 	background: var(--custom-surface);
-	border-top: 1px solid rgba(212, 175, 55, 0.16);
+	border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.16);
 	box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.28);
 
 	ion-toolbar {
@@ -166,6 +166,6 @@ ion-content.client-premium-content {
 
 	&.is-active {
 		color: var(--custom-gold-light);
-		background: rgba(212, 175, 55, 0.08);
+		background: rgba(var(--ion-color-primary-rgb), 0.08);
 	}
 }

@@ -5,13 +5,14 @@ import { AlertController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
+import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 
 @Component({
   selector: 'app-client-appointments',
   templateUrl: './client-appointments.page.html',
   styleUrls: ['./client-appointments.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, ThemeHeaderBtnComponent]
 })
 export class ClientAppointmentsPage implements OnInit {
   user: any = null;

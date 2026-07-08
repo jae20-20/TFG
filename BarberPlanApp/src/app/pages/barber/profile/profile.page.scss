@@ -7,9 +7,9 @@ ion-content.barber-premium-content {
 	padding: 18px;
 	border-radius: 20px;
 	background:
-		radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 35%),
+		radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.16), transparent 35%),
 		linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	border: 1px solid rgba(212, 175, 55, 0.2);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 	box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
 }
 
@@ -61,7 +61,7 @@ ion-content.barber-premium-content {
 		padding: 12px 14px;
 		border-radius: 12px;
 		background: var(--custom-surface);
-		border: 1px solid rgba(212, 175, 55, 0.2);
+		border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 		font-size: 14px;
 		color: var(--custom-text-primary);
 		line-height: 1.4;
@@ -79,7 +79,7 @@ ion-content.barber-premium-content {
 		--padding-end: 14px;
 		--padding-top: 12px;
 		--padding-bottom: 12px;
-		border: 1px solid rgba(212, 175, 55, 0.2);
+		border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 		border-radius: 12px;
 	}
 }
@@ -108,7 +108,7 @@ ion-content.barber-premium-content {
 	}
 
 	.cancel-btn {
-		--border-color: rgba(212, 175, 55, 0.35);
+		--border-color: rgba(var(--ion-color-primary-rgb), 0.35);
 		--color: var(--custom-gold-light);
 		--border-width: 1px;
 	}

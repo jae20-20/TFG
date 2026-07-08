@@ -6,11 +6,12 @@
       </ion-button>
     </ion-buttons>
     
-    <ion-title class="admin-topbar-title">¡Bienvenido, {{ user?.nombre }}!</ion-title>
+    <ion-title class="admin-topbar-title boutique-title">{{ pageName || 'BarberPlan' }}</ion-title>
     
     <ion-buttons slot="end">
-      <div class="golden-page-badge" style="margin-right: 12px; font-size: 0.75rem;">{{ pageName }}</div>
-      <ion-button class="admin-logout-btn" (click)="logout()">
+      <!--metemos el componente de tema-->
+      <app-theme-header-btn></app-theme-header-btn>
+      <ion-button class="admin-logout-btn" (click)="logout()" title="Cerrar sesión">
         <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>

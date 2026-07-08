@@ -1,8 +1,8 @@
 :host {
   --page-bg: var(--ion-background-color);
-  --premium-gold: var(--custom-gold);
-  --premium-gold-dark: var(--custom-gold-dark);
-  --premium-gold-light: var(--custom-gold-light);
+  --custom-gold: var(--custom-gold);
+  --custom-gold-dark: var(--custom-gold-dark);
+  --custom-gold-light: var(--custom-gold-light);
   --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }
 
@@ -12,7 +12,7 @@
 
 .nueva-solicitud-card {
   background: var(--panel-bg);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
   border-radius: 18px;
   padding: 20px;
   margin-bottom: 24px;
@@ -70,7 +70,7 @@
 
 .solicitud-card {
   background: var(--panel-bg);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
@@ -79,13 +79,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
     padding-bottom: 12px;
     margin-bottom: 12px;
 
     .sol-tipo {
       margin: 0;
-      color: #fff;
+      color: var(--custom-text-primary);
       font-size: 16px;
       font-weight: 700;
     }
@@ -106,14 +106,15 @@
     }
 
     strong {
-      color: var(--premium-gold-light);
+      color: var(--custom-text-primary);
+      font-weight: 700;
     }
     
     .respuesta-admin {
       margin-top: 12px;
       padding: 10px;
       background: var(--custom-surface);
-      border-left: 3px solid var(--premium-gold);
+      border-left: 3px solid var(--custom-gold);
       border-radius: 4px;
       font-size: 0.9rem;
     }
@@ -137,12 +138,12 @@
   text-align: center;
   color: var(--custom-text-primary);
   background: var(--panel-bg);
-  border: 1px dashed rgba(212, 175, 55, 0.3);
+  border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.3);
   border-radius: 18px;
 
   ion-icon {
     font-size: 48px;
-    color: var(--premium-gold);
+    color: var(--custom-gold);
     margin-bottom: 16px;
   }
 
