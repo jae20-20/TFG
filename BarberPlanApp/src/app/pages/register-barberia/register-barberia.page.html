@@ -1,45 +1,12 @@
 <ion-content class="bg-dark-900">
   <!-- Contenedor principal -->
-  <div class="h-screen flex flex-col items-center px-4 py-6 overflow-y-auto">
+  <div class="min-h-screen flex flex-col items-center justify-start px-4 pt-4 pb-8 overflow-y-auto">
     
     <!-- Logo y título -->
-    <div class="text-center mb-8">
+    <div class="text-center mb-6">
+      <ion-icon src="assets/icon/logo.svg" style="color: var(--ion-color-primary); font-size: 3.5rem; display: inline-block; margin-bottom: 0.2rem;"></ion-icon>
       <h1 class="text-3xl font-bold text-dynamic-text mb-1">BarberPlan</h1>
       <p class="text-gold-400 text-sm">Registra tu barbería</p>
-    </div>
-
-    <!-- Indicador de pasos mejorado -->
-    <div class="w-full max-w-md mb-8">
-      <div class="flex items-center justify-between px-4">
-        <!-- Paso 1 -->
-        <div class="flex flex-col items-center flex-1">
-          <div 
-            [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ' +
-                     (currentStep >= 1 ? 'bg-gold-500 text-dark-900 ring-2 ring-gold-500' : 'bg-dark-700 text-gray-400 ring-2 ring-dark-600')"
-          >
-            <span *ngIf="currentStep > 1" class="text-lg">✓</span>
-            <span *ngIf="currentStep <= 1">1</span>
-          </div>
-          <p class="text-xs text-gray-400 mt-2 text-center">Barbería</p>
-        </div>
-
-        <!-- Línea conectora -->
-        <div 
-          [class]="'flex-1 h-1 mx-3 rounded transition-all duration-300 ' +
-                   (currentStep > 1 ? 'bg-gold-500' : 'bg-dark-700')"
-        ></div>
-
-        <!-- Paso 2 -->
-        <div class="flex flex-col items-center flex-1">
-          <div 
-            [class]="'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ' +
-                     (currentStep >= 2 ? 'bg-gold-500 text-dark-900 ring-2 ring-gold-500' : 'bg-dark-700 text-dynamic-muted ring-2 ring-dark-600')"
-          >
-            2
-          </div>
-          <p class="text-xs text-dynamic-muted mt-2 text-center">Admin</p>
-        </div>
-      </div>
     </div>
 
     <!-- Formulario con pasos -->
