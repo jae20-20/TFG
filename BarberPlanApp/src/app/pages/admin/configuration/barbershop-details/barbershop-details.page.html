@@ -47,7 +47,7 @@
           <div class="field-display">{{ barberia.ciudad || 'No disponible' }}</div>
         </ng-container>
         <ng-container *ngIf="isEditingPerfil">
-          <ion-select class="field-input" interface="popover" placeholder="Selecciona ciudad" [(ngModel)]="barberiaEditForm.ciudad">
+          <ion-select class="field-input" interface="popover" cancelText="Cancelar" okText="Guardar" placeholder="Selecciona ciudad" [(ngModel)]="barberiaEditForm.ciudad">
             <ion-select-option *ngFor="let ciudad of ciudades" [value]="ciudad">{{ ciudad }}</ion-select-option>
           </ion-select>
         </ng-container>

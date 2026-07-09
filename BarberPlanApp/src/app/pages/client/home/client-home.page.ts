@@ -22,6 +22,9 @@ interface BarberiaPublica {
   servicios?: any[];
 }
 
+import { addIcons } from 'ionicons';
+import { cutOutline, logOutOutline, starOutline, locationOutline, timeOutline } from 'ionicons/icons';
+
 @Component({
   selector: 'app-client-home',
   templateUrl: './client-home.page.html',
@@ -42,7 +45,15 @@ export class ClientHomePage implements OnInit {
     private storage: Storage,
     private router: Router,
     private alertCtrl: AlertController
-  ) {}
+  ) {
+    addIcons({
+      'cut-outline': cutOutline,
+      'log-out-outline': logOutOutline,
+      'star-outline': starOutline,
+      'location-outline': locationOutline,
+      'time-outline': timeOutline
+    });
+  }
 
   async ngOnInit() {
     await this.storage.create();

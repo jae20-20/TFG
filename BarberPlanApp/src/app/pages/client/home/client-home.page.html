@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="client-topbar">
-    <ion-title class="client-topbar-title boutique-title">BarberPlan</ion-title>
+    <ion-title class="client-topbar-title boutique-title">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <ion-icon name="cut-outline" style="color: var(--ion-color-primary); font-size: 1.35rem; transform: rotate(-45deg); flex-shrink: 0;"></ion-icon>
+        <span>BarberPlan</span>
+      </div>
+    </ion-title>
 
     <ion-buttons slot="end">
       <app-theme-header-btn></app-theme-header-btn>

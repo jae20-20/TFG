@@ -87,13 +87,23 @@ ion-content.bg-dark-900,
 .btn-primary,
 button.bg-gold-500,
 a.bg-gold-500 {
-  background: linear-gradient(135deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%) !important;
-  color: #121212 !important;
+  background: var(--ion-color-primary) !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
   border-radius: 12px !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.25) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  box-shadow: none !important;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+/* Fuerza SOLO el texto blanco en botones de guardar/submit y botones primarios de Ionic */
+button[type="submit"],
+.save-btn,
+ion-button[color="primary"] {
+  --color: #ffffff;
+  color: #ffffff;
+  --box-shadow: none !important;
+  box-shadow: none !important;
 }
 
 .reserve-btn:hover,
@@ -104,8 +114,8 @@ a.bg-gold-500 {
 .btn-primary:hover,
 button.bg-gold-500:hover,
 a.bg-gold-500:hover {
-  background: linear-gradient(135deg, var(--custom-gold-light) 0%, var(--custom-gold) 100%) !important;
-  box-shadow: 0 6px 16px rgba(var(--ion-color-primary-rgb), 0.35) !important;
+  filter: brightness(1.15);
+  box-shadow: none !important;
   transform: translateY(-1px) !important;
 }
 

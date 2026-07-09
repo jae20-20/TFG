@@ -58,6 +58,7 @@
   }
 
   .alert-message {
+
     margin-top: 15px;
     text-align: center;
   }
@@ -118,14 +119,14 @@ body.dark .custom-header-center {
   font-size: 24px !important; 
 }
 
-/* Estilos para Alertas Premium */
+/* Estilos para Alertas Premium con Borde de Paleta */
 .premium-alert {
   --background: var(--custom-surface, #17191d);
   --backdrop-opacity: 0.7;
 
   .alert-wrapper {
     background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%) !important;
-    border: 1px solid var(--custom-border-strong, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
+    border: 1.5px solid var(--ion-color-primary) !important;
     border-radius: 16px !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
   }
@@ -167,10 +168,22 @@ body.dark .custom-header-center {
   }
 }
 
-/* Estilos para Modales Premium */
+/* Estilos para Modales Premium con Borde de Paleta */
 ion-modal.premium-modal {
   --background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%);
   --backdrop-opacity: 0.7;
+  --border-radius: 16px;
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-color: var(--ion-color-primary);
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+
+  &::part(content),
+  .modal-wrapper {
+    border: 1.5px solid var(--ion-color-primary) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+  }
 
   ion-header {
     background: transparent;
@@ -183,7 +196,7 @@ ion-modal.premium-modal {
   }
 
   ion-title {
-    color: var(--custom-gold, #d4af37);
+    color: var(--custom-text-primary, #ffffff) !important;
     font-weight: 800;
   }
 
@@ -213,10 +226,12 @@ ion-modal.premium-modal {
   }
   
   .premium-modal-button-solid {
-    --background: linear-gradient(135deg, var(--custom-gold, #d4af37), var(--custom-gold-light, #f3e5ab));
-    --color: var(--ion-background-color, #1a1a1a);
-    --border-radius: 8px;
-    font-weight: 700;
+    --background: var(--ion-color-primary) !important;
+    background: var(--ion-color-primary) !important;
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    --border-radius: 12px;
+    font-weight: 700 !important;
   }
 
   .slot-container {
@@ -254,4 +269,289 @@ ion-modal.premium-modal {
 .text-link-btn:hover {
   filter: brightness(1.2);
   opacity: 0.9;
+}
+
+/* Modales compactos centrados (evitan ocupar toda la pantalla en móvil y eliminan espacio libre) */
+ion-modal.compact-modal {
+  --width: 92%;
+  --min-width: 300px;
+  --max-width: 450px;
+  --height: auto;
+  --max-height: 85vh;
+  --border-radius: 18px;
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-color: var(--ion-color-primary);
+  --box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75);
+
+  align-items: center;
+  justify-content: center;
+
+  &::part(content) {
+    position: relative !important;
+    width: var(--width, 92%) !important;
+    max-width: var(--max-width, 450px) !important;
+    height: auto !important;
+    max-height: var(--max-height, 85vh) !important;
+    border: 1.5px solid var(--ion-color-primary) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75) !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .modal-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 85vh !important;
+  }
+  ion-header,
+  ion-footer {
+    position: relative !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
+  }
+}
+
+.compact-modal-body {
+  color: var(--ion-text-color, var(--custom-text-primary));
+  overflow-y: auto;
+  max-height: 65vh;
+  padding: 16px;
+  position: relative !important;
+  flex: 1 1 auto;
+}
+
+/* Estilos para el segundo modal (selector de servicio / hora centrado y sin borde de color) */
+ion-alert.select-alert {
+  --background: var(--custom-surface, #17191d);
+  --backdrop-opacity: 0.65;
+
+  .alert-wrapper {
+    background: var(--custom-surface, #17191d) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85) !important;
+    max-width: 360px !important;
+    width: 88% !important;
+    margin: auto !important;
+  }
+
+  .alert-title {
+    color: var(--custom-text-primary, #ffffff) !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-head {
+    border-bottom: 1.5px solid var(--ion-color-primary) !important;
+  }
+
+  .alert-radio-label,
+  .alert-checkbox-label {
+    color: var(--custom-text-primary, #ffffff) !important;
+    font-size: 15px !important;
+  }
+
+  .alert-radio-group,
+  .alert-checkbox-group {
+    border-top: 1.5px solid var(--ion-color-primary) !important;
+    border-bottom: 1.5px solid var(--ion-color-primary) !important;
+  }
+
+  .alert-button-group {
+    border-top: 1.5px solid var(--ion-color-primary) !important;
+  }
+
+  .alert-button {
+    color: var(--ion-color-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-button.alert-button-role-cancel,
+  button.alert-button:first-child {
+    color: #ef4444 !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Estilos para Popover de Selección por si se invoca */
+ion-popover {
+  --background: var(--custom-surface, #17191d);
+  --box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+
+  &::part(content) {
+    background: var(--custom-surface, #17191d) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    color: var(--custom-text-primary) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8) !important;
+    overflow: hidden !important;
+  }
+
+  ion-list {
+    background: transparent !important;
+    padding: 6px 0 !important;
+  }
+
+  ion-item,
+  ion-select-popover ion-item {
+    --background: transparent !important;
+    --color: var(--custom-text-primary) !important;
+    --border-color: rgba(148, 163, 184, 0.12) !important;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  ion-radio {
+    --color: var(--ion-color-primary) !important;
+    --color-checked: var(--ion-color-primary) !important;
+  }
+}
+
+/* 1. ELIMINAR DIFUMINADO DE MODALES, ALERTAS Y BACKDROPS */
+ion-modal,
+ion-modal::part(backdrop),
+ion-backdrop,
+ion-alert,
+ion-alert::part(backdrop) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. TODOS LOS BOTONES CANCELAR ROJOS EN MODALES Y ALERTAS */
+ion-modal ion-header ion-button[slot="end"],
+ion-modal ion-header ion-button.cancel-btn,
+ion-modal ion-toolbar ion-button.cancel-btn,
+ion-alert .alert-button-role-cancel,
+ion-alert button.alert-button:first-child {
+  color: #ef4444 !important;
+  font-weight: 700 !important;
+}
+
+/* 3. ELIMINAR CUALQUIER DIFUMINADO / SOMBRA DE LOS BOTONES EN CUALQUIER PALETA */
+ion-button,
+button,
+.reserve-btn,
+.submit-btn,
+.btn-primary,
+.premium-modal-button-solid {
+  --box-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* 4. BOTONES DEL MODAL GESTIONAR DÍA (ALTO CONTRASTE Y LEGIBILIDAD GARANTIZADA) */
+.gestionar-dia-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.gestionar-dia-btn.btn-parcial {
+  background: var(--ion-color-primary) !important;
+  border: 1.5px solid var(--ion-color-primary) !important;
+  color: #ffffff !important;
+
+  ion-icon {
+    color: #ffffff !important;
+  }
+}
+
+.gestionar-dia-btn.btn-cerrar {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border: 1.5px solid #ef4444 !important;
+  color: #ef4444 !important;
+
+  ion-icon {
+    color: #ef4444 !important;
+  }
+}
+
+.gestionar-dia-btn.btn-abrir {
+  background: rgba(16, 185, 129, 0.14) !important;
+  border: 1.5px solid #10b981 !important;
+  color: #10b981 !important;
+
+  ion-icon {
+    color: #10b981 !important;
+  }
+}
+
+/* 5. TEXTO IMPORTANTE EN SUBTÍTULOS DE MODAL (AÑADIR CITA) */
+body:not(.light-mode) .modal-subtitle-text {
+  color: #e2e8f0 !important;
+  font-size: 0.95rem;
+
+  b, strong {
+    color: #ffffff !important;
+    font-weight: 800;
+  }
+}
+
+body.light-mode .modal-subtitle-text {
+  color: #334155 !important;
+  font-size: 0.95rem;
+
+  b, strong {
+    color: #0f172a !important;
+    font-weight: 800;
+  }
+}
+
+/* 6. COLOR DEL TEXTO EN BOTONES DE GUARDAR / PRIMARIOS SEGÚN MODO */
+body:not(.light-mode) {
+  .premium-modal-button-solid,
+  ion-button.premium-modal-button-solid,
+  ion-button.premium-modal-button-solid::part(native),
+  ion-button[color="primary"],
+  ion-button[color="primary"]::part(native),
+  .btn-primary,
+  .save-btn,
+  button[type="submit"] {
+    --color: #0f172a !important;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+
+    span, * {
+      color: #0f172a !important;
+    }
+  }
+}
+
+body.light-mode {
+  .premium-modal-button-solid,
+  ion-button.premium-modal-button-solid,
+  ion-button.premium-modal-button-solid::part(native),
+  ion-button[color="primary"],
+  ion-button[color="primary"]::part(native),
+  .btn-primary,
+  .save-btn,
+  button[type="submit"] {
+    --color: #ffffff !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+
+    span, * {
+      color: #ffffff !important;
+    }
+  }
+}
+
+/* Asegurar que el texto sea visible incluso cuando el botón está deshabilitado */
+ion-button.premium-modal-button-solid[disabled],
+button.premium-modal-button-solid[disabled] {
+  opacity: 0.85 !important;
 }

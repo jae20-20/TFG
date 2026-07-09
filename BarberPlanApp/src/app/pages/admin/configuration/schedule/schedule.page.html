@@ -10,7 +10,7 @@
 
       <ion-item lines="none" class="service-input-item schedule-timezone-item">
         <ion-label position="stacked">Zona horaria</ion-label>
-        <ion-select [(ngModel)]="horarioForm.timezone">
+        <ion-select [(ngModel)]="horarioForm.timezone" cancelText="Cancelar" okText="Guardar">
           <ion-select-option value="Europe/Madrid">Europe/Madrid</ion-select-option>
         </ion-select>
       </ion-item>
@@ -68,7 +68,7 @@
 
         <ion-item lines="none" class="service-input-item schedule-exception-item">
           <ion-label position="stacked">Tipo</ion-label>
-          <ion-select [(ngModel)]="newHorarioExceptionForm.type">
+          <ion-select [(ngModel)]="newHorarioExceptionForm.type" cancelText="Cancelar" okText="Guardar">
             <ion-select-option value="closed">Cerrado todo el día</ion-select-option>
             <ion-select-option value="custom">Horario especial</ion-select-option>
             <ion-select-option value="block">Bloquear horas</ion-select-option>

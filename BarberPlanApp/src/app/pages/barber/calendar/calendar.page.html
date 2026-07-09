@@ -118,24 +118,24 @@
   </ion-list>
 
   <!-- Modal para añadir cita manual -->
-  <ion-modal #newCitaModal [isOpen]="isNewCitaModalOpen" (didDismiss)="cancelNewCitaModal()" class="premium-modal">
+  <ion-modal #newCitaModal [isOpen]="isNewCitaModalOpen" (didDismiss)="cancelNewCitaModal()" class="premium-modal compact-modal">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Añadir Cita</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="newCitaModal.dismiss(); cancelNewCitaModal()" style="color: #94a3b8; font-weight: 500;">Cerrar</ion-button>
+            <ion-button (click)="newCitaModal.dismiss(); cancelNewCitaModal()" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
-        <p class="ion-margin-bottom" style="color: #94a3b8; font-size: 0.95rem;">
+      <div class="compact-modal-body">
+        <p class="modal-subtitle-text ion-margin-bottom">
           Crear cita manual para el <b>{{ selectedDateLabel }}</b>.
         </p>
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
           <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Servicio *</ion-label>
-          <ion-select [(ngModel)]="selectedServicioId" placeholder="Selecciona un servicio" interface="action-sheet">
+          <ion-select [(ngModel)]="selectedServicioId" placeholder="Selecciona un servicio" interface="alert" cancelText="Cancelar" okText="Guardar">
             <ion-select-option *ngFor="let s of serviciosBarberia" [value]="s._id">
               {{ s.nombre }} ({{ s.duracion }} min - {{ s.precio }}€)
             </ion-select-option>
@@ -145,7 +145,7 @@
         <ion-item class="time-item ion-margin-bottom" lines="none">
           <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Hora de inicio *</ion-label>
           <div *ngIf="loadingHoras" style="padding: 10px 0; color: #94a3b8;">Cargando horas disponibles...</div>
-          <ion-select *ngIf="!loadingHoras && horasDisponibles.length > 0" [(ngModel)]="selectedHoraInicio" placeholder="Selecciona una hora" interface="action-sheet">
+          <ion-select *ngIf="!loadingHoras && horasDisponibles.length > 0" [(ngModel)]="selectedHoraInicio" placeholder="Selecciona una hora" interface="alert" cancelText="Cancelar" okText="Guardar">
             <ion-select-option *ngFor="let hora of horasDisponibles" [value]="hora">
               {{ hora }}
             </ion-select-option>
@@ -159,12 +159,12 @@
           <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre del Cliente (Opcional)</ion-label>
           <ion-input type="text" [(ngModel)]="clienteNombreManual" placeholder="Ej. Cliente Walk-in"></ion-input>
         </ion-item>
-      </ion-content>
+      </div>
       <ion-footer>
         <ion-toolbar>
-          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
+          <ion-button expand="block" class="premium-modal-button-solid ion-margin" style="--color: #ffffff !important; color: #ffffff !important; opacity: 1 !important;" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
             <ion-spinner *ngIf="creandoCita" name="crescent"></ion-spinner>
-            <span *ngIf="!creandoCita">Guardar Cita</span>
+            <span *ngIf="!creandoCita" style="color: #ffffff !important; font-weight: 800 !important;">Guardar Cita</span>
           </ion-button>
         </ion-toolbar>
       </ion-footer>

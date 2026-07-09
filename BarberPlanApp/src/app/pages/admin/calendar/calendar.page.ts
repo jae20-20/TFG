@@ -48,6 +48,9 @@ export class CalendarPage implements OnInit {
   scheduleLimitsText: string | null = null;
   barberAbsence: { start: string, end: string } | null = null;
 
+  // Modal para gestionar día barbero
+  isGestionarDiaModalOpen = false;
+
   // Modal para abrir días con múltiples franjas
   isSlotsModalOpen = false;
   slotsModalTarget: 'global' | 'barber' = 'global';
@@ -326,34 +329,8 @@ export class CalendarPage implements OnInit {
     return 'No hay citas para este día.';
   }
 
-  async gestionarDiaBarbero() {
-    const alert = await this.alertCtrl.create({
-      header: 'Gestionar Día',
-      message: `¿Qué deseas hacer para ${this.getSelectedBarberName()} el ${this.selectedDateLabel}?`,
-      cssClass: 'premium-alert',
-      buttons: [
-        {
-          text: 'Cerrar Parcialmente',
-          handler: () => {
-            this.pedirHorasCierreParcial();
-          }
-        },
-        {
-          text: 'Cerrar Día Entero',
-          handler: () => {
-            this.cerrarDiaEnteroBarbero();
-          }
-        },
-        {
-          text: 'Abrir Día',
-          handler: () => {
-            this.abrirDiaBarbero();
-          }
-        },
-        { text: 'Cancelar', role: 'cancel' }
-      ]
-    });
-    await alert.present();
+  gestionarDiaBarbero() {
+    this.isGestionarDiaModalOpen = true;
   }
 
   async pedirHorasCierreParcial() {

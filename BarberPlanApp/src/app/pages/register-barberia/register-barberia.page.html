@@ -129,7 +129,7 @@
                 [disabled]="!isStep1Valid()"
                 [class]="'w-full py-3 px-4 rounded-lg font-bold transition duration-300 transform ' +
                          (isStep1Valid() 
-                          ? 'bg-gold-500 hover:bg-gold-600 text-dark-900 hover:scale-105 shadow-lg' 
+                          ? 'bg-gold-500 hover:bg-gold-600 text-white hover:scale-105 shadow-lg' 
                           : 'bg-dark-600 text-dynamic-muted cursor-not-allowed')"
               >
                 Siguiente
@@ -255,7 +255,7 @@
                   [disabled]="!isStep2Valid() || isLoading"
                   [class]="'flex-1 py-3 px-4 rounded-lg font-bold transition duration-300 flex items-center justify-center gap-2 ' +
                            (isStep2Valid() && !isLoading
-                            ? 'bg-gold-500 hover:bg-gold-600 text-dark-900 hover:scale-105 shadow-lg'
+                            ? 'bg-gold-500 hover:bg-gold-600 text-white hover:scale-105 shadow-lg'
                             : 'bg-dark-600 text-gray-500 cursor-not-allowed')"
                 >
                   <ion-spinner *ngIf="isLoading" name="crescent" class="text-sm"></ion-spinner>
@@ -284,7 +284,7 @@
           <button
             type="button"
             routerLink="/register"
-            class="text-gold-400 hover:text-gold-300 font-semibold ml-1 transition"
+            class="text-link-btn"
           >
             Regístrate aquí
           </button>

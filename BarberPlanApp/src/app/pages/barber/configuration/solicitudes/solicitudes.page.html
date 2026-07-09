@@ -7,7 +7,7 @@
     <div class="form-grid">
       <ion-item lines="none" class="input-item">
         <ion-label position="stacked">Tipo</ion-label>
-        <ion-select [(ngModel)]="newSolicitud.tipo">
+        <ion-select [(ngModel)]="newSolicitud.tipo" cancelText="Cancelar" okText="Guardar">
           <ion-select-option value="dia_libre">Día Libre</ion-select-option>
           <ion-select-option value="vacaciones">Vacaciones</ion-select-option>
           <ion-select-option value="horas_puntuales">Horas Puntuales</ion-select-option>

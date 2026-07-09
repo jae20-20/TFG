@@ -9,14 +9,15 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline } from 'ionicons/icons';
+import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline, cutOutline } from 'ionicons/icons';
 
 addIcons({
   'arrow-back-outline': arrowBackOutline,
   'log-out-outline': logOutOutline,
   'calendar-outline': calendarOutline,
   'settings-outline': settingsOutline,
-  'person-outline': personOutline
+  'person-outline': personOutline,
+  'cut-outline': cutOutline
 });
 
 @Component({

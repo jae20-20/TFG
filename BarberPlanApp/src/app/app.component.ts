@@ -24,7 +24,9 @@ import {
     personOutline,
     settingsOutline,
     timeOutline,
-    trashOutline
+    trashOutline,
+    personAddOutline,
+    mailUnreadOutline
 } from 'ionicons/icons';
 
 addIcons({
@@ -50,7 +52,9 @@ addIcons({
   'add-circle-outline': addCircleOutline,
   'add-outline': addOutline,
   'close-outline': closeOutline,
-  'trash-outline': trashOutline
+  'trash-outline': trashOutline,
+  'person-add-outline': personAddOutline,
+  'mail-unread-outline': mailUnreadOutline
 });
 
 @Component({
