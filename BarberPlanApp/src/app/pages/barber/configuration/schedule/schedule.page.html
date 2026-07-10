@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
+  <div *ngIf="loading" class="calendar-empty">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tu horario...</p>
+  </div>
+
+  <p *ngIf="error" class="error-msg">{{ error }}</p>
+
+  <div *ngIf="!loading && !error">
+    <!-- Estado / Modalidad de Horario -->
+    <div class="schedule-status-card">
+      <div class="status-header">
+        <div>
+          <h3>Mi Horario Activo</h3>
+        </div>
+        <ion-badge [color]="isUsingCustomSchedule() ? 'success' : 'primary'" class="status-badge">
+          {{ isUsingCustomSchedule() ? 'Horario Personalizado' : 'Horario General' }}
+        </ion-badge>
+      </div>
+
+      <p class="status-note" *ngIf="isUsingCustomSchedule()">
+        Tienes asignado un horario especial personalizado por tu administrador.
+      </p>
+      <p class="status-note" *ngIf="!isUsingCustomSchedule()">
+        Trabajas siguiendo las franjas horarias habituales de apertura de tu barbería.
+      </p>
+    </div>
+
+    <!-- Rejilla semanal -->
+    <div class="section-head">
+      <h3>Plantilla Semanal</h3>
+    </div>
+
+    <div class="schedule-week-grid">
+      <div class="schedule-day-card" *ngFor="let day of scheduleDays">
+        <div class="day-header">
+          <span class="day-name">{{ day.label }}</span>
+          <ion-badge [color]="getSlotsForDay(day.key).length > 0 ? 'success' : 'medium'" class="day-badge">
+            {{ getSlotsForDay(day.key).length > 0 ? 'Abierto' : 'Cerrado' }}
+          </ion-badge>
+        </div>
+
+        <div class="slots-list" *ngIf="getSlotsForDay(day.key).length > 0; else noSlots">
+          <div class="slot-item" *ngFor="let slot of getSlotsForDay(day.key)">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ slot.start }} - {{ slot.end }}</span>
+          </div>
+        </div>
+
+        <ng-template #noSlots>
+          <div class="slot-closed">Descanso</div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Días libres del barbero -->
+    <div class="section-head" style="margin-top: 24px;">
+      <h3>Mis Días Libres</h3>
+    </div>
+
+    <div class="info-card">
+      <div *ngIf="barberProfile?.diasLibres && barberProfile.diasLibres.length > 0; else noDiasLibres" class="chips-grid">
+        <ion-chip *ngFor="let dia of barberProfile.diasLibres" color="warning" class="dia-chip">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <ion-label>{{ dia | date:'dd/MM/yyyy' }}</ion-label>
+        </ion-chip>
+      </div>
+      <ng-template #noDiasLibres>
+        <p class="empty-note">No tienes días libres configurados en tu perfil.</p>
+      </ng-template>
+    </div>
+
+    <!-- Excepciones de la barbería -->
+    <div class="section-head" style="margin-top: 24px;" *ngIf="barberiaHorario?.exceptions && barberiaHorario.exceptions.length > 0">
+      <h3>Excepciones y Cierres de la Barbería</h3>
+    </div>
+
+    <div class="info-card" *ngIf="barberiaHorario?.exceptions && barberiaHorario.exceptions.length > 0">
+      <div class="exception-item" *ngFor="let ex of barberiaHorario.exceptions">
+        <div class="ex-date">{{ ex.date | date:'dd/MM/yyyy' }}</div>
+        <div class="ex-info">
+          <strong>{{ ex.type === 'closed' ? 'Cerrado todo el día' : 'Horario especial' }}</strong>
+          <span *ngIf="ex.reason"> — {{ ex.reason }}</span>
+          <div *ngIf="ex.type !== 'closed' && ex.start && ex.end" class="ex-hours">
+            {{ ex.start }} - {{ ex.end }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón Nueva Solicitud abajo del todo, pequeño y alineado a la izquierda -->
+    <div class="schedule-actions-footer">
+      <ion-button size="medium" class="nueva-solicitud-btn" routerLink="/barber/configuration/solicitudes" [queryParams]="{ new: 'true' }">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Nueva Solicitud
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

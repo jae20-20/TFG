@@ -30,8 +30,8 @@ router.post("/validate-code", validateCode);
 // REGISTRO DE BARBERÍA
 router.post("/register", registerBarberia);
 
-//  RUTAS DE ADMIN
-router.get("/my/barberia", verifyToken, isAdmin, getMyBarberia);
+//  RUTAS AUTENTICADAS (ADMIN O BARBERO)
+router.get("/my/barberia", verifyToken, getMyBarberia);
 router.put("/:id", verifyToken, isAdmin, editBarberia);
 router.get("/my/horario", verifyToken, isAdmin, getMyHorario);
 router.put("/my/horario", verifyToken, isAdmin, updateMyHorario);

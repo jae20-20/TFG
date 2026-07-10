@@ -1,30 +1,27 @@
 
 
 <ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
-  
-
   <ion-list class="config-hub-list">
-    <!-- <ion-list-header>
-      <ion-label>Gestión</ion-label>
-    </ion-list-header> -->
-
     <ion-item button detail routerLink="/barber/configuration/barbershop-details">
-      <ion-icon slot="start" name="time-outline" color="primary"></ion-icon>
+      <ion-icon slot="start" name="business-outline" color="primary"></ion-icon>
       <ion-label>
         <h2>Mi barbería</h2>
       </ion-label>
     </ion-item>
 
     <ion-item button detail routerLink="/barber/configuration/catalogo-servicios">
-      <ion-icon slot="start" name="cut-outline" color="success"></ion-icon>
+      <ion-icon slot="start" name="cut-outline" style="color: #ec4899 !important; transform: rotate(-45deg); display: inline-block;"></ion-icon>
       <ion-label>
         <h2>Servicios</h2>
       </ion-label>
     </ion-item>
-    
-    <!-- <ion-list-header>
-      <ion-label>Otros</ion-label>
-    </ion-list-header> -->
+
+    <ion-item button detail routerLink="/barber/configuration/schedule">
+      <ion-icon slot="start" name="time-outline" color="success"></ion-icon>
+      <ion-label>
+        <h2>Mi horario</h2>
+      </ion-label>
+    </ion-item>
     
     <ion-item button detail routerLink="/barber/configuration/solicitudes">
       <ion-icon slot="start" name="mail-unread-outline" color="tertiary"></ion-icon>
@@ -32,6 +29,5 @@
         <h2>Solicitudes</h2>
       </ion-label>
     </ion-item>
-
   </ion-list>
 </ion-content>

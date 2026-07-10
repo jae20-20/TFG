@@ -193,6 +193,13 @@
   --ion-toolbar-background: transparent;
   --ion-tab-bar-background: #ffffff;
 
+  /* TEXTO BLANCO EN BOTONES DE ACCIÓN SOLIDOS EN MODO CLARO (NO AFECTA AL HEADER NI BOTONES CLEAR) */
+  .nueva-solicitud-btn,
+  .submit-btn,
+  ion-button[color="primary"]:not([fill="clear"]):not([fill="outline"]) {
+    --color: #ffffff !important;
+  }
+
   /*
    * AJUSTE DE PALETAS PARA MODO CLARO (ALTO CONTRASTE) asi los del modo oscuro se ven mejor
    */

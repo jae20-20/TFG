@@ -71,6 +71,7 @@ export class BarberTabsPage implements OnInit, OnDestroy {
     }
 
     if (url.includes('calendar')) this.pageName = 'Calendario';
+    else if (url.includes('schedule')) this.pageName = 'Mi Horario';
     else if (url.includes('barbershop-details')) this.pageName = 'Datos Barbería';
     else if (url.includes('solicitudes')) this.pageName = 'Solicitudes';
     else if (url.includes('catalogo-servicios')) this.pageName = 'Catálogo';

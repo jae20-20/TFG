@@ -1,30 +1,17 @@
+@use '../../../admin/shared-admin.scss';
+
 ion-content.barber-premium-content {
-	--background: var(--ion-background-color);
+  --background: var(--ion-background-color);
+  --padding-bottom: 88px;
 }
 
-.config-placeholder-card {
-	padding: 22px;
-	margin-top: 20px;
-	text-align: center;
-	color: var(--custom-text-primary);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-	border-radius: 18px;
+.calendar-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--custom-text-muted);
 
-	ion-icon {
-		font-size: 42px;
-		color: var(--custom-gold);
-		margin-bottom: 10px;
-	}
-
-	h2 {
-		margin: 0;
-		font-size: 20px;
-		font-weight: 800;
-	}
-
-	p {
-		margin: 8px 0 0;
-		color: var(--custom-text-muted);
-	}
+  ion-spinner {
+    color: var(--custom-gold);
+    margin-bottom: 12px;
+  }
 }

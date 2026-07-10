@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../../services/api.service';
 
 @Component({
@@ -30,10 +31,16 @@ export class SolicitudesPage implements OnInit {
   constructor(
     private apiService: ApiService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['new'] === 'true' || params['new'] === '1') {
+        this.showForm = true;
+      }
+    });
     this.loadSolicitudes();
   }
 

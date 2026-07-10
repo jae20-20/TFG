@@ -21,7 +21,7 @@ import {
     updateServicioInBarberia
 } from "../models/barbershopModel.js";
 
-import { createUser, getUserByEmail, getUserByUsername } from "../models/userModel.js";
+import { createUser, getUserByEmail, getUserByUsername, getUserById } from "../models/userModel.js";
 
 
 // Obtener todas las barberías (público)
@@ -56,11 +56,20 @@ export const getBarberia = async (req, res) => {
     }
 };
 
-// Obtener barbería completa (solo admin)
+// Obtener barbería completa (admin o barbero autenticado)
 export const getMyBarberia = async (req, res) => {
     try {
-        const adminId = req.user.id;
-        const barberia = await getBarberiaByAdminId(adminId);
+        const userId = req.user.id;
+        let barberia = await getBarberiaByAdminId(userId);
+
+        if (!barberia) {
+            const user = await getUserById(userId);
+            if (user && user.barberiaId) {
+                barberia = await getBarbershopById(user.barberiaId.toString());
+            } else if (req.user.barberiaId) {
+                barberia = await getBarbershopById(req.user.barberiaId.toString());
+            }
+        }
 
         if (!barberia) {
             return res.status(404).json({ error: "No tienes ninguna barbería asociada" });

@@ -16,5 +16,9 @@ export const configurationRoutes: Routes = [
   {
     path: 'solicitudes',
     loadComponent: () => import('./solicitudes/solicitudes.page').then(m => m.SolicitudesPage)
+  },
+  {
+    path: 'schedule',
+    loadComponent: () => import('./schedule/schedule.page').then(m => m.SchedulePage)
   }
 ];
