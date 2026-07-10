@@ -57,11 +57,13 @@ addIcons({
   'mail-unread-outline': mailUnreadOutline
 });
 
+import { ThemeService } from './services/theme.service';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  constructor() {}
+  constructor(private themeService: ThemeService) {}
 }

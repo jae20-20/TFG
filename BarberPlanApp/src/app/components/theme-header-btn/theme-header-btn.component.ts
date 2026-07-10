@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonButton,
@@ -135,7 +135,7 @@ export class ThemeHeaderBtnComponent {
   private originalIsDark = true;
   private isSaved = false;
 
-  constructor(private themeService: ThemeService) {
+  constructor(private themeService: ThemeService, private cdr: ChangeDetectorRef) {
     this.themes = this.themeService.themes;
   }
 
@@ -148,35 +148,45 @@ export class ThemeHeaderBtnComponent {
     this.isSaved = false;
 
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   onToggleDark(event: any) {
     this.tempIsDark = event.detail.checked;
-    this.themeService.setMode(this.tempIsDark);
+    this.themeService.setMode(this.tempIsDark, false);
+    this.cdr.detectChanges();
   }
 
   selectTempTheme(theme: AppTheme) {
     this.tempTheme = theme;
-    this.themeService.setTheme(theme);
+    this.themeService.setTheme(theme, false);
+    this.cdr.detectChanges();
   }
 
   saveModal() {
     this.isSaved = true;
+    if (this.tempTheme) {
+      this.themeService.setTheme(this.tempTheme, true);
+    }
+    this.themeService.setMode(this.tempIsDark, true);
     this.isModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   cancelModal() {
     this.isSaved = false;
     this.isModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   onModalDismiss() {
     if (!this.isSaved) {
       if (this.originalTheme) {
-        this.themeService.setTheme(this.originalTheme);
+        this.themeService.setTheme(this.originalTheme, false);
       }
-      this.themeService.setMode(this.originalIsDark);
+      this.themeService.setMode(this.originalIsDark, false);
     }
     this.isModalOpen = false;
+    this.cdr.detectChanges();
   }
 }

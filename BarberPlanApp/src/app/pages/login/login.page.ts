@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,8 @@ export class LoginPage {
     private router: Router,
     private authService: AuthService,
     private toastCtrl: ToastController,
-    private storage: Storage
+    private storage: Storage,
+    private themeService: ThemeService
   ) {}
 
   async login() {
@@ -31,6 +33,7 @@ export class LoginPage {
 
         await this.storage.create();
         await this.storage.set('user', user);
+        this.themeService.loadUserPreferences(user);
 
         // Redirigir según el rol
           if (user.rol === 'admin') {

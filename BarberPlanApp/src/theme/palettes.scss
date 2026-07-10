@@ -3,7 +3,7 @@
  * ========================================.
  */
 
-:root, body.theme-barber {
+:root, :root.theme-barber, body.theme-barber {
   /*
    COLOR PRIMARIO: Dorado Brillante
     */
@@ -96,7 +96,7 @@
    //TEMAS ADICIONALES (SELECTOR DE PALETAS)
 
 /*Zafiro Real (Azul) */
-body.theme-sapphire {
+:root.theme-sapphire, body.theme-sapphire {
   --ion-color-primary: #3b82f6;
   --ion-color-primary-rgb: 59, 130, 246;
   --ion-color-primary-shade: #2563eb;
@@ -111,7 +111,7 @@ body.theme-sapphire {
 }
 
 /* Esmeralda Suizo (Verde) */
-body.theme-emerald {
+:root.theme-emerald, body.theme-emerald {
   --ion-color-primary: #10b981;
   --ion-color-primary-rgb: 16, 185, 129;
   --ion-color-primary-shade: #059669;
@@ -126,7 +126,7 @@ body.theme-emerald {
 }
 
 /*Carmesí Velvet (Rojo/Vino) */
-body.theme-crimson {
+:root.theme-crimson, body.theme-crimson {
   --ion-color-primary: #ef4444;
   --ion-color-primary-rgb: 239, 68, 68;
   --ion-color-primary-shade: #dc2626;
@@ -141,7 +141,7 @@ body.theme-crimson {
 }
 
 /*Amatista Noble (Morado) */
-body.theme-amethyst {
+:root.theme-amethyst, body.theme-amethyst {
   --ion-color-primary: #8b5cf6;
   --ion-color-primary-rgb: 139, 92, 246;
   --ion-color-primary-shade: #7c3aed;
@@ -159,7 +159,7 @@ body.theme-amethyst {
 /* =================================================================================
  * MODO CLARO (LIGHT MODE) - BARBERPLAN
  *  */
-body.light-mode {
+:root.light-mode, body.light-mode {
   /* FONDOS CLAROS */
   --ion-background-color: #f8fafc;
   --ion-background-color-rgb: 248, 250, 252;

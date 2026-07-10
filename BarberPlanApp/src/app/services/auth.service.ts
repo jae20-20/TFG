@@ -2,12 +2,17 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { StorageService } from './storage.service';
+import { ThemeService } from './theme.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor(private apiService: ApiService, private storage: StorageService) {}
+  constructor(
+    private apiService: ApiService,
+    private storage: StorageService,
+    private themeService: ThemeService
+  ) {}
 
   // Login del usuario
   async login(correo: string, pw: string) {
@@ -43,6 +48,7 @@ export class AuthService {
       if (response.token) {
         await this.storage.set('token', response.token);
         await this.storage.set('user', response.user);
+        this.themeService.loadUserPreferences(response.user);
       }
       return response;
     } catch (error) {
@@ -54,6 +60,7 @@ export class AuthService {
   // Logout del usuario
   async logout() {
     await this.storage.remove('token'); // Elimina el token del almacenamiento
+    this.themeService.clearUserPreferences();
   }
 
   // Obtener el token almacenado
