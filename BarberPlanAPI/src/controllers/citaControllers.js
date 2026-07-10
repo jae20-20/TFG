@@ -44,6 +44,10 @@ export const crearCita = async (req, res) => {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
+        if (barbero.serviciosBloqueados && barbero.serviciosBloqueados.includes(servicioId.toString())) {
+            return res.status(400).json({ error: "Este barbero no realiza el servicio seleccionado" });
+        }
+
         // Calcular hora de fin basada en la duración del servicio
         const [horas, minutos] = horaInicio.split(":").map(Number);
         const fechaInicio = new Date();

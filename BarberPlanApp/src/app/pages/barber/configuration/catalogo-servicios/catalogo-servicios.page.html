@@ -1,9 +1,89 @@
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <div class="services-section" *ngIf="!loading">
+    <div class="services-info-banner">
+      <h3>Catálogo de Servicios</h3>
+      <p>Estos son los servicios ofrecidos por tu barbería. Si no realizas alguno en particular, puedes pulsar en <strong>Prohibido</strong> para solicitar su bloqueo al administrador.</p>
+    </div>
 
+    <div class="services-list" *ngIf="servicios.length > 0; else noServices">
+      <div class="service-card" *ngFor="let servicio of servicios">
+        <div class="service-card-head">
+          <div>
+            <h4>{{ servicio.nombre }}</h4>
+            <p>{{ servicio.duracion }} min · {{ servicio.precio }} €</p>
+          </div>
 
-<ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
-  <div class="config-placeholder-card">
-    <ion-icon name="cut-outline"></ion-icon>
-    <h2>Servicios</h2>
-    <p>Bloque reservado para gestionar los servicios asignados al barbero.</p>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <ion-badge color="danger" *ngIf="isBlocked(servicio)" class="blocked-badge">
+              <ion-icon name="ban-outline"></ion-icon>
+              Bloqueado
+            </ion-badge>
+
+            <ion-button
+              *ngIf="!isBlocked(servicio)"
+              fill="clear"
+              size="small"
+              color="danger"
+              class="delete-service-button"
+              (click)="openBloqueoModal(servicio)"
+              title="Prohibido / Solicitar bloqueo"
+            >
+              <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <p class="service-description" *ngIf="servicio.descripcion">
+          {{ servicio.descripcion }}
+        </p>
+      </div>
+    </div>
+    
+    <ng-template #noServices>
+      <div class="config-placeholder-card">Tu barbería aún no tiene servicios en el catálogo.</div>
+    </ng-template>
   </div>
+
+  <p *ngIf="loading" class="calendar-empty">Cargando servicios...</p>
+  <p *ngIf="error" class="barberia-error">{{ error }}</p>
+
+  <!-- Modal para solicitar bloqueo de servicio con estilo idéntico al calendario admin -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()" class="premium-modal compact-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Bloquear Servicio</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <div class="compact-modal-body">
+        <div class="text-center my-2">
+          <p class="text-dynamic-muted text-sm mb-4">
+            ¿Deseas solicitar al administrador no realizar el servicio <strong class="text-dynamic-text">{{ selectedService?.nombre }}</strong>?
+          </p>
+
+          <ion-item lines="none" class="service-input-item ion-margin-bottom">
+            <ion-label position="stacked">Motivo del bloqueo (opcional)</ion-label>
+            <ion-textarea
+              rows="3"
+              [(ngModel)]="bloqueoMotivo"
+              placeholder="Explica brevemente el motivo..."
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-button
+            expand="block"
+            class="premium-modal-button-solid ion-margin-top"
+            style="--background: #ef4444 !important; background: #ef4444 !important; --color: #ffffff !important; color: #ffffff !important;"
+            (click)="sendBloqueoSolicitud()"
+            [disabled]="submitting"
+          >
+            {{ submitting ? 'Enviando...' : 'Solicitar Bloqueo' }}
+          </ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>

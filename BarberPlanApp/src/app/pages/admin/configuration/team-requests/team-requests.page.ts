@@ -66,6 +66,7 @@ export class TeamRequestsPage implements OnInit {
     if (tipo === 'dia_libre') return 'Día Libre';
     if (tipo === 'vacaciones') return 'Vacaciones';
     if (tipo === 'horas_puntuales') return 'Horas Puntuales';
+    if (tipo === 'bloqueo_servicio') return 'Bloqueo de Servicio';
     return tipo;
   }
 }

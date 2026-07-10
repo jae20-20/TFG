@@ -22,8 +22,9 @@
       
       <div class="solicitud-body">
         <p><strong>Tipo:</strong> {{ getTipoLabel(solicitud.tipo) }}</p>
+        <p *ngIf="solicitud.tipo === 'bloqueo_servicio' && solicitud.servicioNombre"><strong>Servicio a bloquear:</strong> {{ solicitud.servicioNombre }}</p>
         <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }} <strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
-        <p *ngIf="solicitud.tipo !== 'vacaciones'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
+        <p *ngIf="solicitud.tipo !== 'vacaciones' && solicitud.tipo !== 'bloqueo_servicio'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
         
         <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
           <strong>Horas solicitadas:</strong>

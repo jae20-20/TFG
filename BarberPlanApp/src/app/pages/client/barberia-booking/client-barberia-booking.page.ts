@@ -144,8 +144,20 @@ export class ClientBarberiaBookingPage implements OnInit {
     }
   }
 
+  getBarberosDisponibles() {
+    if (!this.reservaForm.servicioId) return this.barberos;
+    return this.barberos.filter(b => {
+      const bloqueados = b?.serviciosBloqueados || [];
+      return !bloqueados.includes(this.reservaForm.servicioId);
+    });
+  }
+
   selectServicio(servicioId: string) {
     this.reservaForm.servicioId = servicioId;
+    const disponibles = this.getBarberosDisponibles();
+    if (disponibles.length > 0 && !disponibles.some(b => this.getEntityId(b) === this.reservaForm.barberoId)) {
+      this.reservaForm.barberoId = this.getEntityId(disponibles[0]);
+    }
     this.reservaPaso = 2;
   }
 

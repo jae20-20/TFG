@@ -19,7 +19,9 @@ export const createBarberSolicitud = async (req, res) => {
             fechaInicio,
             fechaFin,
             motivo,
-            franjas: franjas || []
+            franjas: franjas || [],
+            servicioId: req.body.servicioId || null,
+            servicioNombre: req.body.servicioNombre || null
         };
 
         const result = await createSolicitud(solicitudData);
@@ -92,12 +94,20 @@ export const responderSolicitud = async (req, res) => {
                 
                 if (!horarioPersonal.exceptions) horarioPersonal.exceptions = [];
 
-                if (solicitud.tipo.toLowerCase().includes("vacacion")) {
+                if (solicitud.tipo.toLowerCase().includes("bloqueo")) {
+                    let serviciosBloqueados = barbero.serviciosBloqueados || [];
+                    const sId = solicitud.servicioId ? solicitud.servicioId.toString() : null;
+                    if (sId && !serviciosBloqueados.includes(sId)) {
+                        serviciosBloqueados.push(sId);
+                    }
+                    await updateUser(solicitud.barberoId, { serviciosBloqueados });
+                } else if (solicitud.tipo.toLowerCase().includes("vacacion")) {
                     vacaciones.push({
                         fechaInicio: solicitud.fechaInicio,
                         fechaFin: solicitud.fechaFin,
                         motivo: solicitud.motivo
                     });
+                    await updateUser(solicitud.barberoId, { diasLibres, vacaciones, horarioPersonal });
                 } else if (solicitud.tipo === "horas_puntuales") {
                     if (solicitud.franjas && solicitud.franjas.length > 0) {
                         solicitud.franjas.forEach(f => {
@@ -111,6 +121,7 @@ export const responderSolicitud = async (req, res) => {
                         });
                         horarioPersonal.enabled = true;
                     }
+                    await updateUser(solicitud.barberoId, { diasLibres, vacaciones, horarioPersonal });
                 } else {
                     // Generar fechas entre inicio y fin y agregarlas a diasLibres
                     let current = new Date(solicitud.fechaInicio);
@@ -123,9 +134,8 @@ export const responderSolicitud = async (req, res) => {
                         }
                         current.setDate(current.getDate() + 1);
                     }
+                    await updateUser(solicitud.barberoId, { diasLibres, vacaciones, horarioPersonal });
                 }
-
-                await updateUser(solicitud.barberoId, { diasLibres, vacaciones, horarioPersonal });
             }
         }
 
