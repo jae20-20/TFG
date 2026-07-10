@@ -158,20 +158,38 @@ textarea.bg-dark-700:focus,
   outline: none !important;
 }
 
-/* 6. PIES DE PÁGINA Y MENÚS INFERIORES */
+/* 6. PIES DE PÁGINA Y MENÚS INFERIORES UNIFICADOS */
 .client-footer,
 .barber-footer,
 .admin-footer {
   --background: linear-gradient(180deg, var(--custom-surface) 0%, var(--ion-background-color) 100%) !important;
   border-top: 1px solid var(--custom-border-subtle) !important;
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.25) !important;
+
+  ion-tab-button {
+    background: transparent !important;
+    --background: transparent !important;
+    --color: var(--custom-text-muted) !important;
+    --color-selected: var(--ion-color-primary) !important;
+    color: var(--custom-text-muted);
+
+    ion-icon {
+      font-size: 24px;
+    }
+
+    &.tab-selected {
+      background: transparent !important;
+      color: var(--ion-color-primary) !important;
+      --color: var(--ion-color-primary) !important;
+      --color-selected: var(--ion-color-primary) !important;
+    }
+  }
 }
 
 .client-bottom-item.is-active,
-.admin-bottom-menu ion-button.is-active,
-.barber-footer ion-tab-button.tab-selected {
-  color: var(--custom-gold) !important;
-  --color: var(--custom-gold) !important;
+.admin-bottom-menu ion-button.is-active {
+  color: var(--ion-color-primary) !important;
+  --color: var(--ion-color-primary) !important;
 }
 
 /* 8. LISTAS SIN FONDO RECTANGULAR Y ITEMS REDONDEADOS */

@@ -52,6 +52,7 @@ ion-content {
   margin-top: 16px;
   padding: 16px;
   border-radius: 20px;
+  overflow: hidden;
   background:
     radial-gradient(circle at top left, rgba(var(--ion-color-primary-rgb), 0.06), transparent 35%),
     linear-gradient(180deg, var(--ion-background-color) 0%, var(--ion-background-color) 100%);

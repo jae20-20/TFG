@@ -3,9 +3,8 @@
 <ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
   
 
-  <ion-list>
-    <div class="calendar-card">
-      <div class="calendar-header">
+  <div class="calendar-card">
+    <div class="calendar-header">
         <div>
           <!-- <p class="calendar-eyebrow">Agenda mensual</p> -->
           <h2>{{ calendarMonthLabel }}</h2>
@@ -115,7 +114,6 @@
       </ng-container>
       </div>
     </div>
-  </ion-list>
 
   <!-- Modal para añadir cita manual -->
   <ion-modal #newCitaModal [isOpen]="isNewCitaModalOpen" (didDismiss)="cancelNewCitaModal()" class="premium-modal compact-modal">
