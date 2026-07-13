@@ -286,9 +286,9 @@
       </div>
       <ion-footer>
         <ion-toolbar>
-          <ion-button expand="block" class="premium-modal-button-solid ion-margin" style="--color: #ffffff !important; color: #ffffff !important; opacity: 1 !important;" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
+          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
             <ion-spinner *ngIf="creandoCita" name="crescent"></ion-spinner>
-            <span *ngIf="!creandoCita" style="color: #ffffff !important; font-weight: 800 !important;">Guardar Cita</span>
+            <span *ngIf="!creandoCita">Guardar Cita</span>
           </ion-button>
         </ion-toolbar>
       </ion-footer>
