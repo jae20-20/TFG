@@ -215,7 +215,7 @@ export class CalendarPage implements OnInit {
     } else {
       const confirm = await this.alertCtrl.create({
         header: 'Cierre Global',
-        message: 'Cerrar la barbería entera anulará el horario de <b>todos los barberos</b> para este día, incluyendo a los que tengan horarios especiales. ¿Deseas continuar?',
+        message: 'Cerrar la barbería entera anulará el horario de todos los barberos para este día, incluyendo horarios especiales. ¿Deseas continuar?',
         cssClass: 'premium-alert',
         buttons: [
           { text: 'Cancelar', role: 'cancel' },
