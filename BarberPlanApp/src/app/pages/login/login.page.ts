@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
@@ -14,6 +14,7 @@ import { ThemeService } from '../../services/theme.service';
   imports: [IonicModule, FormsModule],
 })
 export class LoginPage {
+  @ViewChild(IonContent, { static: false }) content?: IonContent;
   correo: string = '';
   pw: string = '';
   rol: string = '';
@@ -25,6 +26,11 @@ export class LoginPage {
     private storage: Storage,
     private themeService: ThemeService
   ) {}
+
+  ionViewWillEnter() {
+    this.themeService.applyDefaultPublicTheme();
+    this.content?.scrollToTop(0);
+  }
 
   async login() {
     try {

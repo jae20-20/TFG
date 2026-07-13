@@ -1,87 +1,66 @@
 <ion-content class="bg-dark-900">
-  <!-- Contenedor principal -->
-  <div class="min-h-screen flex flex-col items-center justify-start px-4 pt-4 pb-8">
+  <div class="auth-container auth-container-centered">
     
-    <!-- Logo y título -->
-    <div class="text-center mb-8">
-      <ion-icon src="assets/icon/logo.svg" style="color: var(--ion-color-primary); font-size: 3.2rem; display: inline-block; margin-bottom: 0.15rem;"></ion-icon>
-      <h1 class="text-3xl font-bold text-dynamic-text mb-1">BarberPlan</h1>
-      <p class="text-gold-400 text-sm">Gestión premium de barberías</p>
-    </div>
-
-    <!-- Formulario de login -->
-    <div class="w-full max-w-md">
-      <div class="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden shadow-2xl">
-        
-        <!-- Header de la tarjeta -->
-        <div class="px-6 pt-6 pb-3">
-          <h2 class="text-2xl font-bold text-dynamic-text mb-1">Iniciar Sesión</h2>
-          <p class="text-dynamic-muted text-sm">Accede a tu cuenta de BarberPlan</p>
-        </div>
-
-        <!-- Contenido del formulario -->
-        <div class="px-6 pb-6">
-          <form (ngSubmit)="login()" class="space-y-4">
-            <!-- Campo de Email -->
-            <div>
-              <label class="block text-dynamic-text text-sm font-medium mb-1.5">Email</label>
-              <input
-                type="email"
-                [(ngModel)]="correo"
-                name="correo"
-                placeholder="tu@email.com"
-                required
-                class="w-full px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
-              />
-            </div>
-
-            <!-- Campo de Contraseña -->
-            <div>
-              <label class="block text-dynamic-text text-sm font-medium mb-1.5">Contraseña</label>
-              <input
-                type="password"
-                [(ngModel)]="pw"
-                name="pw"
-                placeholder="Tu contraseña"
-                required
-                class="w-full px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-dynamic-text placeholder-dynamic-muted focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 transition duration-300"
-              />
-            </div>
-
-            <!-- Botón principal -->
-            <button
-              type="submit"
-              class="w-full py-2.5 px-4 bg-gold-500 hover:bg-gold-600 text-white font-bold rounded-lg transition duration-300 transform hover:scale-105 shadow-lg mt-2"
-            >
-              Iniciar Sesión
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <!-- Pie de página -->
-      <div class="text-center mt-8 space-y-2">
-        <p class="text-dynamic-muted text-sm">
-          <span class="text-dynamic-muted">¿Primera vez aquí?</span>
-          <button
-            type="button"
-            (click)="goToRegister()"
-            class="text-link-btn"
-          >
-            Crea tu cuenta
-          </button>
-        </p>
-        <p class="text-dynamic-muted text-sm">
-          <span class="text-dynamic-muted">¿Tienes una barbería?</span>
-          <button
-            type="button"
-            (click)="goToBarberiaRegister()"
-            class="text-link-btn"
-          >
-            Regístrala aquí
-          </button>
-        </p>
+    <!-- Branding -->
+    <div class="auth-brand">
+      <ion-icon src="assets/icon/logo.svg" class="auth-brand-logo"></ion-icon>
+      <div class="auth-brand-text">
+        <h1 class="auth-brand-title">BarberPlan</h1>
+        <p class="auth-brand-subtitle">Gestión premium de barberías</p>
       </div>
     </div>
+
+    <!-- Tarjeta de login -->
+    <div class="auth-card">
+      <!-- Header -->
+      <div class="auth-card-header">
+        <h2 class="auth-card-title">Iniciar Sesión</h2>
+        <p class="auth-card-desc">Accede a tu cuenta de BarberPlan</p>
+      </div>
+
+      <!-- Formulario -->
+      <form (ngSubmit)="login()" class="auth-form">
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <input
+            type="email"
+            [(ngModel)]="correo"
+            name="correo"
+            placeholder="tu@email.com"
+            required
+            class="auth-input"
+          />
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label">Contraseña</label>
+          <input
+            type="password"
+            [(ngModel)]="pw"
+            name="pw"
+            placeholder="Tu contraseña"
+            required
+            class="auth-input"
+          />
+        </div>
+
+        <button type="submit" class="auth-submit-btn">
+          Iniciar Sesión
+        </button>
+      </form>
+    </div>
+
+    <!-- Enlaces de navegación -->
+    <div class="auth-links">
+      <p>
+        <span>¿Primera vez aquí?</span>
+        <button type="button" (click)="goToRegister()" class="text-link-btn">Crea tu cuenta</button>
+      </p>
+      <p>
+        <span>¿Tienes una barbería?</span>
+        <button type="button" (click)="goToBarberiaRegister()" class="text-link-btn">Regístrala aquí</button>
+      </p>
+    </div>
+
   </div>
 </ion-content>

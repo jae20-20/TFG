@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-register',
@@ -13,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class RegisterPage {
+  @ViewChild(IonContent, { static: false }) content?: IonContent;
   nombre = '';
   apellido = '';
   usuario = '';
@@ -28,8 +30,14 @@ export class RegisterPage {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private themeService: ThemeService
   ) {}
+
+  ionViewWillEnter() {
+    this.themeService.applyDefaultPublicTheme();
+    this.content?.scrollToTop(0);
+  }
 
   async register() {
     if (this.pw !== this.confirmPw) {

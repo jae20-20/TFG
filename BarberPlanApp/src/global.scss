@@ -561,3 +561,395 @@ ion-button.premium-modal-button-solid[disabled],
 button.premium-modal-button-solid[disabled] {
   opacity: 0.85 !important;
 }
+
+/* EVITAR CENTRADO DE TÍTULOS EN MODO MÓVIL / IOS (SIEMPRE FIJO A LA IZQUIERDA CON LIGERA SEPARACIÓN) */
+ion-title,
+ion-title.ios,
+ion-title.md,
+ion-title.boutique-title {
+  position: relative !important;
+  text-align: left !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  width: auto !important;
+  max-width: 100% !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  margin-left: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+ion-title::part(native) {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  padding-left: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* ==========================================================================
+   SISTEMA DE DISEÑO UNIFICADO PARA PÁGINAS DE AUTENTICACIÓN
+   Usa la tipografía Inter y los tokens CSS de la app (--custom-*, --ion-*)
+   ========================================================================== */
+
+/* Línea profesional superior e inferior en páginas de autenticación */
+ion-content.bg-dark-900::part(scroll) {
+  border-top: 1px solid rgba(234, 179, 8, 0.22) !important;
+  border-bottom: 1px solid rgba(234, 179, 8, 0.22) !important;
+}
+
+/* Contenedor principal centrado */
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 18px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-container form {
+  width: 100%;
+}
+
+/* Variante para login: situada en la zona superior de la pantalla, sin bajar demasiado */
+.auth-container-centered {
+  min-height: 100%;
+  justify-content: flex-start;
+  padding-top: 4vh;
+}
+
+/* Branding: Logo + Título lado a lado (Estándar para Crear Cuenta y Registrar Barbería) */
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.auth-brand-logo {
+  color: var(--ion-color-primary) !important;
+  font-size: 2.8rem;
+  flex-shrink: 0;
+}
+
+.auth-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-brand-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1;
+  margin: 0;
+  color: var(--custom-text-primary, #f8fafc);
+  letter-spacing: -0.01em;
+}
+
+.auth-brand-subtitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin: 4px 0 0;
+  color: var(--ion-color-primary);
+  letter-spacing: 0.01em;
+}
+
+/* Branding especial ampliado SOLO para Login (.auth-container-centered) */
+.auth-container-centered .auth-brand {
+  gap: 18px;
+  margin-bottom: 42px;
+}
+
+.auth-container-centered .auth-brand-logo {
+  font-size: 3.6rem;
+}
+
+.auth-container-centered .auth-brand-title {
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+.auth-container-centered .auth-brand-subtitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 6px 0 0;
+  letter-spacing: 0.01em;
+}
+
+/* Tarjeta de autenticación */
+.auth-card {
+  width: 100%;
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%) !important;
+  border: 1px solid var(--custom-border-subtle) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38) !important;
+  overflow: hidden;
+}
+
+/* Header de la tarjeta */
+.auth-card-header {
+  padding: 28px 28px 16px;
+}
+
+.auth-card-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 800;
+  font-size: 1.65rem;
+  color: var(--custom-text-primary, #f8fafc);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.auth-card-desc {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  font-size: 0.88rem;
+  color: var(--custom-text-muted-alt, #94a3b8);
+  margin: 0;
+}
+
+/* Indicador de paso */
+.auth-step-indicator {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ion-color-primary);
+  margin-bottom: 8px;
+}
+
+/* Formulario */
+.auth-form {
+  padding: 20px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Fila de 2 columnas */
+.auth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Campo individual */
+.auth-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label */
+.auth-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--custom-text-primary, #f8fafc);
+  margin-bottom: 8px;
+  letter-spacing: 0.01em;
+}
+
+/* Input / Select / Textarea */
+.auth-input {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.15));
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--custom-text-primary, #f8fafc);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  outline: none;
+}
+
+.auth-input::placeholder {
+  color: var(--custom-text-muted-alt, #64748b);
+  font-weight: 400;
+}
+
+.auth-input:focus {
+  border-color: var(--ion-color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15) !important;
+}
+
+/* Select custom arrow */
+.auth-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 1.2em;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.auth-select option {
+  background: var(--custom-surface, #1a1d24);
+  color: var(--custom-text-primary, #f8fafc);
+}
+
+/* Textarea */
+.auth-textarea {
+  resize: none;
+  min-height: 76px;
+}
+
+/* Hint text */
+.auth-hint {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.7rem;
+  color: var(--custom-text-muted-alt, #64748b);
+  margin: 4px 0 0;
+}
+
+/* Password wrapper */
+.auth-password-wrap {
+  position: relative;
+}
+
+.auth-password-wrap .auth-input {
+  padding-right: 36px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent !important;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+}
+
+/* Botón principal de envío */
+.auth-submit-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--ion-color-primary) !important;
+  color: #0f172a !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.auth-submit-btn:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.auth-submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Estado deshabilitado */
+.auth-btn-disabled {
+  background: var(--custom-surface, #1e293b) !important;
+  color: var(--custom-text-muted-alt, #64748b) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Botón secundario (Anterior) */
+.auth-secondary-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.4);
+  background: transparent !important;
+  color: var(--ion-color-primary) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-secondary-btn:hover {
+  background: rgba(var(--ion-color-primary-rgb), 0.08) !important;
+  border-color: var(--ion-color-primary);
+}
+
+/* Fila de acciones (Anterior + Registrar) */
+.auth-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.auth-actions-row .auth-submit-btn {
+  flex: 1;
+}
+
+/* Enlaces de pie de página */
+.auth-links {
+  text-align: center;
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-links p {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.8rem;
+  color: var(--custom-text-muted-alt, #94a3b8);
+}
+
+.auth-links .text-link-btn {
+  font-size: 0.8rem !important;
+}
+
+/* Autofill styling para Chrome */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(26, 29, 36, 1) inset !important;
+  -webkit-text-fill-color: var(--custom-text-primary, #f8fafc) !important;
+  border-color: var(--custom-border-subtle) !important;
+  font-size: 0.875rem;
+}
+
+/* Light mode overrides */
+body.light-mode {
+  .auth-input {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
+
+  .auth-input:-webkit-autofill,
+  .auth-input:-webkit-autofill:hover,
+  .auth-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgba(245, 245, 245, 1) inset !important;
+    -webkit-text-fill-color: var(--custom-text-primary, #0f172a) !important;
+  }
+
+  .auth-submit-btn:not(.auth-btn-disabled) {
+    color: #ffffff !important;
+  }
+}
+

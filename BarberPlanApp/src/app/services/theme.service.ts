@@ -51,14 +51,27 @@ export class ThemeService {
     this.setMode(isDark, false);
   }
 
-  clearUserPreferences() {
-    localStorage.removeItem('barberplan_active_user_key');
-    this.currentUserKey = null;
-    this.setTheme(this.themes[0], false);
+  applyDefaultPublicTheme() {
+    const defaultTheme = this.themes.find(t => t.id === 'gold') || this.themes[0];
+    this.setTheme(defaultTheme, false);
     this.setMode(true, false);
   }
 
+  clearUserPreferences() {
+    localStorage.removeItem('barberplan_active_user_key');
+    this.currentUserKey = null;
+    this.applyDefaultPublicTheme();
+  }
+
   initTheme() {
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const isPublicRoute = pathname.includes('login') || pathname.includes('register');
+    if (isPublicRoute) {
+      const defaultTheme = this.themes.find(t => t.id === 'gold') || this.themes[0];
+      this.setTheme(defaultTheme, false);
+      return;
+    }
+
     const savedId = this.currentUserKey
       ? (localStorage.getItem(`barberplan_theme_${this.currentUserKey}`) || localStorage.getItem('barberplan_theme') || 'gold')
       : (localStorage.getItem('barberplan_theme') || 'gold');
@@ -68,6 +81,13 @@ export class ThemeService {
   }
 
   initMode() {
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const isPublicRoute = pathname.includes('login') || pathname.includes('register');
+    if (isPublicRoute) {
+      this.setMode(true, false);
+      return;
+    }
+
     const savedMode = this.currentUserKey
       ? (localStorage.getItem(`barberplan_mode_${this.currentUserKey}`) || localStorage.getItem('barberplan_mode') || 'dark')
       : (localStorage.getItem('barberplan_mode') || 'dark');

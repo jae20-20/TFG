@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AlertController, IonicModule, ToastController } from '@ionic/angular';
+import { AlertController, IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-register-barberia',
@@ -13,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [IonicModule, CommonModule, FormsModule, RouterLink]
 })
 export class RegisterBarberiaPage implements OnInit {
+  @ViewChild(IonContent, { static: false }) content?: IonContent;
   currentStep = 1;
   isLoading = false;
   showPassword = false;
@@ -43,10 +45,16 @@ export class RegisterBarberiaPage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private themeService: ThemeService
   ) {}
 
   ngOnInit() {}
+
+  ionViewWillEnter() {
+    this.themeService.applyDefaultPublicTheme();
+    this.content?.scrollToTop(0);
+  }
 
   // Validación del paso 1
   isStep1Valid(): boolean {

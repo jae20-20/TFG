@@ -1,64 +1,13 @@
-// Animaciones
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+// Estilos específicos de la página de registro de barbería
+// (El sistema de diseño auth-* está en global.scss)
 
-@keyframes slideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-// Estilos de la página
 ::ng-deep {
-  ion-content.bg-dark-900 {
-    --background: var(--ion-background-color, #121212);
-  }
-
-  // Permitir scroll solo cuando sea necesario
-  div.h-screen.overflow-y-auto {
-    max-height: 100vh;
-  }
-
-  // Animación de entrada general
-  div.h-screen {
-    animation: slideUp 0.6s ease-out;
-  }
-
-  // Animación de contenido de pasos
-  .step-content {
-    animation: slideLeft 0.4s ease-out;
-  }
-
-  // Estilos para inputs y textareas
+  // Autofill override
   input::-webkit-autofill,
   select::-webkit-autofill,
   textarea::-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 1000px rgba(42, 42, 42, 1) inset !important;
-    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0 1000px rgba(26, 29, 36, 1) inset !important;
+    -webkit-text-fill-color: var(--custom-text-primary, #f8fafc) !important;
   }
 
   input::-webkit-autofill::first-line,
@@ -67,41 +16,14 @@
     font-size: 14px;
   }
 
-  // Efecto de enfoque mejorado
-  input:focus,
-  select:focus,
-  textarea:focus {
-    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
-  }
-
   // Efectos de botones
   button[type="submit"]:active,
   button[type="button"]:active {
     transform: scale(0.98);
   }
 
-  // Mejorar select styling
-  select {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    background-size: 1.5em 1.5em;
-    padding-right: 2.5rem;
-  }
-
-  // Textarea sin resize
-  textarea {
-    resize: none;
-  }
-
   // Spinner de carga
   ion-spinner {
-    --color: var(--custom-gold, var(--custom-gold));
-  }
-
-  // Transiciones suaves en indicadores de paso
-  div[class*="transition"] {
-    transition: all 0.3s ease;
+    --color: var(--ion-color-primary);
   }
 }

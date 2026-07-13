@@ -1,53 +1,18 @@
-// Animaciones
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+// Estilos específicos de la página de login
+// (El sistema de diseño auth-* está en global.scss)
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-// Estilos de la página
 ::ng-deep {
-  ion-content.bg-dark-900 {
-    --background: var(--ion-background-color, #121212);
-    --overflow: hidden;
-  }
-
-  // Animación de entrada
-  div.h-screen {
-    animation: slideUp 0.6s ease-out;
-  }
-
-  // Estilos para inputs
+  // Autofill override para inputs de la página
   input::-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 1000px rgba(42, 42, 42, 1) inset !important;
-    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0 1000px rgba(26, 29, 36, 1) inset !important;
+    -webkit-text-fill-color: var(--custom-text-primary, #f8fafc) !important;
   }
 
   input::-webkit-autofill::first-line {
-    font-size: 16px;
-  }
-
-  // Efecto de enfoque mejorado
-  input:focus {
-    box-shadow: 0 0 20px var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.3)) !important;
+    font-size: 14px;
   }
 
   button[type="submit"]:active {
     transform: scale(0.98);
   }
-
 }
