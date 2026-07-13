@@ -380,10 +380,16 @@ export const getDisponibilidad = async (req, res) => {
             return res.status(400).json({ error: "Se requiere el ID de la barbería" });
         }
 
-        // Obtener barbería para conocer horario
+        // Obtener barbería para conocer horario base
         const barberia = await getBarbershopById(barberiaId);
         if (!barberia) {
             return res.status(404).json({ error: "Barbería no encontrada" });
+        }
+
+        // Obtener barbero para conocer su horario personal, excepciones y días libres
+        const barbero = await getUserById(barberoId);
+        if (!barbero) {
+            return res.status(404).json({ error: "Barbero no encontrado" });
         }
 
         // Obtener citas del barbero en esa fecha
@@ -402,6 +408,7 @@ export const getDisponibilidad = async (req, res) => {
         let slotsForDay = [];
         let isClosed = false;
 
+        // 1. Horario base de la barbería
         const exception = schedule.exceptions?.find(e => e.date === fecha);
         if (exception) {
             if (exception.type === 'closed') {
@@ -416,7 +423,28 @@ export const getDisponibilidad = async (req, res) => {
             }
         }
 
-        if (isClosed) {
+        // 2. Aplicar excepciones y horario del BARBERO
+        const barberExceptions = (barbero.horarioPersonal?.exceptions || []).filter(ex => ex.date === fecha);
+        const customOpeningSlots = barberExceptions.filter(ex => !ex.isAbsence && ex.type !== 'closed' && ex.start && ex.end);
+        const absenceSlots = barberExceptions.filter(ex => ex.isAbsence === true && ex.start && ex.end);
+        const hasClosedException = barberExceptions.some(ex => ex.type === 'closed' || (ex.isAbsence === true && !ex.start));
+
+        if (customOpeningSlots.length > 0) {
+            // Si el barbero tiene franjas específicas abiertas para este día (ej: abiertas por el admin)
+            slotsForDay = customOpeningSlots.map(s => ({ start: s.start, end: s.end }));
+            isClosed = false;
+        } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha))) {
+            // Si no tiene franjas abiertas explícitas y el día está en días libres o cerrado
+            isClosed = true;
+        } else if (barbero.horarioPersonal?.enabled && barbero.horarioPersonal?.weeklyTemplate?.[dayKey]) {
+            // Si el barbero tiene plantilla semanal propia
+            slotsForDay = barbero.horarioPersonal.weeklyTemplate[dayKey];
+            if (slotsForDay.length === 0) {
+                isClosed = true;
+            }
+        }
+
+        if (isClosed || slotsForDay.length === 0) {
             return res.json({
                 fecha,
                 barberoId,
@@ -436,12 +464,17 @@ export const getDisponibilidad = async (req, res) => {
             while (current < end) {
                 const horaStr = `${String(current.getHours()).padStart(2, "0")}:${String(current.getMinutes()).padStart(2, "0")}`;
 
-                // Verificar si este horario está ocupado
+                // Verificar si este horario está ocupado por una cita
                 const ocupado = citasOcupadas.some(cita => {
                     return horaStr >= cita.horaInicio && horaStr < cita.horaFin;
                 });
 
-                if (!ocupado) {
+                // Verificar si cae en una ausencia parcial del barbero (cierre parcial)
+                const enAusencia = absenceSlots.some(abs => {
+                    return horaStr >= abs.start && horaStr < abs.end;
+                });
+
+                if (!ocupado && !enAusencia) {
                     horariosDisponibles.push(horaStr);
                 }
                 

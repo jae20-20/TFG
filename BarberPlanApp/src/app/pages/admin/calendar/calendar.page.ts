@@ -484,6 +484,10 @@ export class CalendarPage implements OnInit {
       return;
     }
     
+    if (barber.diasLibres && barber.diasLibres.includes(this.selectedDateKey)) {
+      barber.diasLibres = barber.diasLibres.filter((d: string) => d !== this.selectedDateKey);
+    }
+
     if (!barber.horarioPersonal) {
       barber.horarioPersonal = { enabled: true, timezone: 'Europe/Madrid', weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, exceptions: [] };
     }

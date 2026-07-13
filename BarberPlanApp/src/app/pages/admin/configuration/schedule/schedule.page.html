@@ -4,16 +4,8 @@
   <div class="schedule-editor-card" *ngIf="!loading">
     <div class="schedule-editor-head">
       <div>
-        <h3>Horario habitual</h3>
-        <p>Define las franjas normales de apertura por día.</p>
+        <h3>Horario habitual de {{ barberia.nombre }}</h3>
       </div>
-
-      <ion-item lines="none" class="service-input-item schedule-timezone-item">
-        <ion-label position="stacked">Zona horaria</ion-label>
-        <ion-select [(ngModel)]="horarioForm.timezone" cancelText="Cancelar" okText="Guardar">
-          <ion-select-option value="Europe/Madrid">Europe/Madrid</ion-select-option>
-        </ion-select>
-      </ion-item>
     </div>
 
     <div class="schedule-week-grid">
