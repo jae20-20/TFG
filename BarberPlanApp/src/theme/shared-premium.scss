@@ -158,11 +158,12 @@ textarea.bg-dark-700:focus,
   outline: none !important;
 }
 
-/* 6. PIES DE PÁGINA Y MENÚS INFERIORES UNIFICADOS */
+/* 6. PIES DE PÁGINA Y MENÚS INFERIORES UNIFICADOS (CLIENTE, BARBERO, ADMIN) */
 .client-footer,
 .barber-footer,
 .admin-footer {
   --background: linear-gradient(180deg, var(--custom-surface) 0%, var(--ion-background-color) 100%) !important;
+  background: linear-gradient(180deg, var(--custom-surface) 0%, var(--ion-background-color) 100%) !important;
   border-top: 1px solid var(--custom-border-subtle) !important;
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.25) !important;
 
@@ -172,12 +173,29 @@ textarea.bg-dark-700:focus,
     --color: var(--custom-text-muted) !important;
     --color-selected: var(--ion-color-primary) !important;
     color: var(--custom-text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
 
     ion-icon {
       font-size: 24px;
+      transition: transform 0.2s ease, color 0.2s ease;
     }
 
-    &.tab-selected {
+    &:hover {
+      --color: var(--ion-color-primary) !important;
+      color: var(--ion-color-primary) !important;
+
+      ion-icon {
+        transform: scale(1.12);
+      }
+    }
+
+    &.tab-selected,
+    &.tab-selected ion-icon,
+    &[aria-selected="true"],
+    &[aria-selected="true"] ion-icon,
+    &[selected],
+    &[selected] ion-icon {
       background: transparent !important;
       color: var(--ion-color-primary) !important;
       --color: var(--ion-color-primary) !important;

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { AlertController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
@@ -23,7 +23,7 @@ interface BarberiaPublica {
 }
 
 import { addIcons } from 'ionicons';
-import { cutOutline, logOutOutline, starOutline, locationOutline, timeOutline } from 'ionicons/icons';
+import { cutOutline, logOutOutline, starOutline, locationOutline, timeOutline, homeOutline, calendarOutline, personOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-client-home',
@@ -44,25 +44,39 @@ export class ClientHomePage implements OnInit {
     private authService: AuthService,
     private storage: Storage,
     private router: Router,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({
       'cut-outline': cutOutline,
       'log-out-outline': logOutOutline,
       'star-outline': starOutline,
       'location-outline': locationOutline,
-      'time-outline': timeOutline
+      'time-outline': timeOutline,
+      'home-outline': homeOutline,
+      'calendar-outline': calendarOutline,
+      'person-outline': personOutline
     });
+
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        if (this.router.url.startsWith('/client-home') || this.router.url === '/client') {
+          this.currentTab = 'inicio';
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  }
+
+  ionViewWillEnter() {
+    this.currentTab = 'inicio';
+    this.cdr.detectChanges();
   }
 
   async ngOnInit() {
     await this.storage.create();
     this.user = await this.storage.get('user');
-    this.currentTab = this.router.url.startsWith('/client-appointments')
-      ? 'citas'
-      : this.router.url.startsWith('/client-profile')
-        ? 'perfil'
-        : 'inicio';
+    this.currentTab = 'inicio';
     await this.loadBarberias();
   }
 

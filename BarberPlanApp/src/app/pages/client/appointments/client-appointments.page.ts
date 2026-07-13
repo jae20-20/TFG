@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { AlertController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+
+import { addIcons } from 'ionicons';
+import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-client-appointments',
@@ -26,17 +29,38 @@ export class ClientAppointmentsPage implements OnInit {
     private authService: AuthService,
     private storage: Storage,
     private router: Router,
-    private alertCtrl: AlertController
-  ) {}
+    private alertCtrl: AlertController,
+    private cdr: ChangeDetectorRef
+  ) {
+    addIcons({
+      'home-outline': homeOutline,
+      'calendar-outline': calendarOutline,
+      'person-outline': personOutline,
+      'cut-outline': cutOutline,
+      'time-outline': timeOutline,
+      'log-out-outline': logOutOutline
+    });
+
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        if (this.router.url.startsWith('/client-appointments')) {
+          this.currentTab = 'citas';
+          this.cdr.detectChanges();
+        }
+      }
+    });
+  }
+
+  ionViewWillEnter() {
+    this.currentTab = 'citas';
+    this.cdr.detectChanges();
+    this.loadMisCitas();
+  }
 
   async ngOnInit() {
     await this.storage.create();
     this.user = await this.storage.get('user');
-    this.currentTab = this.router.url.startsWith('/client-profile')
-      ? 'perfil'
-      : this.router.url.startsWith('/client-home')
-        ? 'inicio'
-        : 'citas';
+    this.currentTab = 'citas';
     await this.loadMisCitas();
   }
 

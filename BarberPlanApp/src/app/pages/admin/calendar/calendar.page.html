@@ -103,7 +103,10 @@
               <div class="cita-info-col">
                 <div class="cita-header">
                   <span class="cita-time">{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</span>
-                  <span class="cita-client">{{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}</span>
+                  <span class="cita-client">
+                    <img *ngIf="item.cita.cliente?.avatar" [src]="item.cita.cliente.avatar" class="cita-client-avatar" alt="Avatar" />
+                    {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}
+                  </span>
                 </div>
                 <div class="cita-body">
                   <span class="cita-service">{{ item.cita.servicioNombre || item.cita.servicio?.nombre || 'Corte' }}</span>

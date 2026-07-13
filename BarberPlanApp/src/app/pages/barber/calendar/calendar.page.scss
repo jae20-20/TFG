@@ -308,12 +308,23 @@ ion-list ion-item p {
       }
 
       .cita-client {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font-size: 15px;
         font-weight: 600;
         color: var(--custom-text-primary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        .cita-client-avatar {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 1px solid var(--ion-color-primary);
+        }
       }
     }
 

@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="client-topbar">
-    <ion-title class="client-topbar-title boutique-title">Perfil</ion-title>
+    <ion-title class="client-topbar-title boutique-title">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <ion-icon src="assets/icon/logo.svg" style="color: var(--ion-color-primary); font-size: 1.5rem; flex-shrink: 0;"></ion-icon>
+        <span>Perfil</span>
+      </div>
+    </ion-title>
 
     <ion-buttons slot="end">
       <app-theme-header-btn></app-theme-header-btn>
@@ -12,62 +17,147 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding client-premium-content">
-  <section class="profile-hero">
-    <div class="profile-avatar">{{ getInitials() }}</div>
-    <div>
-      <p class="client-eyebrow">Tu cuenta</p>
-      <h1>{{ profile?.nombre || user?.nombre || 'Cliente' }}</h1>
-      <p>{{ profile?.email || user?.correo || 'Información de la cuenta' }}</p>
+  <div class="cliente-profile-card">
+    <div class="cliente-profile-head">
+      <div class="cliente-avatar-header">
+        <div class="avatar-wrap-container">
+          <input type="file" #fileInput (change)="onAvatarSelected($event)" accept="image/*" style="display: none" />
+          <div class="avatar-wrap"
+               [class.editable-avatar]="isEditingClient"
+               (click)="isEditingClient ? fileInput.click() : null"
+               [title]="isEditingClient ? 'Haz clic para cambiar foto de perfil' : ''">
+            <img *ngIf="clientEditForm?.avatar || profile?.avatar || user?.avatar; else fallbackAvatar"
+                 [src]="clientEditForm?.avatar || profile?.avatar || user?.avatar"
+                 class="avatar-img"
+                 alt="Avatar" />
+            <ng-template #fallbackAvatar>
+              <div class="avatar-initials">{{ getInitials() }}</div>
+            </ng-template>
+            <div class="avatar-edit-overlay" *ngIf="isEditingClient">
+              <ion-icon name="camera-outline"></ion-icon>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="avatar-remove-x"
+            *ngIf="isEditingClient && clientEditForm?.avatar"
+            (click)="removeAvatar($event)"
+            title="Quitar foto"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <div>
+          <h3>Datos del cliente</h3>
+          <p class="cliente-subtext">{{ profile?.correo || user?.correo || 'Información de la cuenta' }}</p>
+        </div>
+      </div>
+
+      <ion-button
+        *ngIf="!isEditingClient"
+        fill="outline"
+        size="small"
+        (click)="enterClientEditMode()"
+      >
+        <ion-icon slot="start" name="pencil-outline"></ion-icon>
+        Editar
+      </ion-button>
     </div>
-  </section>
 
-  <div class="client-state" *ngIf="loadingProfile">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Cargando perfil...</p>
-  </div>
+    <div class="cliente-field-grid" *ngIf="clientEditForm">
+      <div class="cliente-field-group">
+        <label>Nombre</label>
+        <ng-container *ngIf="!isEditingClient; else editNombre">
+          <div class="field-display">{{ user?.nombre || profile?.nombre || 'No disponible' }}</div>
+        </ng-container>
+        <ng-template #editNombre>
+          <ion-input class="field-input" type="text" [(ngModel)]="clientEditForm.nombre" placeholder="Nombre"></ion-input>
+        </ng-template>
+      </div>
 
-  <div class="client-state error" *ngIf="!loadingProfile && profileError">
-    <p>{{ profileError }}</p>
-    <ion-button size="small" fill="outline" (click)="loadProfile()">Reintentar</ion-button>
-  </div>
+      <div class="cliente-field-group">
+        <label>Apellidos</label>
+        <ng-container *ngIf="!isEditingClient; else editApellido">
+          <div class="field-display">{{ user?.apellido || profile?.apellido || 'No disponible' }}</div>
+        </ng-container>
+        <ng-template #editApellido>
+          <ion-input class="field-input" type="text" [(ngModel)]="clientEditForm.apellido" placeholder="Apellidos"></ion-input>
+        </ng-template>
+      </div>
 
-  <div class="profile-grid" *ngIf="!loadingProfile">
-    <article class="profile-card">
-      <p class="profile-card-label">Nombre completo</p>
-      <h2>{{ profile?.nombre || user?.nombre || 'No disponible' }}</h2>
-    </article>
+      <div class="cliente-field-group">
+        <label>Usuario</label>
+        <ng-container *ngIf="!isEditingClient; else editUsuario">
+          <div class="field-display">{{ user?.usuario || profile?.usuario || 'No disponible' }}</div>
+        </ng-container>
+        <ng-template #editUsuario>
+          <ion-input class="field-input" type="text" [(ngModel)]="clientEditForm.usuario" placeholder="Usuario"></ion-input>
+        </ng-template>
+      </div>
 
-    <article class="profile-card">
-      <p class="profile-card-label">Correo</p>
-      <h2>{{ profile?.email || user?.correo || 'No disponible' }}</h2>
-    </article>
+      <div class="cliente-field-group">
+        <label>Teléfono</label>
+        <ng-container *ngIf="!isEditingClient; else editTelefono">
+          <div class="field-display">{{ user?.telefono || profile?.telefono || 'No disponible' }}</div>
+        </ng-container>
+        <ng-template #editTelefono>
+          <ion-input class="field-input" type="tel" [(ngModel)]="clientEditForm.telefono" placeholder="Teléfono"></ion-input>
+        </ng-template>
+      </div>
 
-    <article class="profile-card">
-      <p class="profile-card-label">Teléfono</p>
-      <h2>{{ profile?.telefono || user?.telefono || 'No disponible' }}</h2>
-    </article>
+      <div class="cliente-field-group">
+        <label>Ciudad</label>
+        <ng-container *ngIf="!isEditingClient; else editCiudad">
+          <div class="field-display">{{ user?.ciudad || profile?.ciudad || 'No disponible' }}</div>
+        </ng-container>
+        <ng-template #editCiudad>
+          <ion-select
+            interface="alert"
+            cancelText="Cancelar"
+            okText="Guardar"
+            class="field-input"
+            [(ngModel)]="clientEditForm.ciudad"
+            placeholder="Selecciona ciudad"
+          >
+            <ion-select-option *ngFor="let ciudad of ciudades" [value]="ciudad">{{ ciudad }}</ion-select-option>
+          </ion-select>
+        </ng-template>
+      </div>
 
-    <article class="profile-card">
-      <p class="profile-card-label">Rol</p>
-      <h2>{{ profile?.rol || user?.rol || 'cliente' }}</h2>
-    </article>
+      <div class="cliente-field-group">
+        <label>Correo</label>
+        <div class="field-display field-display-muted">{{ user?.correo || profile?.correo || profile?.email || 'No disponible' }}</div>
+      </div>
+    </div>
+
+    <div class="cliente-actions" *ngIf="isEditingClient">
+      <ion-button expand="block" color="primary" (click)="saveClientProfile()" [disabled]="savingClient">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        {{ savingClient ? 'Guardando...' : 'Guardar cambios' }}
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" class="cancel-btn" (click)="cancelClientEdit()" [disabled]="savingClient">
+        <ion-icon slot="start" name="close-outline"></ion-icon>
+        Cancelar
+      </ion-button>
+    </div>
+
+    <p class="cliente-error" *ngIf="clientProfileError">{{ clientProfileError }}</p>
   </div>
 </ion-content>
 
-<ion-footer class="client-footer">
-  <ion-toolbar>
-    <div class="client-bottom-menu">
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('inicio')" (click)="goToTab('inicio')">
-        <ion-icon name="home-outline"></ion-icon>
-      </button>
+<ion-footer class="ion-no-border">
+  <ion-tab-bar class="client-footer">
+    <ion-tab-button [selected]="isActiveTab('inicio')" [class.tab-selected]="isActiveTab('inicio')" [attr.aria-selected]="isActiveTab('inicio')" (click)="goToTab('inicio')">
+      <ion-icon name="home-outline"></ion-icon>
+    </ion-tab-button>
 
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('citas')" (click)="goToTab('citas')">
-        <ion-icon name="calendar-outline"></ion-icon>
-      </button>
+    <ion-tab-button [selected]="isActiveTab('citas')" [class.tab-selected]="isActiveTab('citas')" [attr.aria-selected]="isActiveTab('citas')" (click)="goToTab('citas')">
+      <ion-icon name="calendar-outline"></ion-icon>
+    </ion-tab-button>
 
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('perfil')" (click)="goToTab('perfil')">
-        <ion-icon name="person-outline"></ion-icon>
-      </button>
-    </div>
-  </ion-toolbar>
+    <ion-tab-button [selected]="isActiveTab('perfil')" [class.tab-selected]="isActiveTab('perfil')" [attr.aria-selected]="isActiveTab('perfil')" (click)="goToTab('perfil')">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
 </ion-footer>

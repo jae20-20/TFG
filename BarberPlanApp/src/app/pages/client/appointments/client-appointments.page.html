@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="client-topbar">
-    <ion-title class="client-topbar-title boutique-title">Mis citas</ion-title>
+    <ion-title class="client-topbar-title boutique-title">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <ion-icon src="assets/icon/logo.svg" style="color: var(--ion-color-primary); font-size: 1.5rem; flex-shrink: 0;"></ion-icon>
+        <span>Mis citas</span>
+      </div>
+    </ion-title>
 
     <ion-buttons slot="end">
       <app-theme-header-btn></app-theme-header-btn>
@@ -14,8 +19,6 @@
 <ion-content [fullscreen]="true" class="ion-padding client-premium-content">
   <section class="client-hero">
     <p class="client-eyebrow">Tu agenda</p>
-    <h1>Mis citas</h1>
-    <p>Consulta tus próximas reservas y revisa el estado de cada cita desde aquí.</p>
   </section>
 
   <div class="client-state" *ngIf="loadingCitas">
@@ -60,20 +63,18 @@
   </div>
 </ion-content>
 
-<ion-footer class="client-footer">
-  <ion-toolbar>
-    <div class="client-bottom-menu">
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('inicio')" (click)="goToTab('inicio')">
-        <ion-icon name="home-outline"></ion-icon>
-      </button>
+<ion-footer class="ion-no-border">
+  <ion-tab-bar class="client-footer">
+    <ion-tab-button [selected]="isActiveTab('inicio')" [class.tab-selected]="isActiveTab('inicio')" [attr.aria-selected]="isActiveTab('inicio')" (click)="goToTab('inicio')">
+      <ion-icon name="home-outline"></ion-icon>
+    </ion-tab-button>
 
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('citas')" (click)="goToTab('citas')">
-        <ion-icon name="calendar-outline"></ion-icon>
-      </button>
+    <ion-tab-button [selected]="isActiveTab('citas')" [class.tab-selected]="isActiveTab('citas')" [attr.aria-selected]="isActiveTab('citas')" (click)="goToTab('citas')">
+      <ion-icon name="calendar-outline"></ion-icon>
+    </ion-tab-button>
 
-      <button type="button" class="client-bottom-item" [class.is-active]="isActiveTab('perfil')" (click)="goToTab('perfil')">
-        <ion-icon name="person-outline"></ion-icon>
-      </button>
-    </div>
-  </ion-toolbar>
+    <ion-tab-button [selected]="isActiveTab('perfil')" [class.tab-selected]="isActiveTab('perfil')" [attr.aria-selected]="isActiveTab('perfil')" (click)="goToTab('perfil')">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
 </ion-footer>
