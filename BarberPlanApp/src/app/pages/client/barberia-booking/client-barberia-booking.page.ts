@@ -110,6 +110,14 @@ export class ClientBarberiaBookingPage implements OnInit {
     return [barbero?.nombre, barbero?.apellido].filter(Boolean).join(' ') || barbero?.usuario || 'Barbero';
   }
 
+  getBarberoInitials(barbero: any): string {
+    if (!barbero) return 'BA';
+    const nombre = (barbero.nombre || '').trim();
+    const apellido = (barbero.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'BA';
+  }
+
   getServicioPrecio(servicio: any) {
     const precio = Number(servicio?.precio);
     if (!Number.isFinite(precio)) {

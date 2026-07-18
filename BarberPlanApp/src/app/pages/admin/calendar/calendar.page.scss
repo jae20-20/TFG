@@ -79,11 +79,44 @@
 
   .barber-info-display {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
+    gap: 10px;
     text-align: center;
     flex: 1;
     padding: 0 4px;
+
+    .mini-avatar-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1.5px solid var(--custom-gold-light);
+      background: var(--custom-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .mini-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .mini-avatar-initials {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--ion-color-primary-rgb), 0.25);
+        color: var(--custom-gold-light);
+        font-size: 12px;
+        font-weight: 800;
+      }
+    }
 
     .barber-sublabel {
       font-size: 10px;
@@ -94,7 +127,7 @@
     }
 
     .barber-current-name {
-      margin: 3px 0 0;
+      margin: 0;
       font-size: 16px;
       font-weight: 800;
       color: var(--custom-text-primary);

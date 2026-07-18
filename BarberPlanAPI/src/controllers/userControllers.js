@@ -268,15 +268,15 @@ export const deleteUserAccount = async (req, res) => {
     }
 };
 
-// ACTUALIZAR HORARIO ESPECÍFICO DE BARBERO
+// ACTUALIZAR HORARIO O PERFIL ESPECÍFICO DE BARBERO
 export const updateBarberoHorario = async (req, res) => {
     try {
         const { id } = req.params;
-        const { horarioPersonal, diasLibres, vacaciones } = req.body;
+        const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados } = req.body;
         
         // Verificar permisos
         if (req.user.rol !== "admin" && req.user.id !== id) {
-            return res.status(403).json({ error: "No tienes permiso para actualizar este horario" });
+            return res.status(403).json({ error: "No tienes permiso para actualizar este barbero" });
         }
 
         const barbero = await getUserById(id);
@@ -288,11 +288,16 @@ export const updateBarberoHorario = async (req, res) => {
         if (horarioPersonal !== undefined) updatedData.horarioPersonal = horarioPersonal;
         if (diasLibres !== undefined) updatedData.diasLibres = diasLibres;
         if (vacaciones !== undefined) updatedData.vacaciones = vacaciones;
+        if (nombre !== undefined) updatedData.nombre = nombre;
+        if (apellido !== undefined) updatedData.apellido = apellido;
+        if (telefono !== undefined) updatedData.telefono = telefono;
+        if (avatar !== undefined) updatedData.avatar = avatar;
+        if (serviciosBloqueados !== undefined) updatedData.serviciosBloqueados = serviciosBloqueados;
         updatedData.updatedAt = new Date();
 
         await updateUser(id, updatedData);
 
-        res.json({ message: "Horario del barbero actualizado exitosamente" });
+        res.json({ message: "Datos del barbero actualizados exitosamente" });
     } catch (error) {
         console.error("Error al actualizar horario del barbero:", error);
         res.status(500).json({ error: "Error al actualizar horario del barbero" });

@@ -18,6 +18,7 @@ interface BarberDetail {
   apellido: string;
   telefono: string;
   correo: string;
+  avatar?: string;
   diasLibres?: string[];
   vacaciones?: { fechaInicio: string; fechaFin: string; motivo: string }[];
   horarioPersonal?: {
@@ -187,5 +188,13 @@ export class BarberDetailsPage implements OnInit {
     } finally {
       this.saving = false;
     }
+  }
+
+  getInitials(barber: any): string {
+    if (!barber) return 'BA';
+    const nombre = (barber.nombre || '').trim();
+    const apellido = (barber.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'BA';
   }
 }

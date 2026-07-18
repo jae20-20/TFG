@@ -61,7 +61,13 @@
         </div>
         <div class="summary-box" *ngIf="reservaForm.barberoId && reservaPaso >= 2">
           <p>Barbero</p>
-          <strong>{{ getBarberoNombre(getBarberoSeleccionado()) }}</strong>
+          <div class="summary-barber-row" *ngIf="getBarberoSeleccionado() as bSel">
+            <div class="mini-summary-avatar">
+              <img *ngIf="bSel.avatar" [src]="bSel.avatar" class="mini-summary-img" alt="Avatar" />
+              <div *ngIf="!bSel.avatar" class="mini-summary-initials">{{ getBarberoInitials(bSel) }}</div>
+            </div>
+            <strong>{{ getBarberoNombre(bSel) }}</strong>
+          </div>
         </div>
         <div class="summary-box" *ngIf="reservaForm.servicioId">
           <p>Duración</p>
@@ -101,19 +107,34 @@
           <h2>Barbero y fecha</h2>
         </div>
 
-        <div class="booking-form-grid">
-          <div class="field-group">
-            <label>Barbero</label>
-            <select [(ngModel)]="reservaForm.barberoId" (change)="selectBarbero(reservaForm.barberoId)">
-              <option value="" disabled>Selecciona barbero</option>
-              <option *ngFor="let barbero of getBarberosDisponibles()" [value]="getEntityId(barbero)">
-                {{ getBarberoNombre(barbero) }}
-              </option>
-            </select>
+        <div class="booking-barbers-section">
+          <p class="section-eyebrow">Selecciona un profesional</p>
+          <div class="booking-barber-grid">
+            <button
+              type="button"
+              class="booking-barber-card"
+              *ngFor="let barbero of getBarberosDisponibles()"
+              [class.selected]="reservaForm.barberoId === getEntityId(barbero)"
+              (click)="selectBarbero(getEntityId(barbero))"
+            >
+              <div class="barber-card-avatar">
+                <img *ngIf="barbero.avatar" [src]="barbero.avatar" class="barber-avatar-img" alt="Avatar" />
+                <div *ngIf="!barbero.avatar" class="barber-avatar-initials">{{ getBarberoInitials(barbero) }}</div>
+              </div>
+              <div class="barber-card-info">
+                <h3>{{ getBarberoNombre(barbero) }}</h3>
+                <p>{{ barbero.cargo || (barbero.rol === 'admin' ? 'Barbero / Admin' : 'Barbero profesional') }}</p>
+              </div>
+              <div class="barber-card-check" *ngIf="reservaForm.barberoId === getEntityId(barbero)">
+                <ion-icon name="checkmark-circle"></ion-icon>
+              </div>
+            </button>
           </div>
+        </div>
 
+        <div class="booking-form-grid" style="margin-top: 22px;">
           <div class="field-group">
-            <label>Fecha</label>
+            <label>Elige una fecha</label>
             <input type="date" [min]="minFecha" [(ngModel)]="reservaForm.fecha" (change)="selectFecha(reservaForm.fecha)" />
           </div>
         </div>

@@ -5,8 +5,37 @@
 
   <div class="barberia-profile-card" *ngIf="user">
     <div class="barberia-header">
-      <div class="barberia-title">
-        <h3>Datos del administrador</h3>
+      <div class="admin-avatar-header">
+        <div class="avatar-wrap-container">
+          <input type="file" #fileInput (change)="onAvatarSelected($event)" accept="image/*" style="display: none" />
+          <div class="avatar-wrap"
+               [class.editable-avatar]="isEditingAdmin"
+               (click)="isEditingAdmin ? fileInput.click() : null"
+               [title]="isEditingAdmin ? 'Haz clic para cambiar foto de perfil' : ''">
+            <img *ngIf="adminEditForm?.avatar || user?.avatar; else fallbackAvatar"
+                 [src]="adminEditForm?.avatar || user?.avatar"
+                 class="avatar-img"
+                 alt="Avatar" />
+            <ng-template #fallbackAvatar>
+              <div class="avatar-initials">{{ getInitials() }}</div>
+            </ng-template>
+            <div class="avatar-edit-overlay" *ngIf="isEditingAdmin">
+              <ion-icon name="camera-outline"></ion-icon>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="avatar-remove-x"
+            *ngIf="isEditingAdmin && adminEditForm?.avatar"
+            (click)="removeAvatar($event)"
+            title="Quitar foto"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="barberia-title">
+          <h3>Datos del administrador</h3>
+        </div>
       </div>
       <div class="barberia-actions">
         <ion-button

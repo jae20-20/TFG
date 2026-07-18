@@ -37,7 +37,8 @@ export class ProfilePage implements OnInit {
         nombre: this.user.nombre || '',
         apellido: this.user.apellido || '',
         usuario: this.user.usuario || '',
-        telefono: this.user.telefono || ''
+        telefono: this.user.telefono || '',
+        avatar: this.user.avatar || ''
       };
     }
   }
@@ -56,11 +57,92 @@ export class ProfilePage implements OnInit {
 
   enterAdminEditMode() {
     this.isEditingAdmin = true;
+    this.profileError = '';
   }
 
   cancelAdminEdit() {
     this.isEditingAdmin = false;
+    this.profileError = '';
     this.initializeAdminEditForm();
+  }
+
+  async onAvatarSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const base64 = await this.readAndCompressImage(file);
+      if (!this.adminEditForm) {
+        this.initializeAdminEditForm();
+      }
+      this.adminEditForm.avatar = base64;
+    } catch (err) {
+      console.error('Error al procesar la imagen:', err);
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo procesar la imagen.',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  removeAvatar(event?: any) {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.adminEditForm) {
+      this.initializeAdminEditForm();
+    }
+    this.adminEditForm.avatar = '';
+  }
+
+  private readAndCompressImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(compressed);
+        };
+        img.onerror = (err) => reject(err);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  getInitials() {
+    const source = this.user || {};
+    const nombre = (source.nombre || '').trim();
+    const apellido = (source.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'AD';
   }
 
   async saveAdminProfile() {
@@ -73,7 +155,13 @@ export class ProfilePage implements OnInit {
     this.profileError = '';
 
     try {
-      const response = await this.apiService.updateMyProfile(this.adminEditForm);
+      const response = await this.apiService.updateMyProfile({
+        nombre: this.adminEditForm.nombre,
+        apellido: this.adminEditForm.apellido,
+        usuario: this.adminEditForm.usuario,
+        telefono: this.adminEditForm.telefono,
+        avatar: this.adminEditForm.avatar || ''
+      });
       const updatedUser = response?.user || this.adminEditForm;
 
       this.user = { ...this.user, ...updatedUser };

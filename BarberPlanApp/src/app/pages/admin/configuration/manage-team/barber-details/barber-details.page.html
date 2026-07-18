@@ -4,7 +4,11 @@
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
   <div class="barberia-profile-card" *ngIf="!loading && barber">
     <div class="barberia-header">
-      <div class="barberia-title">
+      <div class="barberia-title" style="display: flex; align-items: center; gap: 14px;">
+        <div class="team-avatar-wrap" *ngIf="barber">
+          <img *ngIf="barber.avatar" [src]="barber.avatar" class="team-avatar-img" alt="Avatar" />
+          <div *ngIf="!barber.avatar" class="team-avatar-initials">{{ getInitials(barber) }}</div>
+        </div>
         <h3>{{ barber.nombre }} {{ barber.apellido }}</h3>
       </div>
     </div>

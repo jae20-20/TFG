@@ -68,7 +68,10 @@
           </ion-button>
           
           <div class="barber-info-display">
-            <!-- <span class="barber-sublabel">BARBERO SELECCIONADO</span> -->
+            <div class="mini-avatar-wrap" *ngIf="getSelectedBarber() as currentB">
+              <img *ngIf="currentB.avatar" [src]="currentB.avatar" class="mini-avatar-img" alt="Avatar" />
+              <div *ngIf="!currentB.avatar" class="mini-avatar-initials">{{ getBarberInitials(currentB) }}</div>
+            </div>
             <h4 class="barber-current-name">{{ getSelectedBarberName() }}</h4>
           </div>
           

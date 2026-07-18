@@ -39,7 +39,8 @@ export class BarberProfilePage implements OnInit {
         apellido: '',
         usuario: '',
         telefono: '',
-        correo: ''
+        correo: '',
+        avatar: ''
       };
       return;
     }
@@ -49,7 +50,8 @@ export class BarberProfilePage implements OnInit {
       apellido: this.user.apellido || '',
       usuario: this.user.usuario || '',
       telefono: this.user.telefono || '',
-      correo: this.user.correo || ''
+      correo: this.user.correo || '',
+      avatar: this.user.avatar || ''
     };
   }
 
@@ -76,6 +78,85 @@ export class BarberProfilePage implements OnInit {
     this.initializeBarberoEditForm();
   }
 
+  async onAvatarSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const base64 = await this.readAndCompressImage(file);
+      if (!this.barberoEditForm) {
+        this.initializeBarberoEditForm();
+      }
+      this.barberoEditForm.avatar = base64;
+    } catch (err) {
+      console.error('Error al procesar la imagen:', err);
+      const toast = await this.toastCtrl.create({
+        message: 'No se pudo procesar la imagen.',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  removeAvatar(event?: any) {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.barberoEditForm) {
+      this.initializeBarberoEditForm();
+    }
+    this.barberoEditForm.avatar = '';
+  }
+
+  private readAndCompressImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressed = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(compressed);
+        };
+        img.onerror = (err) => reject(err);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  getInitials() {
+    const source = this.user || {};
+    const nombre = (source.nombre || '').trim();
+    const apellido = (source.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'BA';
+  }
+
   async saveBarberoProfile() {
     if (!this.barberoEditForm?.nombre || !this.barberoEditForm?.apellido || !this.barberoEditForm?.usuario) {
       this.barberoProfileError = 'Nombre, apellidos y usuario son obligatorios.';
@@ -90,7 +171,8 @@ export class BarberProfilePage implements OnInit {
         nombre: this.barberoEditForm.nombre,
         apellido: this.barberoEditForm.apellido,
         usuario: this.barberoEditForm.usuario,
-        telefono: this.barberoEditForm.telefono
+        telefono: this.barberoEditForm.telefono,
+        avatar: this.barberoEditForm.avatar || ''
       });
 
       const updatedUser = response?.user || this.barberoEditForm;

@@ -10,9 +10,10 @@
     <div class="solicitud-card" *ngFor="let solicitud of solicitudes">
       <div class="solicitud-header">
         <div class="barbero-info">
-          <ion-avatar>
-            <img [src]="solicitud.barberoAvatar || 'assets/default-avatar.png'" />
-          </ion-avatar>
+          <div class="req-avatar-wrap">
+            <img *ngIf="solicitud.barberoAvatar" [src]="solicitud.barberoAvatar" class="req-avatar-img" alt="Avatar" />
+            <div *ngIf="!solicitud.barberoAvatar" class="req-avatar-initials">{{ getInitials(solicitud.barberoNombre) }}</div>
+          </div>
           <h3>{{ solicitud.barberoNombre }}</h3>
         </div>
         <ion-badge [color]="solicitud.estado === 'pendiente' ? 'warning' : (solicitud.estado === 'aprobada' ? 'success' : 'danger')">

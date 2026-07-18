@@ -69,4 +69,13 @@ export class TeamRequestsPage implements OnInit {
     if (tipo === 'bloqueo_servicio') return 'Bloqueo de Servicio';
     return tipo;
   }
+
+  getInitials(fullName: string): string {
+    if (!fullName) return 'BA';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase() || 'BA';
+  }
 }

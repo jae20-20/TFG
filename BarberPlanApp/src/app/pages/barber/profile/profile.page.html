@@ -5,8 +5,37 @@
 
   <div class="barbero-profile-card">
     <div class="barbero-profile-head">
-      <div>
-        <h3>Datos del barbero</h3>
+      <div class="barbero-avatar-header">
+        <div class="avatar-wrap-container">
+          <input type="file" #fileInput (change)="onAvatarSelected($event)" accept="image/*" style="display: none" />
+          <div class="avatar-wrap"
+               [class.editable-avatar]="isEditingBarbero"
+               (click)="isEditingBarbero ? fileInput.click() : null"
+               [title]="isEditingBarbero ? 'Haz clic para cambiar foto de perfil' : ''">
+            <img *ngIf="barberoEditForm?.avatar || user?.avatar; else fallbackAvatar"
+                 [src]="barberoEditForm?.avatar || user?.avatar"
+                 class="avatar-img"
+                 alt="Avatar" />
+            <ng-template #fallbackAvatar>
+              <div class="avatar-initials">{{ getInitials() }}</div>
+            </ng-template>
+            <div class="avatar-edit-overlay" *ngIf="isEditingBarbero">
+              <ion-icon name="camera-outline"></ion-icon>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="avatar-remove-x"
+            *ngIf="isEditingBarbero && barberoEditForm?.avatar"
+            (click)="removeAvatar($event)"
+            title="Quitar foto"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <div>
+          <h3>Datos del barbero</h3>
+        </div>
       </div>
 
       <ion-button

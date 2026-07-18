@@ -66,4 +66,11 @@ export class TeamListPage implements OnInit {
     return this.currentUser && (barbero._id === this.currentUser.id || barbero._id === this.currentUser._id);
   }
 
+  getInitials(barber: any): string {
+    if (!barber) return 'BA';
+    const nombre = (barber.nombre || '').trim();
+    const apellido = (barber.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'BA';
+  }
 }

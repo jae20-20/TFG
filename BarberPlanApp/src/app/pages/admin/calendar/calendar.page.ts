@@ -113,12 +113,11 @@ export class CalendarPage implements OnInit {
           _id: this.user.id,
           nombre: this.user.nombre,
           apellido: this.user.apellido,
+          avatar: this.user.avatar || null,
           displayName: `${this.user.nombre} (Tú)`,
         };
 
         // El admin siempre será el primero
-        this.teamBarbers = [adminBarber, ...otherBarbers];
-
         this.teamBarbers = [adminBarber, ...otherBarbers];
 
         if (this.teamBarbers.length > 0) {
@@ -301,6 +300,18 @@ export class CalendarPage implements OnInit {
   getSelectedBarberName(): string {
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
     return barber ? barber.displayName : '';
+  }
+
+  getSelectedBarber(): any {
+    return this.teamBarbers.find(b => b._id === this.selectedBarberId) || null;
+  }
+
+  getBarberInitials(barber: any): string {
+    if (!barber) return 'BA';
+    const nombre = (barber.nombre || '').trim();
+    const apellido = (barber.apellido || '').trim();
+    const initials = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return initials || 'BA';
   }
 
   getEmptyMessage(): string {
