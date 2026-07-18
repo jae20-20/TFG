@@ -5,8 +5,6 @@
   --premium-text: var(--custom-text-primary);
   --premium-muted: var(--custom-text-muted);
   --custom-gold: var(--custom-gold);
-
-  --ion-color-primary: var(--custom-gold);
 }
 
 ion-content.booking-premium-content {
@@ -62,7 +60,6 @@ ion-content.booking-premium-content {
 
 .booking-business-card,
 .booking-progress-card,
-.booking-summary-card,
 .booking-step-card {
   border-radius: 20px;
   border: 1px solid var(--premium-border);
@@ -152,32 +149,32 @@ ion-content.booking-premium-content {
   font-weight: 700;
 }
 
-.booking-summary-card {
+.booking-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  padding: 14px;
 
-  > div {
-    padding: 10px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.14);
-    background: rgba(255, 255, 255, 0.03);
-  }
+  .summary-box {
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--premium-border);
+    background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
 
-  p {
-    margin: 0 0 4px;
-    color: var(--custom-text-muted);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+    p {
+      margin: 0 0 4px;
+      color: var(--custom-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-  strong {
-    color: var(--custom-text-heading);
-    font-size: 13px;
-    font-weight: 800;
+    strong {
+      color: var(--custom-text-heading);
+      font-size: 13px;
+      font-weight: 800;
+    }
   }
 }
 
@@ -340,19 +337,17 @@ ion-content.booking-premium-content {
   --border-radius: 12px;
   --color: var(--custom-text-primary);
   --border-color: rgba(var(--ion-color-primary-rgb), 0.18);
-  min-height: 42px;
+  min-height: 44px;
   text-transform: none;
   font-weight: 800;
 }
 
 .booking-step-btn.primary {
-  --background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
-  --background-hover: linear-gradient(180deg, var(--custom-gold-light) 0%, var(--custom-gold-dark) 100%);
-  --color: var(--ion-background-color);
+  font-weight: 800;
 }
 
 @media (max-width: 480px) {
-  .booking-summary-card,
+  .booking-summary-grid,
   .booking-form-grid {
     grid-template-columns: 1fr;
   }

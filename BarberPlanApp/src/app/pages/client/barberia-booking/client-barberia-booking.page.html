@@ -14,6 +14,10 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <app-theme-header-btn></app-theme-header-btn>
+      <ion-button class="client-logout-btn" (click)="logout()" title="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -43,23 +47,23 @@
         </div>
       </div>
 
-      <div class="booking-progress-card">
+      <!-- <div class="booking-progress-card">
         <div class="booking-progress-bars">
           <span *ngFor="let step of [1, 2, 3]" class="progress-bar" [class.active]="reservaPaso >= step"></span>
         </div>
         <p class="booking-progress-label">Paso {{ reservaPaso }} de 3: {{ getStepLabel(reservaPaso) }}</p>
-      </div>
+      </div> -->
 
-      <div class="booking-summary-card">
-        <div>
+      <div class="booking-summary-grid" *ngIf="reservaForm.servicioId || reservaForm.barberoId">
+        <div class="summary-box" *ngIf="reservaForm.servicioId">
           <p>Servicio</p>
           <strong>{{ getServicioNombre() }}</strong>
         </div>
-        <div>
+        <div class="summary-box" *ngIf="reservaForm.barberoId && reservaPaso >= 2">
           <p>Barbero</p>
           <strong>{{ getBarberoNombre(getBarberoSeleccionado()) }}</strong>
         </div>
-        <div>
+        <div class="summary-box" *ngIf="reservaForm.servicioId">
           <p>Duración</p>
           <strong>{{ getDuracionSeleccionada() }}</strong>
         </div>
@@ -116,7 +120,7 @@
 
         <div class="booking-step-actions">
           <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
-          <ion-button class="booking-step-btn primary" (click)="goToNextStep()" [disabled]="!reservaForm.barberoId || !reservaForm.fecha || loadingDisponibilidad">
+          <ion-button color="primary" class="booking-step-btn primary" (click)="goToNextStep()" [disabled]="!reservaForm.barberoId || !reservaForm.fecha || loadingDisponibilidad">
             {{ loadingDisponibilidad ? 'Cargando...' : 'Continuar' }}
           </ion-button>
         </div>
@@ -150,7 +154,7 @@
 
         <div class="booking-step-actions">
           <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
-          <ion-button class="booking-step-btn primary" (click)="reservarCita()" [disabled]="reservando || !reservaForm.horaInicio">
+          <ion-button color="primary" class="booking-step-btn primary" (click)="reservarCita()" [disabled]="reservando || !reservaForm.horaInicio">
             {{ reservando ? 'Reservando...' : 'Reservar cita' }}
           </ion-button>
         </div>

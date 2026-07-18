@@ -2,8 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
+import { AuthService } from '../../../services/auth.service';
+import { Storage } from '@ionic/storage-angular';
+import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+import { addIcons } from 'ionicons';
+import { logOutOutline, arrowBackOutline } from 'ionicons/icons';
 
 interface ReservaForm {
   servicioId: string;
@@ -17,7 +22,7 @@ interface ReservaForm {
   templateUrl: './client-barberia-detail.page.html',
   styleUrls: ['./client-barberia-detail.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
 })
 export class ClientBarberiaDetailPage implements OnInit {
   barberiaId = '';
@@ -32,8 +37,13 @@ export class ClientBarberiaDetailPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private apiService: ApiService,
-    private toastCtrl: ToastController
-  ) {}
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
+    private authService: AuthService,
+    private storage: Storage
+  ) {
+    addIcons({ logOutOutline, arrowBackOutline });
+  }
 
   async ngOnInit() {
     this.barberiaId = this.route.snapshot.paramMap.get('id') || '';
@@ -103,5 +113,25 @@ export class ClientBarberiaDetailPage implements OnInit {
 
   goBack() {
     this.router.navigateByUrl('/client-home');
+  }
+
+  async logout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cerrar Sesión',
+      message: '¿Estás seguro de que quieres cerrar sesión?',
+      cssClass: 'premium-alert',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Cerrar Sesión',
+          handler: async () => {
+            await this.authService.logout();
+            await this.storage.remove('user');
+            this.router.navigateByUrl('/login', { replaceUrl: true });
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

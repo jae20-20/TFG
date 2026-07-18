@@ -4,6 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
+import { AuthService } from '../../../services/auth.service';
+import { Storage } from '@ionic/storage-angular';
+import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+import { addIcons } from 'ionicons';
+import { logOutOutline, arrowBackOutline, businessOutline } from 'ionicons/icons';
 
 interface ReservaForm {
   servicioId: string;
@@ -17,7 +22,7 @@ interface ReservaForm {
   templateUrl: './client-barberia-booking.page.html',
   styleUrls: ['./client-barberia-booking.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
 })
 export class ClientBarberiaBookingPage implements OnInit {
   barberiaId = '';
@@ -46,8 +51,12 @@ export class ClientBarberiaBookingPage implements OnInit {
     private router: Router,
     private apiService: ApiService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
-  ) {}
+    private alertCtrl: AlertController,
+    private authService: AuthService,
+    private storage: Storage
+  ) {
+    addIcons({ logOutOutline, arrowBackOutline, businessOutline });
+  }
 
   async ngOnInit() {
     this.barberiaId = this.route.snapshot.paramMap.get('id') || '';
@@ -74,14 +83,6 @@ export class ClientBarberiaBookingPage implements OnInit {
       this.barberia = barberia;
       this.servicios = Array.isArray(servicios) ? servicios : [];
       this.barberos = Array.isArray(barberos) ? barberos : [];
-
-      if (this.servicios.length && !this.reservaForm.servicioId) {
-        this.reservaForm.servicioId = this.getEntityId(this.servicios[0]);
-      }
-
-      if (this.barberos.length && !this.reservaForm.barberoId) {
-        this.reservaForm.barberoId = this.getEntityId(this.barberos[0]);
-      }
 
       this.reservaPaso = 1;
       await this.loadDisponibilidad();
@@ -154,10 +155,6 @@ export class ClientBarberiaBookingPage implements OnInit {
 
   selectServicio(servicioId: string) {
     this.reservaForm.servicioId = servicioId;
-    const disponibles = this.getBarberosDisponibles();
-    if (disponibles.length > 0 && !disponibles.some(b => this.getEntityId(b) === this.reservaForm.barberoId)) {
-      this.reservaForm.barberoId = this.getEntityId(disponibles[0]);
-    }
     this.reservaPaso = 2;
   }
 
@@ -302,5 +299,25 @@ export class ClientBarberiaBookingPage implements OnInit {
     }
 
     this.router.navigateByUrl('/client-home');
+  }
+
+  async logout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cerrar Sesión',
+      message: '¿Estás seguro de que quieres cerrar sesión?',
+      cssClass: 'premium-alert',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Cerrar Sesión',
+          handler: async () => {
+            await this.authService.logout();
+            await this.storage.remove('user');
+            this.router.navigateByUrl('/login', { replaceUrl: true });
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

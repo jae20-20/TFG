@@ -14,6 +14,10 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <app-theme-header-btn></app-theme-header-btn>
+      <ion-button class="client-logout-btn" (click)="logout()" title="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -63,14 +67,10 @@
       </ng-template>
     </section>
 
-    <section class="panel booking-cta-panel">
-      <div class="panel-head">
-        <h2>Reservar cita</h2>
-      </div>
-      <p class="empty-text">Pulsa reservar para abrir el proceso completo en una pantalla aparte, con los 3 pasos del flujo.</p>
-      <ion-button expand="block" class="reserve-btn" (click)="goToBooking()">
+    <div class="booking-cta-panel">
+      <ion-button expand="block" color="primary" class="reserve-btn" (click)="goToBooking()">
         Reservar cita
       </ion-button>
-    </section>
+    </div>
   </ng-container>
 </ion-content>

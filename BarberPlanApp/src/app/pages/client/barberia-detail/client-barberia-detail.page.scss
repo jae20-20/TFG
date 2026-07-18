@@ -5,8 +5,6 @@
   --premium-text: var(--custom-text-primary);
   --premium-muted: var(--custom-text-muted);
   --custom-gold: var(--custom-gold);
-
-  --ion-color-primary: var(--custom-gold);
 }
 
 ion-content.detail-premium-content {
@@ -132,7 +130,7 @@ ion-content.detail-premium-content {
 }
 
 .booking-cta-panel {
-  padding: 16px;
+  margin: 18px 0 32px;
 }
 
 .panel-head {
@@ -269,10 +267,7 @@ ion-content.detail-premium-content {
 
 .reserve-btn {
   --border-radius: 12px;
-  --background: linear-gradient(180deg, var(--custom-gold) 0%, var(--custom-gold-dark) 100%);
-  --background-hover: linear-gradient(180deg, var(--custom-gold-light) 0%, var(--custom-gold-dark) 100%);
-  --color: var(--ion-background-color);
   font-weight: 800;
   text-transform: none;
-  min-height: 44px;
+  min-height: 46px;
 }

@@ -953,3 +953,10 @@ body.light-mode {
   }
 }
 
+/* Mantener el color del logo del header del cliente siempre con la paleta activa en todas las páginas */
+.client-topbar-title ion-icon,
+.detail-topbar-title ion-icon,
+.booking-topbar-title ion-icon {
+  color: var(--ion-color-primary) !important;
+}
+
