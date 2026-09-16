@@ -21,6 +21,33 @@
     <p class="client-eyebrow">Tu agenda</p>
   </section>
 
+  <div class="filter-segment">
+    <button
+      type="button"
+      class="segment-chip"
+      [class.selected]="filtroCitas === 'proximas'"
+      (click)="seleccionarFiltro('proximas')"
+    >
+      Próximas
+    </button>
+    <button
+      type="button"
+      class="segment-chip"
+      [class.selected]="filtroCitas === 'anteriores'"
+      (click)="seleccionarFiltro('anteriores')"
+    >
+      Anteriores
+    </button>
+    <button
+      type="button"
+      class="segment-chip"
+      [class.selected]="filtroCitas === 'todas'"
+      (click)="seleccionarFiltro('todas')"
+    >
+      Todas
+    </button>
+  </div>
+
   <div class="client-state" *ngIf="loadingCitas">
     <ion-spinner name="crescent"></ion-spinner>
     <p>Cargando citas...</p>
@@ -35,8 +62,12 @@
     <p>Aún no tienes citas reservadas.</p>
   </div>
 
-  <div class="appointments-list" *ngIf="!loadingCitas && !citasError && citas.length > 0">
-    <article class="appointment-card" *ngFor="let cita of citas">
+  <div class="client-state" *ngIf="!loadingCitas && !citasError && citas.length > 0 && citasFiltradas.length === 0">
+    <p>No tienes citas {{ filtroCitas === 'proximas' ? 'próximas' : 'anteriores' }}.</p>
+  </div>
+
+  <div class="appointments-list" *ngIf="!loadingCitas && !citasError && citasFiltradas.length > 0">
+    <article class="appointment-card" *ngFor="let cita of citasFiltradas">
       <div class="appointment-card-head">
         <div>
           <p class="appointment-eyebrow">{{ getCitaDateLabel(cita) }}</p>

@@ -23,9 +23,9 @@
         <div class="avatar-wrap-container">
           <input type="file" #fileInput (change)="onAvatarSelected($event)" accept="image/*" style="display: none" />
           <div class="avatar-wrap"
-               [class.editable-avatar]="isEditingClient"
-               (click)="isEditingClient ? fileInput.click() : null"
-               [title]="isEditingClient ? 'Haz clic para cambiar foto de perfil' : ''">
+              [class.editable-avatar]="isEditingClient"
+              (click)="isEditingClient ? fileInput.click() : null"
+              [title]="isEditingClient ? 'Haz clic para cambiar foto de perfil' : ''">
             <img *ngIf="clientEditForm?.avatar || profile?.avatar || user?.avatar; else fallbackAvatar"
                  [src]="clientEditForm?.avatar || profile?.avatar || user?.avatar"
                  class="avatar-img"
@@ -48,7 +48,7 @@
           </button>
         </div>
         <div>
-          <h3>Datos del cliente</h3>
+          <h3>Datos personales</h3>
           <p class="cliente-subtext">{{ profile?.correo || user?.correo || 'Información de la cuenta' }}</p>
         </div>
       </div>

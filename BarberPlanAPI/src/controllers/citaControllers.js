@@ -48,6 +48,20 @@ export const crearCita = async (req, res) => {
             return res.status(400).json({ error: "Este barbero no realiza el servicio seleccionado" });
         }
 
+        // Validar que no se reserve en el pasado
+        const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+        if (fecha < hoyStr) {
+            return res.status(400).json({ error: "No se pueden crear citas en fechas pasadas" });
+        }
+        if (fecha === hoyStr) {
+            const ahoraStr = new Date().toLocaleTimeString('en-GB', {
+                timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false
+            });
+            if (horaInicio <= ahoraStr) {
+                return res.status(400).json({ error: "No se pueden crear citas en horarios que ya han pasado" });
+            }
+        }
+
         // Calcular hora de fin basada en la duración del servicio
         const [horas, minutos] = horaInicio.split(":").map(Number);
         const fechaInicio = new Date();
@@ -406,20 +420,21 @@ export const getDisponibilidad = async (req, res) => {
         const dayKey = days[dateObj.getDay()];
 
         let slotsForDay = [];
-        let isClosed = false;
+        let isBarberiaClosed = false;
+        let isBarberoClosed = false;
 
         // 1. Horario base de la barbería
         const exception = schedule.exceptions?.find(e => e.date === fecha);
         if (exception) {
             if (exception.type === 'closed') {
-                isClosed = true;
+                isBarberiaClosed = true;
             } else {
                 slotsForDay = exception.slots || [];
             }
         } else {
             slotsForDay = schedule.weeklyTemplate?.[dayKey] || [];
             if (slotsForDay.length === 0) {
-                isClosed = true;
+                isBarberiaClosed = true;
             }
         }
 
@@ -432,19 +447,20 @@ export const getDisponibilidad = async (req, res) => {
         if (customOpeningSlots.length > 0) {
             // Si el barbero tiene franjas específicas abiertas para este día (ej: abiertas por el admin)
             slotsForDay = customOpeningSlots.map(s => ({ start: s.start, end: s.end }));
-            isClosed = false;
+            isBarberiaClosed = false;
+            isBarberoClosed = false;
         } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha))) {
             // Si no tiene franjas abiertas explícitas y el día está en días libres o cerrado
-            isClosed = true;
+            isBarberoClosed = true;
         } else if (barbero.horarioPersonal?.enabled && barbero.horarioPersonal?.weeklyTemplate?.[dayKey]) {
             // Si el barbero tiene plantilla semanal propia
             slotsForDay = barbero.horarioPersonal.weeklyTemplate[dayKey];
             if (slotsForDay.length === 0) {
-                isClosed = true;
+                isBarberoClosed = true;
             }
         }
 
-        if (isClosed || slotsForDay.length === 0) {
+        if (isBarberiaClosed) {
             return res.json({
                 fecha,
                 barberoId,
@@ -453,7 +469,16 @@ export const getDisponibilidad = async (req, res) => {
             });
         }
 
-        const horariosDisponibles = [];
+        if (isBarberoClosed || slotsForDay.length === 0) {
+            return res.json({
+                fecha,
+                barberoId,
+                estado: "ausente",
+                horariosDisponibles: []
+            });
+        }
+
+        let horariosDisponibles = [];
         const intervalo = 30; // minutos
 
         for (const slot of slotsForDay) {
@@ -480,6 +505,16 @@ export const getDisponibilidad = async (req, res) => {
                 
                 current.setMinutes(current.getMinutes() + intervalo);
             }
+        }
+
+        // Si la fecha es hoy, filtrar slots que ya han pasado
+        const hoy = new Date().toLocaleDateString('en-CA', { timeZone: schedule.timezone || 'Europe/Madrid' });
+        if (fecha === hoy) {
+            const ahora = new Date().toLocaleTimeString('en-GB', { 
+                timeZone: schedule.timezone || 'Europe/Madrid', 
+                hour: '2-digit', minute: '2-digit', hour12: false 
+            });
+            horariosDisponibles = horariosDisponibles.filter(hora => hora > ahora);
         }
 
         let estado = horariosDisponibles.length === 0 ? "completo" : "abierto";

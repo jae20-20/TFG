@@ -8,6 +8,19 @@ import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 
+interface ServicioBarberia {
+  _id?: string;
+  nombre?: string;
+  descripcion?: string;
+  precio?: number;
+  duracion?: number;
+}
+
+interface FranjaHoraria {
+  start?: string;
+  end?: string;
+}
+
 interface BarberiaPublica {
   _id: string;
   nombre: string;
@@ -19,11 +32,51 @@ interface BarberiaPublica {
   logoUrl?: string;
   portadaUrl?: string;
   galeriaTrabajos?: string[];
-  servicios?: any[];
+  servicios?: ServicioBarberia[];
+  barberos?: string[];
+  schedule?: {
+    timezone?: string;
+    weeklyTemplate?: Record<string, FranjaHoraria[]>;
+  };
 }
 
+type OrdenBarberia = 'nombre' | 'precio' | 'servicios';
+
+interface FiltrosBarberia {
+  ciudad: string;
+  servicio: string;
+  precioMax: number | null;
+  soloAbiertasHoy: boolean;
+  orden: OrdenBarberia;
+}
+
+interface ChipFiltro {
+  id: keyof FiltrosBarberia;
+  label: string;
+}
+
+const CIUDAD_TODAS = 'Todas';
+const SERVICIO_TODOS = 'Todos';
+const DIAS_SEMANA = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
 import { addIcons } from 'ionicons';
-import { cutOutline, logOutOutline, starOutline, locationOutline, timeOutline, homeOutline, calendarOutline, personOutline, chevronDownOutline, optionsOutline } from 'ionicons/icons';
+import {
+  cutOutline,
+  logOutOutline,
+  starOutline,
+  locationOutline,
+  timeOutline,
+  homeOutline,
+  calendarOutline,
+  personOutline,
+  chevronDownOutline,
+  optionsOutline,
+  searchOutline,
+  closeOutline,
+  closeCircle,
+  pricetagOutline,
+  peopleOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-client-home',
@@ -35,16 +88,22 @@ import { cutOutline, logOutOutline, starOutline, locationOutline, timeOutline, h
 export class ClientHomePage implements OnInit {
   user: any = null;
   barberias: BarberiaPublica[] = [];
+  barberiasFiltradas: BarberiaPublica[] = [];
   loadingBarberias = false;
   barberiasError = '';
   currentTab: 'inicio' | 'citas' | 'perfil' = 'inicio';
-  ciudadesDisponibles: string[] = [];
-  ciudadSeleccionada: string = 'Todas';
 
-  // Estados del modal de filtros
+  busqueda = '';
+  filtros: FiltrosBarberia = ClientHomePage.filtrosPorDefecto();
+  filtrosDraft: FiltrosBarberia = ClientHomePage.filtrosPorDefecto();
+
+  // Facetas derivadas del catálogo real de barberías
+  ciudadesDisponibles: string[] = [];
+  serviciosDisponibles: string[] = [];
+  precioTecho = 0;
+
   isFilterModalOpen = false;
-  filtroSoloPremium = false;
-  filtroOrden = 'defecto';
+  resultadosDraft = 0;
 
   constructor(
     private apiService: ApiService,
@@ -64,7 +123,12 @@ export class ClientHomePage implements OnInit {
       'calendar-outline': calendarOutline,
       'person-outline': personOutline,
       'chevron-down-outline': chevronDownOutline,
-      'options-outline': optionsOutline
+      'options-outline': optionsOutline,
+      'search-outline': searchOutline,
+      'close-outline': closeOutline,
+      'close-circle': closeCircle,
+      'pricetag-outline': pricetagOutline,
+      'people-outline': peopleOutline
     });
 
     this.router.events.subscribe((event) => {
@@ -95,49 +159,218 @@ export class ClientHomePage implements OnInit {
 
     try {
       const response = await this.apiService.getBarberias();
-      const barberias = Array.isArray(response) ? response : [];
-      this.barberias = barberias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-      
-      const cities = this.barberias
-        .map(b => (b.ciudad || '').trim())
-        .filter(c => c.length > 0);
-      this.ciudadesDisponibles = [...new Set(cities)].sort();
+      this.barberias = Array.isArray(response) ? response : [];
+      this.calcularFacetas();
+      this.aplicarCiudadDelCliente();
     } catch (error) {
       console.error('Error al cargar barberías:', error);
       this.barberiasError = 'No se pudieron cargar las barberías disponibles.';
       this.barberias = [];
+      this.ciudadesDisponibles = [];
+      this.serviciosDisponibles = [];
+      this.precioTecho = 0;
     } finally {
       this.loadingBarberias = false;
+      this.recalcularResultados();
     }
   }
 
-  getBarberiasFiltradas() {
-    let filtradas = [...this.barberias];
+  // ==================== ESTADO DE FILTROS ====================
 
-    if (this.ciudadSeleccionada !== 'Todas') {
-      filtradas = filtradas.filter(b => (b.ciudad || '').trim() === this.ciudadSeleccionada);
+  private static filtrosPorDefecto(): FiltrosBarberia {
+    return {
+      ciudad: CIUDAD_TODAS,
+      servicio: SERVICIO_TODOS,
+      precioMax: null,
+      soloAbiertasHoy: false,
+      orden: 'nombre'
+    };
+  }
+
+  private calcularFacetas() {
+    const ciudades = new Set<string>();
+    const servicios = new Map<string, string>();
+    let precioMaximo = 0;
+
+    for (const barberia of this.barberias) {
+      const ciudad = (barberia.ciudad || '').trim();
+      if (ciudad) {
+        ciudades.add(ciudad);
+      }
+
+      for (const servicio of barberia.servicios || []) {
+        const nombre = (servicio?.nombre || '').trim();
+        if (nombre && !servicios.has(this.normalizar(nombre))) {
+          servicios.set(this.normalizar(nombre), nombre);
+        }
+
+        const precio = Number(servicio?.precio);
+        if (Number.isFinite(precio) && precio > precioMaximo) {
+          precioMaximo = precio;
+        }
+      }
     }
 
-    if (this.filtroSoloPremium) {
-      filtradas = filtradas.filter(b => (b as any)?.esPremium || (b as any)?.destacada);
-    }
+    this.ciudadesDisponibles = [...ciudades].sort((a, b) => a.localeCompare(b, 'es'));
+    this.serviciosDisponibles = [...servicios.values()].sort((a, b) => a.localeCompare(b, 'es'));
+    this.precioTecho = precioMaximo > 0 ? Math.ceil(precioMaximo / 5) * 5 : 0;
+  }
 
-    if (this.filtroOrden === 'valoracion') {
-      filtradas.sort((a, b) => {
-        const ratingA = Number((a as any)?.rating ?? (a as any)?.valoracion ?? 4.8);
-        const ratingB = Number((b as any)?.rating ?? (b as any)?.valoracion ?? 4.8);
-        return ratingB - ratingA;
+  // La ciudad es obligatoria en el registro de cliente: se usa como filtro inicial.
+  private aplicarCiudadDelCliente() {
+    const ciudadCliente = (this.user?.ciudad || '').trim();
+    if (ciudadCliente && this.ciudadesDisponibles.includes(ciudadCliente)) {
+      this.filtros.ciudad = ciudadCliente;
+    }
+  }
+
+  private normalizar(valor: string) {
+    return valor
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .trim();
+  }
+
+  private filtrar(filtros: FiltrosBarberia, busqueda: string): BarberiaPublica[] {
+    const termino = this.normalizar(busqueda);
+    const servicioBuscado = filtros.servicio !== SERVICIO_TODOS ? this.normalizar(filtros.servicio) : '';
+
+    const resultado = this.barberias.filter((barberia) => {
+      if (termino) {
+        const nombresServicios = (barberia.servicios || []).map((servicio) => servicio?.nombre || '');
+        const texto = this.normalizar(
+          [barberia.nombre, barberia.descripcion, barberia.direccion, barberia.ciudad, ...nombresServicios]
+            .filter(Boolean)
+            .join(' ')
+        );
+        if (!texto.includes(termino)) {
+          return false;
+        }
+      }
+
+      if (filtros.ciudad !== CIUDAD_TODAS && (barberia.ciudad || '').trim() !== filtros.ciudad) {
+        return false;
+      }
+
+      if (servicioBuscado) {
+        const ofrece = (barberia.servicios || []).some(
+          (servicio) => this.normalizar(servicio?.nombre || '') === servicioBuscado
+        );
+        if (!ofrece) {
+          return false;
+        }
+      }
+
+      if (filtros.precioMax !== null) {
+        const desde = this.getPrecioDesde(barberia);
+        if (desde === null || desde > filtros.precioMax) {
+          return false;
+        }
+      }
+
+      if (filtros.soloAbiertasHoy && !this.abreHoy(barberia)) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return this.ordenar(resultado, filtros.orden);
+  }
+
+  private ordenar(barberias: BarberiaPublica[], orden: OrdenBarberia): BarberiaPublica[] {
+    const porNombre = (a: BarberiaPublica, b: BarberiaPublica) =>
+      (a.nombre || '').localeCompare(b.nombre || '', 'es');
+
+    if (orden === 'precio') {
+      return barberias.sort((a, b) => {
+        const precioA = this.getPrecioDesde(a);
+        const precioB = this.getPrecioDesde(b);
+        if (precioA === null && precioB === null) return porNombre(a, b);
+        if (precioA === null) return 1;
+        if (precioB === null) return -1;
+        return precioA - precioB || porNombre(a, b);
       });
-    } else {
-      // Por defecto ordenadas por nombre (ya están así por defecto, pero por si acaso)
-      filtradas.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
     }
 
-    return filtradas;
+    if (orden === 'servicios') {
+      return barberias.sort(
+        (a, b) => this.getServiciosCount(b) - this.getServiciosCount(a) || porNombre(a, b)
+      );
+    }
+
+    return barberias.sort(porNombre);
   }
 
-  // --- Modal de Filtros ---
+  private recalcularResultados() {
+    this.barberiasFiltradas = this.filtrar(this.filtros, this.busqueda);
+  }
+
+  onBusquedaChange() {
+    this.recalcularResultados();
+  }
+
+  limpiarBusqueda() {
+    this.busqueda = '';
+    this.recalcularResultados();
+  }
+
+  // ==================== CHIPS DE FILTROS ACTIVOS ====================
+
+  get chipsActivos(): ChipFiltro[] {
+    const chips: ChipFiltro[] = [];
+
+    if (this.filtros.ciudad !== CIUDAD_TODAS) {
+      chips.push({ id: 'ciudad', label: this.filtros.ciudad });
+    }
+
+    if (this.filtros.servicio !== SERVICIO_TODOS) {
+      chips.push({ id: 'servicio', label: this.filtros.servicio });
+    }
+
+    if (this.filtros.precioMax !== null) {
+      chips.push({ id: 'precioMax', label: `Hasta ${this.filtros.precioMax} €` });
+    }
+
+    if (this.filtros.soloAbiertasHoy) {
+      chips.push({ id: 'soloAbiertasHoy', label: 'Abiertas hoy' });
+    }
+
+    if (this.filtros.orden !== 'nombre') {
+      chips.push({ id: 'orden', label: this.getEtiquetaOrden(this.filtros.orden) });
+    }
+
+    return chips;
+  }
+
+  get totalFiltrosActivos() {
+    return this.chipsActivos.length;
+  }
+
+  getEtiquetaOrden(orden: OrdenBarberia) {
+    if (orden === 'precio') return 'Precio más bajo';
+    if (orden === 'servicios') return 'Más servicios';
+    return 'Nombre (A-Z)';
+  }
+
+  quitarFiltro(id: keyof FiltrosBarberia) {
+    const defecto = ClientHomePage.filtrosPorDefecto();
+    (this.filtros as any)[id] = defecto[id];
+    this.recalcularResultados();
+  }
+
+  limpiarTodo() {
+    this.filtros = ClientHomePage.filtrosPorDefecto();
+    this.busqueda = '';
+    this.recalcularResultados();
+  }
+
+  // ==================== BOTTOM SHEET ====================
+
   openFilterModal() {
+    this.filtrosDraft = { ...this.filtros };
+    this.actualizarPrevisualizacion();
     this.isFilterModalOpen = true;
   }
 
@@ -145,16 +378,51 @@ export class ClientHomePage implements OnInit {
     this.isFilterModalOpen = false;
   }
 
-  resetFiltros() {
-    this.ciudadSeleccionada = 'Todas';
-    this.filtroSoloPremium = false;
-    this.filtroOrden = 'defecto';
-    this.closeFilterModal();
+  actualizarPrevisualizacion() {
+    this.resultadosDraft = this.filtrar(this.filtrosDraft, this.busqueda).length;
+  }
+
+  seleccionarCiudad(ciudad: string) {
+    this.filtrosDraft.ciudad = ciudad;
+    this.actualizarPrevisualizacion();
+  }
+
+  seleccionarServicio(servicio: string) {
+    this.filtrosDraft.servicio = servicio;
+    this.actualizarPrevisualizacion();
+  }
+
+  seleccionarOrden(orden: OrdenBarberia) {
+    this.filtrosDraft.orden = orden;
+    this.actualizarPrevisualizacion();
+  }
+
+  onPrecioChange(event: CustomEvent) {
+    const valor = Number((event.detail as any)?.value);
+    this.filtrosDraft.precioMax = valor >= this.precioTecho ? null : valor;
+    this.actualizarPrevisualizacion();
+  }
+
+  get precioDraftVisible() {
+    return this.filtrosDraft.precioMax ?? this.precioTecho;
+  }
+
+  onDisponibilidadChange() {
+    this.actualizarPrevisualizacion();
+  }
+
+  restablecerFiltros() {
+    this.filtrosDraft = ClientHomePage.filtrosPorDefecto();
+    this.actualizarPrevisualizacion();
   }
 
   aplicarFiltros() {
+    this.filtros = { ...this.filtrosDraft };
+    this.recalcularResultados();
     this.closeFilterModal();
   }
+
+  // ==================== DATOS DE TARJETA ====================
 
   getCoverImage(barberia: BarberiaPublica) {
     return barberia.portadaUrl || barberia.imagen || '';
@@ -172,25 +440,22 @@ export class ClientHomePage implements OnInit {
     return [barberia.direccion, barberia.ciudad].filter(Boolean).join(', ') || 'Ubicación no disponible';
   }
 
-  getRating(barberia: BarberiaPublica) {
-    const rating = Number((barberia as any)?.rating ?? (barberia as any)?.valoracion ?? 4.8);
-    return Number.isFinite(rating) ? rating.toFixed(1) : '4.8';
+  getPrecioDesde(barberia: BarberiaPublica): number | null {
+    const precios = (barberia.servicios || [])
+      .map((servicio) => Number(servicio?.precio))
+      .filter((precio) => Number.isFinite(precio) && precio > 0);
+
+    return precios.length > 0 ? Math.min(...precios) : null;
   }
 
-  getCardBadge(barberia: BarberiaPublica) {
-    if ((barberia as any)?.esPremium) {
-      return 'Premium';
-    }
+  abreHoy(barberia: BarberiaPublica) {
+    const dia = DIAS_SEMANA[new Date().getDay()];
+    const franjas = barberia.schedule?.weeklyTemplate?.[dia];
+    return Array.isArray(franjas) && franjas.length > 0;
+  }
 
-    if ((barberia as any)?.destacada) {
-      return 'Destacada';
-    }
-
-    if ((barberia as any)?.nueva) {
-      return 'Nueva';
-    }
-
-    return 'Disponible';
+  getDisponibilidadLabel(barberia: BarberiaPublica) {
+    return this.abreHoy(barberia) ? 'Abierta hoy' : 'Cerrada hoy';
   }
 
   isActiveTab(tab: 'inicio' | 'citas' | 'perfil') {

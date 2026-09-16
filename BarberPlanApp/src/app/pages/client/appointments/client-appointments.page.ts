@@ -10,6 +10,8 @@ import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/th
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline } from 'ionicons/icons';
 
+type FiltroCitas = 'proximas' | 'anteriores' | 'todas';
+
 @Component({
   selector: 'app-client-appointments',
   templateUrl: './client-appointments.page.html',
@@ -23,6 +25,7 @@ export class ClientAppointmentsPage implements OnInit {
   loadingCitas = false;
   citasError = '';
   currentTab: 'inicio' | 'citas' | 'perfil' = 'citas';
+  filtroCitas: FiltroCitas = 'proximas';
 
   constructor(
     private apiService: ApiService,
@@ -78,6 +81,42 @@ export class ClientAppointmentsPage implements OnInit {
     } finally {
       this.loadingCitas = false;
     }
+  }
+
+  get citasFiltradas() {
+    const ahora = new Date();
+
+    const citas = this.citas.filter((cita) => {
+      if (this.filtroCitas === 'todas') {
+        return true;
+      }
+
+      const fechaHora = this.getCitaDateTime(cita);
+      const esFutura = fechaHora === null || fechaHora.getTime() >= ahora.getTime();
+      return this.filtroCitas === 'proximas' ? esFutura : !esFutura;
+    });
+
+    citas.sort((a, b) => {
+      const fechaA = this.getCitaDateTime(a)?.getTime() ?? 0;
+      const fechaB = this.getCitaDateTime(b)?.getTime() ?? 0;
+      return this.filtroCitas === 'proximas' ? fechaA - fechaB : fechaB - fechaA;
+    });
+
+    return citas;
+  }
+
+  seleccionarFiltro(filtro: FiltroCitas) {
+    this.filtroCitas = filtro;
+  }
+
+  private getCitaDateTime(cita: any): Date | null {
+    if (!cita?.fecha) {
+      return null;
+    }
+
+    const hora = cita?.horaInicio || cita?.horaFin || '00:00';
+    const fechaHora = new Date(`${cita.fecha}T${hora}`);
+    return Number.isNaN(fechaHora.getTime()) ? null : fechaHora;
   }
 
   getCitaTitle(cita: any) {

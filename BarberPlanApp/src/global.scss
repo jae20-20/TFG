@@ -144,6 +144,7 @@ body.dark .custom-header-center {
 
   .alert-button-group {
     border-top: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.1)) !important;
+    justify-content: center !important;
   }
 
   .alert-button {
@@ -170,7 +171,7 @@ body.dark .custom-header-center {
 
 /* Estilos para Modales Premium con Borde de Paleta */
 ion-modal.premium-modal {
-  --background: linear-gradient(180deg, var(--custom-surface, #17191d) 0%, var(--ion-background-color, #111317) 100%);
+  --background: var(--custom-surface, #17191d);
   --backdrop-opacity: 0.7;
   --border-radius: 16px;
   --border-width: 1.5px;
@@ -420,6 +421,38 @@ ion-alert,
 ion-alert::part(backdrop) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+/*
+ * El header "boutique" con glassmorphism (posición absoluta + blur) está pensado
+ * para la cabecera de una página completa mientras se hace scroll. Como el
+ * selector es genérico (ion-header), también capturaba las cabeceras internas
+ * de los ion-modal (Personalización, Filtros, etc.), sacándolas del flujo y
+ * generando el desenfoque/recorte visual dentro del modal. Se neutraliza aquí
+ * para que el header de un modal se comporte como un elemento normal, en flujo.
+ */
+ion-modal ion-header {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: auto !important;
+  z-index: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/*
+ * Igual que con ion-header: la regla genérica "ion-content { --padding-top: 72px }"
+ * (shared-premium.scss) reserva hueco para la cabecera flotante de una PÁGINA
+ * completa. Al no estar restringida, ese padding también se aplicaba dentro del
+ * ion-content de los modales/sheets, empujando su contenido hacia abajo y
+ * comiéndose el espacio disponible para el footer. Se anula aquí.
+ */
+ion-modal ion-content {
+  --padding-top: 0 !important;
 }
 
 /* 2. TODOS LOS BOTONES CANCELAR ROJOS EN MODALES Y ALERTAS */

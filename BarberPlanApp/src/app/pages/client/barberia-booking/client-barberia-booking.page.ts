@@ -223,6 +223,16 @@ export class ClientBarberiaBookingPage implements OnInit {
           });
           await alert.present();
         }
+      } else if (response?.estado === 'ausente') {
+        if (showWarnings) {
+          const alert = await this.alertCtrl.create({
+            header: 'Barbero Ausente',
+            message: 'El barbero seleccionado no tiene disponibilidad en esta fecha. Por favor, elige otro profesional u otro día.',
+            cssClass: 'premium-alert',
+            buttons: ['Aceptar']
+          });
+          await alert.present();
+        }
       } else if (response?.estado === 'completo') {
         if (showWarnings) {
           const toast = await this.toastCtrl.create({

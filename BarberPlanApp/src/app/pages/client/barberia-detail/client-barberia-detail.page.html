@@ -48,18 +48,35 @@
       </div>
     </section>
 
+    <section class="panel" *ngIf="barberos.length > 0">
+      <div class="panel-head">
+        <h2>Barberos asociados</h2>
+      </div>
+      <div class="barbers-scroll">
+        <div class="barber-item" *ngFor="let barbero of barberos">
+          <div class="barber-avatar">
+            <img *ngIf="barbero.avatar" [src]="barbero.avatar" class="barber-avatar-img" alt="Avatar" />
+            <div *ngIf="!barbero.avatar" class="barber-avatar-initials">{{ getBarberoInitials(barbero) }}</div>
+          </div>
+          <div class="barber-info">
+            <h3>{{ getBarberoNombre(barbero) }}</h3>
+            <p>{{ barbero.cargo || (barbero.rol === 'admin' ? 'Barbero / Admin' : 'Barbero profesional') }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel-head">
         <h2>Servicios</h2>
       </div>
       <div class="service-list" *ngIf="servicios.length > 0; else emptyServicios">
-        <article class="service-item" *ngFor="let servicio of servicios">
-          <h3>{{ servicio.nombre || 'Servicio' }}</h3>
-          <p>{{ servicio.descripcion || 'Servicio disponible en esta barbería.' }}</p>
-          <div class="service-meta">
-            <span>{{ getServicioPrecio(servicio) }}</span>
-            <span>{{ servicio.duracion || '-' }} min</span>
+        <article class="service-row" *ngFor="let servicio of servicios">
+          <div class="service-row-main">
+            <h3>{{ servicio.nombre || 'Servicio' }}</h3>
+            <span class="service-duration">{{ servicio.duracion || '-' }} min</span>
           </div>
+          <div class="service-price">{{ getServicioPrecio(servicio) }}</div>
         </article>
       </div>
       <ng-template #emptyServicios>

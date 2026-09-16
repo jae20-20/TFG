@@ -54,6 +54,30 @@ ion-content.client-premium-content {
 	color: var(--custom-gold-light) !important;
 }
 
+.filter-segment {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.segment-chip {
+	padding: 9px 16px;
+	border-radius: 999px;
+	background: var(--custom-surface);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+	color: var(--custom-text-primary);
+	font-size: 13px;
+	font-weight: 600;
+	transition: all 0.15s ease;
+
+	&.selected {
+		background: var(--ion-color-primary);
+		border-color: var(--ion-color-primary);
+		color: var(--ion-background-color);
+		font-weight: 800;
+	}
+}
+
 .client-state {
 	margin-top: 22px;
 	padding: 18px;

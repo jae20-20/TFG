@@ -18,28 +18,48 @@
 
 <ion-content [fullscreen]="true" class="ion-padding client-premium-content">
   <section class="client-hero">
-    <div>
-      <p class="client-eyebrow">BARBERÍAS DISPONIBLES</p>
-      <!-- <h1>Barberías disponibles</h1> -->
-    </div>
-
-    <div class="client-filter-compact">
-      <div class="filter-group">
-        <div class="custom-select-wrapper" *ngIf="ciudadesDisponibles.length > 0">
-          <span class="selected-text">{{ ciudadSeleccionada === 'Todas' ? 'Todas las ciudades' : ciudadSeleccionada }}</span>
-          <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
-          <select [(ngModel)]="ciudadSeleccionada">
-            <option value="Todas">Todas las ciudades</option>
-            <option *ngFor="let ciudad of ciudadesDisponibles" [value]="ciudad">{{ ciudad }}</option>
-          </select>
-        </div>
-
-        <button class="filter-options-btn" (click)="openFilterModal()" [class.active]="filtroSoloPremium || filtroOrden !== 'defecto'">
-          <ion-icon name="options-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
+    <p class="client-eyebrow">BARBERÍAS DISPONIBLES</p>
+    <span class="client-result-count" *ngIf="!loadingBarberias && !barberiasError">
+      {{ barberiasFiltradas.length }}
+      {{ barberiasFiltradas.length === 1 ? 'resultado' : 'resultados' }}
+    </span>
   </section>
+
+  <div class="filter-bar">
+    <div class="search-field">
+      <ion-icon name="search-outline" class="search-icon"></ion-icon>
+      <input
+        type="text"
+        placeholder="Buscar barbería, zona o servicio"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="onBusquedaChange()"
+        autocomplete="off"
+      />
+      <button type="button" class="search-clear" *ngIf="busqueda" (click)="limpiarBusqueda()" aria-label="Limpiar búsqueda">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="filter-options-btn"
+      (click)="openFilterModal()"
+      [class.active]="totalFiltrosActivos > 0"
+      aria-label="Abrir filtros"
+    >
+      <ion-icon name="options-outline"></ion-icon>
+      <span class="filter-count" *ngIf="totalFiltrosActivos > 0">{{ totalFiltrosActivos }}</span>
+    </button>
+  </div>
+
+  <div class="active-chips" *ngIf="chipsActivos.length > 0">
+    <button type="button" class="active-chip" *ngFor="let chip of chipsActivos" (click)="quitarFiltro(chip.id)">
+      <span>{{ chip.label }}</span>
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    <button type="button" class="active-chip clear-all" (click)="limpiarTodo()">Limpiar todo</button>
+  </div>
 
   <div class="client-state" *ngIf="loadingBarberias">
     <ion-spinner name="crescent"></ion-spinner>
@@ -53,19 +73,24 @@
     </ion-button>
   </div>
 
-  <div class="client-state" *ngIf="!loadingBarberias && !barberiasError && getBarberiasFiltradas().length === 0">
-    <p>No se encontraron barberías{{ ciudadSeleccionada !== 'Todas' ? ' en ' + ciudadSeleccionada : ' disponibles' }}.</p>
+  <div class="client-state" *ngIf="!loadingBarberias && !barberiasError && barberiasFiltradas.length === 0">
+    <p>Ninguna barbería coincide con los filtros seleccionados.</p>
+    <ion-button size="small" fill="outline" *ngIf="totalFiltrosActivos > 0 || busqueda" (click)="limpiarTodo()">
+      Quitar filtros
+    </ion-button>
   </div>
 
-  <div class="barberias-grid" *ngIf="!loadingBarberias && !barberiasError && getBarberiasFiltradas().length > 0">
+  <div class="barberias-grid" *ngIf="!loadingBarberias && !barberiasError && barberiasFiltradas.length > 0">
     <article
       class="barberia-card"
-      *ngFor="let barberia of getBarberiasFiltradas(); trackBy: trackByBarberia"
+      *ngFor="let barberia of barberiasFiltradas; trackBy: trackByBarberia"
       (click)="goToBarberiaDetail(barberia._id)"
     >
       <div class="barberia-cover" [style.background-image]="getCoverImage(barberia) ? 'url(' + getCoverImage(barberia) + ')' : 'none'">
         <div class="cover-overlay"></div>
-        <span class="barberia-badge">{{ getCardBadge(barberia) | uppercase }}</span>
+        <span class="barberia-badge" [class.cerrada]="!abreHoy(barberia)">
+          {{ getDisponibilidadLabel(barberia) | uppercase }}
+        </span>
         <div class="barberia-logo" [style.background-image]="getLogoImage(barberia) ? 'url(' + getLogoImage(barberia) + ')' : 'none'">
           <ion-icon *ngIf="!getLogoImage(barberia)" name="cut-outline"></ion-icon>
         </div>
@@ -74,10 +99,6 @@
       <div class="barberia-body">
         <div class="barberia-title-row">
           <h2>{{ barberia.nombre || 'Barbería sin nombre' }}</h2>
-          <span class="barberia-rating">
-            <ion-icon name="star"></ion-icon>
-            {{ getRating(barberia) }}
-          </span>
         </div>
 
         <p class="barberia-location">{{ getUbicacion(barberia) }}</p>
@@ -120,42 +141,150 @@
   </ion-tab-bar>
 </ion-footer>
 
-<!-- Bottom Sheet de Filtros Avanzados -->
-<ion-modal [isOpen]="isFilterModalOpen" (didDismiss)="closeFilterModal()" [initialBreakpoint]="0.6" [breakpoints]="[0, 0.6, 0.9]" class="premium-bottom-sheet">
+<!-- Bottom Sheet de Filtros -->
+<ion-modal
+  [isOpen]="isFilterModalOpen"
+  (didDismiss)="closeFilterModal()"
+  [initialBreakpoint]="1"
+  [breakpoints]="[0, 1]"
+  [handle]="false"
+  class="premium-bottom-sheet"
+>
   <ng-template>
-    <div class="sheet-header">
-      <h2>Filtros</h2>
-      <ion-button fill="clear" (click)="resetFiltros()" class="reset-btn">Restablecer</ion-button>
-    </div>
-
-    <ion-content class="sheet-content">
-      <div class="filter-section">
-        <h3>Prestigio</h3>
-        <ion-item lines="none" class="premium-toggle-item">
-          <ion-label>Solo Barberías Premium</ion-label>
-          <ion-toggle color="primary" [(ngModel)]="filtroSoloPremium"></ion-toggle>
-        </ion-item>
+    <div class="sheet-shell">
+    <ion-header class="sheet-header">
+      <div class="sheet-heading">
+        <h2>Filtros</h2>
+        <p *ngIf="totalFiltrosActivos > 0">{{ totalFiltrosActivos }} aplicados</p>
       </div>
+      <button type="button" class="sheet-close" (click)="closeFilterModal()" aria-label="Cerrar filtros">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </ion-header>
 
-      <div class="filter-section">
-        <h3>Ordenar por</h3>
-        <ion-radio-group [(ngModel)]="filtroOrden">
-          <ion-item lines="none" class="premium-radio-item">
-            <ion-label>Nombre (Por defecto)</ion-label>
-            <ion-radio slot="end" value="defecto" color="primary"></ion-radio>
-          </ion-item>
-          <ion-item lines="none" class="premium-radio-item">
-            <ion-label>Mejor Valoradas</ion-label>
-            <ion-radio slot="end" value="valoracion" color="primary"></ion-radio>
-          </ion-item>
-        </ion-radio-group>
-      </div>
+    <ion-content class="sheet-body">
+      <div class="sheet-body-inner">
+        <section class="filter-section">
+          <h3>Ciudad</h3>
+          <div class="chip-row">
+            <button
+              type="button"
+              class="fs-chip"
+              [class.selected]="filtrosDraft.ciudad === 'Todas'"
+              (click)="seleccionarCiudad('Todas')"
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              class="fs-chip"
+              *ngFor="let ciudad of ciudadesDisponibles"
+              [class.selected]="filtrosDraft.ciudad === ciudad"
+              (click)="seleccionarCiudad(ciudad)"
+            >
+              {{ ciudad }}
+            </button>
+          </div>
+        </section>
 
-      <div class="sheet-actions">
-        <ion-button expand="block" color="primary" class="apply-btn" (click)="aplicarFiltros()">
-          Aplicar filtros
-        </ion-button>
+        <section class="filter-section" *ngIf="serviciosDisponibles.length > 0">
+          <h3>Servicio</h3>
+          <div class="chip-row">
+            <button
+              type="button"
+              class="fs-chip"
+              [class.selected]="filtrosDraft.servicio === 'Todos'"
+              (click)="seleccionarServicio('Todos')"
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              class="fs-chip"
+              *ngFor="let servicio of serviciosDisponibles"
+              [class.selected]="filtrosDraft.servicio === servicio"
+              (click)="seleccionarServicio(servicio)"
+            >
+              {{ servicio }}
+            </button>
+          </div>
+        </section>
+
+        <section class="filter-section" *ngIf="precioTecho > 0">
+          <div class="section-head">
+            <h3>Precio máximo</h3>
+            <span class="section-value">
+              {{ filtrosDraft.precioMax === null ? 'Sin límite' : 'Hasta ' + filtrosDraft.precioMax + ' €' }}
+            </span>
+          </div>
+          <ion-range
+            class="price-range"
+            [min]="0"
+            [max]="precioTecho"
+            [step]="5"
+            [pin]="true"
+            [snaps]="true"
+            [value]="precioDraftVisible"
+            (ionChange)="onPrecioChange($event)"
+          >
+            <span slot="start" class="range-cap">0 €</span>
+            <span slot="end" class="range-cap">{{ precioTecho }} €</span>
+          </ion-range>
+        </section>
+
+        <section class="filter-section">
+          <h3>Disponibilidad</h3>
+          <div class="switch-row">
+            <div class="switch-text">
+              <strong>Solo abiertas hoy</strong>
+              <small>Según el horario publicado por la barbería</small>
+            </div>
+            <ion-toggle
+              color="primary"
+              [(ngModel)]="filtrosDraft.soloAbiertasHoy"
+              (ngModelChange)="onDisponibilidadChange()"
+            ></ion-toggle>
+          </div>
+        </section>
+
+        <section class="filter-section">
+          <h3>Ordenar por</h3>
+          <div class="chip-row">
+            <button
+              type="button"
+              class="fs-chip"
+              [class.selected]="filtrosDraft.orden === 'nombre'"
+              (click)="seleccionarOrden('nombre')"
+            >
+              Nombre (A-Z)
+            </button>
+            <button
+              type="button"
+              class="fs-chip"
+              [class.selected]="filtrosDraft.orden === 'precio'"
+              (click)="seleccionarOrden('precio')"
+            >
+              Precio más bajo
+            </button>
+            <button
+              type="button"
+              class="fs-chip"
+              [class.selected]="filtrosDraft.orden === 'servicios'"
+              (click)="seleccionarOrden('servicios')"
+            >
+              Más servicios
+            </button>
+          </div>
+        </section>
       </div>
     </ion-content>
+
+    <ion-footer class="sheet-footer">
+      <button type="button" class="footer-reset" (click)="restablecerFiltros()">Restablecer</button>
+      <button type="button" class="footer-apply" (click)="aplicarFiltros()" [disabled]="resultadosDraft === 0">
+        {{ resultadosDraft === 0 ? 'Sin resultados' : 'Ver ' + resultadosDraft + (resultadosDraft === 1 ? ' barbería' : ' barberías') }}
+      </button>
+    </ion-footer>
+    </div>
   </ng-template>
 </ion-modal>
