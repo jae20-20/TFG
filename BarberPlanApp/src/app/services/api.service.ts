@@ -95,6 +95,7 @@ export class ApiService {
     servicioId: string;
     fecha: string;
     horaInicio: string;
+    comentario?: string;
   }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(

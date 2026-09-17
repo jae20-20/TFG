@@ -36,6 +36,7 @@ export class BarberCalendarPage implements OnInit {
   selectedDateKey = this.toDateKey(new Date());
   selectedDateLabel = '';
   selectedDayAppointments: any[] = [];
+  expandedCitaId: string | null = null;
 
   // Horario
   horarioBarberia: any = null;
@@ -516,6 +517,15 @@ export class BarberCalendarPage implements OnInit {
       cssClass: 'premium-alert'
     });
     await alert.present();
+  }
+
+  isCitaExpanded(cita: any) {
+    return this.expandedCitaId === (cita._id || cita.id);
+  }
+
+  toggleCitaDetalle(cita: any) {
+    const citaId = cita._id || cita.id;
+    this.expandedCitaId = this.expandedCitaId === citaId ? null : citaId;
   }
 
   async confirmarCancelarCita(cita: any, event?: any) {

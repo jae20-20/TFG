@@ -182,19 +182,27 @@
 }
 
 .compact-cita-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: var(--custom-surface);
   border: 1px solid var(--custom-border-subtle);
   border-radius: 12px;
   padding: 10px 14px;
   margin: 6px 0;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     border-color: rgba(var(--ion-color-primary-rgb), 0.3);
     background: var(--custom-surface-hover);
+  }
+
+  &.expanded {
+    border-color: rgba(var(--ion-color-primary-rgb), 0.35);
+  }
+
+  .cita-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .cita-info-col {
@@ -280,6 +288,11 @@
           }
         }
       }
+
+      .cita-comment-flag {
+        color: var(--custom-gold-light);
+        font-size: 15px;
+      }
     }
   }
 
@@ -289,6 +302,12 @@
     gap: 12px;
     flex-shrink: 0;
     margin-left: 8px;
+
+    .cita-expand-chevron {
+      color: var(--custom-text-muted);
+      font-size: 16px;
+      transition: transform 0.2s ease;
+    }
 
     .pago-toggle-wrapper {
       display: flex;
@@ -325,6 +344,69 @@
       ion-icon {
         font-size: 20px;
       }
+    }
+  }
+
+  &.expanded .cita-expand-chevron {
+    transform: rotate(180deg);
+  }
+
+  .cita-detalle {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--custom-border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: default;
+
+    .detalle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+
+      span {
+        color: var(--custom-text-muted);
+      }
+
+      strong {
+        color: var(--custom-text-primary);
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+    }
+
+    .detalle-comment {
+      margin-top: 4px;
+
+      span {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--custom-text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      p {
+        margin: 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: rgba(var(--ion-color-primary-rgb), 0.08);
+        color: var(--custom-text-primary);
+        font-size: 13px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+      }
+    }
+
+    .detalle-empty {
+      margin: 4px 0 0;
+      color: var(--custom-text-muted);
+      font-size: 12px;
+      font-style: italic;
     }
   }
 }

@@ -153,13 +153,15 @@
   <ng-template>
     <div class="sheet-shell">
     <ion-header class="sheet-header">
-      <div class="sheet-heading">
-        <h2>Filtros</h2>
-        <p *ngIf="totalFiltrosActivos > 0">{{ totalFiltrosActivos }} aplicados</p>
+      <div>
+        <div class="sheet-heading">
+          <h2>Filtros</h2>
+          <p *ngIf="totalFiltrosActivos > 0">{{ totalFiltrosActivos }} aplicados</p>
+        </div>
+        <button type="button" class="sheet-close" (click)="closeFilterModal()" aria-label="Cerrar filtros">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
       </div>
-      <button type="button" class="sheet-close" (click)="closeFilterModal()" aria-label="Cerrar filtros">
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
     </ion-header>
 
     <ion-content class="sheet-body">

@@ -173,6 +173,17 @@
           No hay horarios disponibles para la selección actual.
         </p>
 
+        <div class="field-group comment-field" *ngIf="!loadingDisponibilidad && horariosDisponibles.length > 0">
+          <label>Comentario para el barbero (opcional)</label>
+          <textarea
+            rows="3"
+            [maxlength]="comentarioMaxLength"
+            placeholder="Ej: prefiero degradado bajo, tengo alergia a..."
+            [(ngModel)]="reservaForm.comentario"
+          ></textarea>
+          <span class="comment-counter">{{ reservaForm.comentario.length }}/{{ comentarioMaxLength }}</span>
+        </div>
+
         <div class="booking-step-actions">
           <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
           <ion-button color="primary" class="booking-step-btn primary" (click)="reservarCita()" [disabled]="reservando || !reservaForm.horaInicio">

@@ -19,12 +19,14 @@ import { getUserById } from "../models/userModel.js";
 export const crearCita = async (req, res) => {
     try {
         const clienteId = req.user.id;
-        const { barberiaId, barberoId, servicioId, fecha, horaInicio } = req.body;
+        const { barberiaId, barberoId, servicioId, fecha, horaInicio, comentario } = req.body;
 
         // Validar campos obligatorios
         if (!barberiaId || !barberoId || !servicioId || !fecha || !horaInicio) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
+
+        const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, 300) : "";
 
         // Verificar que la barbería existe
         const barberia = await getBarbershopById(barberiaId);
@@ -86,7 +88,8 @@ export const crearCita = async (req, res) => {
             horaFin,
             servicioNombre: servicio.nombre,
             servicioPrecio: servicio.precio,
-            servicioDuracion: servicio.duracion
+            servicioDuracion: servicio.duracion,
+            comentario: comentarioLimpio
         });
 
         res.status(201).json({
@@ -139,6 +142,20 @@ export const crearCitaManual = async (req, res) => {
         const servicio = await getServicioById(barberiaId, servicioId);
         if (!servicio) {
             return res.status(404).json({ error: "Servicio no encontrado en esta barbería" });
+        }
+
+        // Validar que no se reserve en el pasado
+        const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+        if (fecha < hoyStr) {
+            return res.status(400).json({ error: "No se pueden crear citas en fechas pasadas" });
+        }
+        if (fecha === hoyStr) {
+            const ahoraStr = new Date().toLocaleTimeString('en-GB', {
+                timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false
+            });
+            if (horaInicio <= ahoraStr) {
+                return res.status(400).json({ error: "No se pueden crear citas en horarios que ya han pasado" });
+            }
         }
 
         const [horas, minutos] = horaInicio.split(":").map(Number);

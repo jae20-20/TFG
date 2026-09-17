@@ -73,7 +73,7 @@
           <p class="appointment-eyebrow">{{ getCitaDateLabel(cita) }}</p>
           <h2>{{ getCitaTitle(cita) }}</h2>
         </div>
-        <span class="appointment-status" [ngClass]="getStatusClass(cita)">{{ getStatusLabel(cita) }}</span>
+        <span class="appointment-status" *ngIf="getStatusLabel(cita).toLowerCase() !== 'pendiente'" [ngClass]="getStatusClass(cita)">{{ getStatusLabel(cita) }}</span>
       </div>
 
       <div class="appointment-meta">

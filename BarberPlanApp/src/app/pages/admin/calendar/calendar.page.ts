@@ -36,7 +36,8 @@ export class CalendarPage implements OnInit {
   selectedDateKey = this.toDateKey(new Date());
   selectedDateLabel = '';
   selectedDayAppointments: any[] = [];
-  
+  expandedCitaId: string | null = null;
+
   // Agrupamiento por barberos
   teamBarbers: any[] = [];
   selectedBarberId: string = '';
@@ -1085,6 +1086,15 @@ export class CalendarPage implements OnInit {
       cssClass: 'premium-alert'
     });
     await alert.present();
+  }
+
+  isCitaExpanded(cita: any) {
+    return this.expandedCitaId === (cita._id || cita.id);
+  }
+
+  toggleCitaDetalle(cita: any) {
+    const citaId = cita._id || cita.id;
+    this.expandedCitaId = this.expandedCitaId === citaId ? null : citaId;
   }
 
   async confirmarCancelarCita(cita: any, event?: any) {

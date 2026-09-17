@@ -15,6 +15,7 @@ interface ReservaForm {
   barberoId: string;
   fecha: string;
   horaInicio: string;
+  comentario: string;
 }
 
 @Component({
@@ -43,8 +44,11 @@ export class ClientBarberiaBookingPage implements OnInit {
     servicioId: '',
     barberoId: '',
     fecha: this.minFecha,
-    horaInicio: ''
+    horaInicio: '',
+    comentario: ''
   };
+
+  readonly comentarioMaxLength = 300;
 
   constructor(
     private route: ActivatedRoute,
@@ -283,7 +287,8 @@ export class ClientBarberiaBookingPage implements OnInit {
         barberoId: this.reservaForm.barberoId,
         servicioId: this.reservaForm.servicioId,
         fecha: this.reservaForm.fecha,
-        horaInicio: this.reservaForm.horaInicio
+        horaInicio: this.reservaForm.horaInicio,
+        comentario: this.reservaForm.comentario.trim()
       });
 
       const toast = await this.toastCtrl.create({

@@ -102,33 +102,62 @@
               <span>{{ item.time }}</span>
             </div>
             
-            <div class="compact-cita-card" *ngIf="item.type === 'appointment'">
-              <div class="cita-info-col">
-                <div class="cita-header">
-                  <span class="cita-time">{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</span>
-                  <span class="cita-client">
-                    <img *ngIf="item.cita.cliente?.avatar" [src]="item.cita.cliente.avatar" class="cita-client-avatar" alt="Avatar" />
-                    {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}
-                  </span>
+            <div
+              class="compact-cita-card"
+              *ngIf="item.type === 'appointment'"
+              [class.expanded]="isCitaExpanded(item.cita)"
+              (click)="toggleCitaDetalle(item.cita)"
+            >
+              <div class="cita-main-row">
+                <div class="cita-info-col">
+                  <div class="cita-header">
+                    <span class="cita-time">{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</span>
+                    <span class="cita-client">
+                      <img *ngIf="item.cita.cliente?.avatar" [src]="item.cita.cliente.avatar" class="cita-client-avatar" alt="Avatar" />
+                      {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}
+                    </span>
+                  </div>
+                  <div class="cita-body">
+                    <span class="cita-service">{{ item.cita.servicioNombre || item.cita.servicio?.nombre || 'Corte' }}</span>
+                    <span class="cita-dot">·</span>
+                    <span class="cita-price" [class.editable-price]="item.cita.pagado" (click)="item.cita.pagado ? modificarImporte(item.cita, $event) : null" [title]="item.cita.pagado ? 'Haz clic para modificar importe' : ''">
+                      PVP: {{ item.cita.importePagado !== undefined ? item.cita.importePagado : (item.cita.servicioPrecio || 0) }}€
+                      <ion-icon name="pencil-outline" *ngIf="item.cita.pagado" class="price-edit-icon"></ion-icon>
+                    </span>
+                    <ion-icon *ngIf="item.cita.comentario" name="chatbubble-ellipses-outline" class="cita-comment-flag" title="Tiene un comentario del cliente"></ion-icon>
+                  </div>
                 </div>
-                <div class="cita-body">
-                  <span class="cita-service">{{ item.cita.servicioNombre || item.cita.servicio?.nombre || 'Corte' }}</span>
-                  <span class="cita-dot">·</span>
-                  <span class="cita-price" [class.editable-price]="item.cita.pagado" (click)="item.cita.pagado ? modificarImporte(item.cita, $event) : null" [title]="item.cita.pagado ? 'Haz clic para modificar importe' : ''">
-                    PVP: {{ item.cita.importePagado !== undefined ? item.cita.importePagado : (item.cita.servicioPrecio || 0) }}€
-                    <ion-icon name="pencil-outline" *ngIf="item.cita.pagado" class="price-edit-icon"></ion-icon>
-                  </span>
+
+                <div class="cita-actions-col">
+                  <div class="pago-toggle-wrapper" (click)="$event.stopPropagation()">
+                    <ion-toggle [checked]="item.cita.pagado" (ionChange)="onTogglePago(item.cita, $event)" color="success"></ion-toggle>
+                    <span class="pago-label" [class.paid]="item.cita.pagado">{{ item.cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
+                  </div>
+                  <ion-button fill="clear" class="cita-delete-btn" (click)="confirmarCancelarCita(item.cita, $event)" title="Cancelar cita">
+                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                  </ion-button>
+                  <ion-icon name="chevron-down-outline" class="cita-expand-chevron"></ion-icon>
                 </div>
               </div>
 
-              <div class="cita-actions-col">
-                <div class="pago-toggle-wrapper" (click)="$event.stopPropagation()">
-                  <ion-toggle [checked]="item.cita.pagado" (ionChange)="onTogglePago(item.cita, $event)" color="success"></ion-toggle>
-                  <span class="pago-label" [class.paid]="item.cita.pagado">{{ item.cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
+              <div class="cita-detalle" *ngIf="isCitaExpanded(item.cita)" (click)="$event.stopPropagation()">
+                <div class="detalle-row">
+                  <span>Estado</span>
+                  <strong>{{ item.cita.estado || 'pendiente' }}</strong>
                 </div>
-                <ion-button fill="clear" class="cita-delete-btn" (click)="confirmarCancelarCita(item.cita, $event)" title="Cancelar cita">
-                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-                </ion-button>
+                <div class="detalle-row" *ngIf="item.cita.cliente?.telefono">
+                  <span>Teléfono</span>
+                  <strong>{{ item.cita.cliente.telefono }}</strong>
+                </div>
+                <div class="detalle-row" *ngIf="item.cita.servicioDuracion">
+                  <span>Duración</span>
+                  <strong>{{ item.cita.servicioDuracion }} min</strong>
+                </div>
+                <div class="detalle-comment" *ngIf="item.cita.comentario">
+                  <span>Comentario del cliente</span>
+                  <p>{{ item.cita.comentario }}</p>
+                </div>
+                <p class="detalle-empty" *ngIf="!item.cita.comentario">El cliente no dejó ningún comentario.</p>
               </div>
             </div>
 
