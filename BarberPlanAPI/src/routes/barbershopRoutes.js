@@ -10,6 +10,7 @@ import {
     getBarberos,
     getMyBarberia,
     getMyHorario,
+    getResenasPublicas,
     getServicios,
     registerBarberia,
     removeBarbero,
@@ -25,6 +26,7 @@ router.get("/", getBarberias);
 router.get("/:id", getBarberia);
 router.get("/:id/servicios", getServicios);
 router.get("/:id/barberos", getBarberos);
+router.get("/:id/resenas", getResenasPublicas);
 router.post("/validate-code", validateCode);
 
 // REGISTRO DE BARBERÍA

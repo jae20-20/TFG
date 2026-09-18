@@ -100,21 +100,22 @@
                 </div>
 
                 <div class="cita-actions-col">
+                  <ion-icon name="chevron-down-outline" class="cita-expand-chevron"></ion-icon>
                   <div class="pago-toggle-wrapper" (click)="$event.stopPropagation()">
                     <ion-toggle [checked]="cita.pagado" (ionChange)="onTogglePago(cita, $event)" color="success"></ion-toggle>
                     <span class="pago-label" [class.paid]="cita.pagado">{{ cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
                   </div>
-                  <ion-button fill="clear" class="cita-delete-btn" (click)="confirmarCancelarCita(cita, $event)" title="Cancelar cita">
-                    <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-                  </ion-button>
-                  <ion-icon name="chevron-down-outline" class="cita-expand-chevron"></ion-icon>
                 </div>
               </div>
 
               <div class="cita-detalle" *ngIf="isCitaExpanded(cita)" (click)="$event.stopPropagation()">
                 <div class="detalle-row">
-                  <span>Estado</span>
-                  <strong>{{ cita.estado || 'pendiente' }}</strong>
+                  <span>Cliente</span>
+                  <strong class="plain">{{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}</strong>
+                </div>
+                <div class="detalle-row" *ngIf="cita.cliente?.correo">
+                  <span>Correo</span>
+                  <strong class="plain">{{ cita.cliente.correo }}</strong>
                 </div>
                 <div class="detalle-row" *ngIf="cita.cliente?.telefono">
                   <span>Teléfono</span>
@@ -129,6 +130,13 @@
                   <p>{{ cita.comentario }}</p>
                 </div>
                 <p class="detalle-empty" *ngIf="!cita.comentario">El cliente no dejó ningún comentario.</p>
+
+                <div class="detalle-actions">
+                  <ion-button fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(cita, $event)">
+                    <ion-icon slot="start" name="close-outline"></ion-icon>
+                    Cancelar cita
+                  </ion-button>
+                </div>
               </div>
             </div>
         </ion-list>

@@ -84,6 +84,38 @@
       </ng-template>
     </section>
 
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Reseñas</h2>
+        <div class="panel-head-rating" *ngIf="resenas.length > 0">
+          <app-star-rating [value]="promedioValoracion" [readonly]="true" [size]="16"></app-star-rating>
+          <span>{{ promedioValoracion }} · {{ resenas.length }} {{ resenas.length === 1 ? 'reseña' : 'reseñas' }}</span>
+        </div>
+      </div>
+
+      <div class="review-public-list" *ngIf="resenas.length > 0; else emptyResenas">
+        <article class="review-public-item" *ngFor="let resena of resenas">
+          <div class="review-public-head">
+            <div class="review-public-avatar">
+              <img *ngIf="resena.cliente?.avatar" [src]="resena.cliente.avatar" alt="Avatar" />
+              <div *ngIf="!resena.cliente?.avatar" class="review-public-initials">{{ getClienteInicialesResena(resena) }}</div>
+            </div>
+            <div class="review-public-info">
+              <h3>{{ getClienteNombreResena(resena) }}</h3>
+              <app-star-rating [value]="resena.resena.valoracion" [readonly]="true" [size]="13"></app-star-rating>
+              <p>{{ resena.fecha | date:'dd/MM/yyyy' }} · {{ resena.servicioNombre || 'Servicio' }}</p>
+              <p class="review-public-barbero" *ngIf="getBarberoNombre(resena.barbero)">Barbero: {{ getBarberoNombre(resena.barbero) }}</p>
+            </div>
+            <app-review-image *ngIf="resena.resena.imagen" [src]="resena.resena.imagen" [size]="60"></app-review-image>
+          </div>
+          <p class="review-public-comment" *ngIf="resena.resena.comentario">{{ resena.resena.comentario }}</p>
+        </article>
+      </div>
+      <ng-template #emptyResenas>
+        <p class="empty-text">Esta barbería todavía no tiene reseñas.</p>
+      </ng-template>
+    </section>
+
     <div class="booking-cta-panel">
       <ion-button expand="block" color="primary" class="reserve-btn" (click)="goToBooking()">
         Reservar cita

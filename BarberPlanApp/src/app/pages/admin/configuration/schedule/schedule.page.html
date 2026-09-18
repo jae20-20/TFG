@@ -13,7 +13,9 @@
         <div class="schedule-day-card-head">
           <div>
             <h4>{{ day.label }}</h4>
-            <p>{{ horarioForm.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}</p>
+            <p [class.day-open]="horarioForm.weeklyTemplate[day.key].length > 0" [class.day-closed]="horarioForm.weeklyTemplate[day.key].length === 0">
+              {{ horarioForm.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}
+            </p>
           </div>
 
           <ion-button fill="clear" size="small" (click)="addWeeklySlot(day.key)">

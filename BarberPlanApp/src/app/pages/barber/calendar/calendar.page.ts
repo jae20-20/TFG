@@ -278,7 +278,7 @@ export class BarberCalendarPage implements OnInit {
 
   private getAppointmentsByDateKey(dateKey: string) {
     return this.citas
-      .filter((cita) => this.toDateKey(cita.fecha) === dateKey)
+      .filter((cita) => this.toDateKey(cita.fecha) === dateKey && cita.estado !== 'cancelada')
       .slice()
       .sort((a, b) => `${a.horaInicio}`.localeCompare(`${b.horaInicio}`));
   }

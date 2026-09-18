@@ -331,20 +331,6 @@
       }
     }
 
-    .cita-delete-btn {
-      margin: 0;
-      --padding-start: 4px;
-      --padding-end: 4px;
-      width: 32px;
-      height: 32px;
-      --color: #ef4444;
-      --border-radius: 8px;
-      --background-hover: rgba(239, 68, 68, 0.15);
-
-      ion-icon {
-        font-size: 20px;
-      }
-    }
   }
 
   &.expanded .cita-expand-chevron {
@@ -374,6 +360,10 @@
         color: var(--custom-text-primary);
         font-weight: 600;
         text-transform: capitalize;
+
+        &.plain {
+          text-transform: none;
+        }
       }
     }
 
@@ -407,6 +397,27 @@
       color: var(--custom-text-muted);
       font-size: 12px;
       font-style: italic;
+    }
+
+    .detalle-actions {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--custom-border-subtle);
+      display: flex;
+      justify-content: flex-end;
+
+      .cita-cancel-btn {
+        margin: 0;
+        --color: #ef4444;
+        --background-hover: rgba(239, 68, 68, 0.12);
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: none;
+
+        ion-icon {
+          font-size: 18px;
+        }
+      }
     }
   }
 }

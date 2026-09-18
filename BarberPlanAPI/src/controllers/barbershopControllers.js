@@ -22,6 +22,7 @@ import {
 } from "../models/barbershopModel.js";
 
 import { createUser, getUserByEmail, getUserByUsername, getUserById } from "../models/userModel.js";
+import { getResenasByBarberiaId } from "../models/citaModel.js";
 
 
 // Obtener todas las barberías (público)
@@ -328,6 +329,18 @@ export const getServicios = async (req, res) => {
     } catch (error) {
         console.error("Error al obtener servicios:", error);
         res.status(500).json({ error: "Error al obtener servicios" });
+    }
+};
+
+// Obtener las reseñas de una barbería (público)
+export const getResenasPublicas = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const resenas = await getResenasByBarberiaId(id);
+        res.json(resenas);
+    } catch (error) {
+        console.error("Error al obtener reseñas:", error);
+        res.status(500).json({ error: "Error al obtener reseñas" });
     }
 };
 

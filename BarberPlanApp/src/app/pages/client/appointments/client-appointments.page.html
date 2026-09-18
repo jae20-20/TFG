@@ -73,7 +73,7 @@
           <p class="appointment-eyebrow">{{ getCitaDateLabel(cita) }}</p>
           <h2>{{ getCitaTitle(cita) }}</h2>
         </div>
-        <span class="appointment-status" *ngIf="getStatusLabel(cita).toLowerCase() !== 'pendiente'" [ngClass]="getStatusClass(cita)">{{ getStatusLabel(cita) }}</span>
+        <span class="appointment-status cancelada" *ngIf="estaCancelada(cita)">Cancelada</span>
       </div>
 
       <div class="appointment-meta">
@@ -90,8 +90,80 @@
       <p class="appointment-location" *ngIf="cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion">
         {{ cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion }}
       </p>
+
+      <div class="appointment-actions" *ngIf="puedeCancelar(cita) || puedeResenar(cita)">
+        <button type="button" class="action-btn cancel-btn" *ngIf="puedeCancelar(cita)" (click)="confirmarCancelarCita(cita)">
+          <ion-icon name="close-outline"></ion-icon>
+          Cancelar cita
+        </button>
+        <button type="button" class="action-btn review-btn" *ngIf="puedeResenar(cita)" (click)="abrirModalResena(cita)">
+          <ion-icon name="star-outline"></ion-icon>
+          Dejar reseña
+        </button>
+      </div>
+
+      <div class="appointment-review" *ngIf="cita?.resena">
+        <div class="appointment-review-head">
+          <app-star-rating [value]="cita.resena.valoracion" [readonly]="true" [size]="15"></app-star-rating>
+          <span>Tu reseña</span>
+        </div>
+        <p *ngIf="cita.resena.comentario">{{ cita.resena.comentario }}</p>
+        <app-review-image *ngIf="cita.resena.imagen" [src]="cita.resena.imagen"></app-review-image>
+      </div>
     </article>
   </div>
+
+  <ion-modal [isOpen]="isResenaModalOpen" (didDismiss)="cerrarModalResena()" class="premium-modal compact-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Dejar reseña</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalResena()" style="color: #ef4444; font-weight: 600;">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <div class="compact-modal-body">
+        <div class="resena-rating-row">
+          <app-star-rating [value]="resenaForm.valoracion" (valueChange)="resenaForm.valoracion = $event" [size]="32"></app-star-rating>
+        </div>
+
+        <ion-item lines="none" class="ion-margin-top">
+          <ion-label position="stacked">Comentario (opcional)</ion-label>
+          <ion-textarea
+            rows="3"
+            [(ngModel)]="resenaForm.comentario"
+            maxlength="500"
+            placeholder="Cuéntanos qué te ha parecido..."
+          ></ion-textarea>
+        </ion-item>
+
+        <div class="resena-image-picker">
+          <label class="resena-image-upload" *ngIf="!resenaForm.imagen">
+            <ion-icon name="image-outline"></ion-icon>
+            <span>{{ procesandoImagenResena ? 'Procesando...' : 'Añadir una foto (opcional)' }}</span>
+            <input type="file" accept="image/*" (change)="onResenaImageSelected($event)" [disabled]="procesandoImagenResena" />
+          </label>
+
+          <div class="resena-image-preview" *ngIf="resenaForm.imagen">
+            <img [src]="resenaForm.imagen" alt="Foto seleccionada" />
+            <ion-button fill="clear" class="remove-image-btn" (click)="quitarImagenResena()">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="premium-modal-button-solid ion-margin-top"
+          (click)="enviarResena()"
+          [disabled]="resenaForm.valoracion === 0 || enviandoResena"
+        >
+          {{ enviandoResena ? 'Enviando...' : 'Enviar reseña' }}
+        </ion-button>
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>
 
 <ion-footer class="ion-no-border">

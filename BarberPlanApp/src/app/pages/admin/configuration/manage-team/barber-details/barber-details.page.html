@@ -51,7 +51,9 @@
         <div class="schedule-day-card-head">
           <div>
             <h4>{{ day.label }}</h4>
-            <p>{{ barber.horarioPersonal!.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}</p>
+            <p [class.day-open]="barber.horarioPersonal!.weeklyTemplate[day.key].length > 0" [class.day-closed]="barber.horarioPersonal!.weeklyTemplate[day.key].length === 0">
+              {{ barber.horarioPersonal!.weeklyTemplate[day.key].length > 0 ? 'Abierto' : 'Cerrado' }}
+            </p>
           </div>
           <ion-button fill="clear" size="small" (click)="addWeeklySlot(day.key)">
             <ion-icon slot="start" name="add-outline"></ion-icon>

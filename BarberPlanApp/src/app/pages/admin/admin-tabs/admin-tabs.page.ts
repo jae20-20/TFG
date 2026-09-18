@@ -76,6 +76,7 @@ export class AdminTabsPage implements OnInit, OnDestroy {
     else if (url.includes('services')) this.pageName = 'Servicios';
     else if (url.includes('card-configuration')) this.pageName = 'Personalizar';
     else if (url.includes('manage-team')) this.pageName = 'Equipo';
+    else if (url.includes('reviews')) this.pageName = 'Reseñas';
     else if (url.includes('configuration')) this.pageName = 'Configuración';
     else if (url.includes('profile')) this.pageName = 'Perfil';
     else this.pageName = 'Admin';

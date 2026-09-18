@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { businessOutline, cutOutline, timeOutline, mailUnreadOutline } from 'ionicons/icons';
+import { businessOutline, cutOutline, timeOutline, mailUnreadOutline, starOutline } from 'ionicons/icons';
 
 addIcons({
   'business-outline': businessOutline,
   'cut-outline': cutOutline,
   'time-outline': timeOutline,
-  'mail-unread-outline': mailUnreadOutline
+  'mail-unread-outline': mailUnreadOutline,
+  'star-outline': starOutline
 });
 
 @Component({

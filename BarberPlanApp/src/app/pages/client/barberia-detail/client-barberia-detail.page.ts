@@ -7,6 +7,8 @@ import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { Storage } from '@ionic/storage-angular';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+import { StarRatingComponent } from '../../../components/star-rating/star-rating.component';
+import { ReviewImageComponent } from '../../../components/review-image/review-image.component';
 import { addIcons } from 'ionicons';
 import { logOutOutline, arrowBackOutline } from 'ionicons/icons';
 
@@ -22,13 +24,14 @@ interface ReservaForm {
   templateUrl: './client-barberia-detail.page.html',
   styleUrls: ['./client-barberia-detail.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, StarRatingComponent, ReviewImageComponent]
 })
 export class ClientBarberiaDetailPage implements OnInit {
   barberiaId = '';
   barberia: any = null;
   servicios: any[] = [];
   barberos: any[] = [];
+  resenas: any[] = [];
 
   loading = false;
   error = '';
@@ -76,6 +79,39 @@ export class ClientBarberiaDetailPage implements OnInit {
     } finally {
       this.loading = false;
     }
+
+    await this.loadResenas();
+  }
+
+  private async loadResenas() {
+    try {
+      const resenas = await this.apiService.getResenasBarberia(this.barberiaId);
+      this.resenas = Array.isArray(resenas) ? resenas : [];
+    } catch (error) {
+      console.error('Error al cargar reseñas de la barbería:', error);
+      this.resenas = [];
+    }
+  }
+
+  get promedioValoracion(): number {
+    if (this.resenas.length === 0) {
+      return 0;
+    }
+    const suma = this.resenas.reduce((acc, r) => acc + (r.resena?.valoracion || 0), 0);
+    return Math.round((suma / this.resenas.length) * 10) / 10;
+  }
+
+  getClienteNombreResena(resena: any): string {
+    const nombre = resena?.cliente?.nombre || '';
+    const apellido = resena?.cliente?.apellido || '';
+    return `${nombre} ${apellido}`.trim() || 'Cliente';
+  }
+
+  getClienteInicialesResena(resena: any): string {
+    const nombre = (resena?.cliente?.nombre || '').trim();
+    const apellido = (resena?.cliente?.apellido || '').trim();
+    const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+    return iniciales.toUpperCase() || 'CL';
   }
 
   getEntityId(entity: any): string {

@@ -1,0 +1,43 @@
+
+
+<ion-content [fullscreen]="true" class="ion-padding" [ngClass]="contentClass">
+  <div *ngIf="loading" class="calendar-empty">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando reseñas...</p>
+  </div>
+
+  <p *ngIf="error" class="barberia-error">{{ error }}</p>
+
+  <div class="review-list" *ngIf="!loading && resenas.length > 0">
+    <div class="review-card" *ngFor="let resena of resenas">
+      <div class="review-header">
+        <div class="cliente-info">
+          <div class="review-avatar-wrap">
+            <img *ngIf="resena.cliente?.avatar" [src]="resena.cliente.avatar" class="review-avatar-img" alt="Avatar" />
+            <div *ngIf="!resena.cliente?.avatar" class="review-avatar-initials">{{ getClienteIniciales(resena) }}</div>
+          </div>
+          <div>
+            <h3>{{ getClienteNombre(resena) }}</h3>
+            <p class="review-date">{{ resena.fecha | date:'dd/MM/yyyy' }} · {{ resena.horaInicio }}</p>
+          </div>
+        </div>
+        <app-star-rating [value]="resena.resena.valoracion" [readonly]="true" [size]="18"></app-star-rating>
+      </div>
+
+      <div class="review-body">
+        <p class="review-meta">
+          <strong>Servicio:</strong> {{ resena.servicioNombre || 'Servicio' }}
+          <span *ngIf="getBarberoNombre(resena)"> · <strong>Barbero:</strong> {{ getBarberoNombre(resena) }}</span>
+        </p>
+        <p class="review-comment" *ngIf="resena.resena.comentario">{{ resena.resena.comentario }}</p>
+        <app-review-image *ngIf="resena.resena.imagen" [src]="resena.resena.imagen"></app-review-image>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && resenas.length === 0 && !error" class="config-placeholder-card">
+    <ion-icon name="star-outline"></ion-icon>
+    <h2>Sin Reseñas</h2>
+    <p>Todavía no hay ninguna reseña de tus clientes.</p>
+  </div>
+</ion-content>

@@ -7,11 +7,13 @@ import {
     getCitasByBarberoAndFecha,
     getCitasByBarberoId,
     getCitasByClienteId,
+    getResenasByBarberiaId,
+    setResenaCita,
     updateCitaEstado,
     updateCitaPago
 } from "../models/citaModel.js";
 
-import { getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
+import { getBarberiaByAdminId, getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { getUserById } from "../models/userModel.js";
 
 //CREAR CITA (CLIENTE)
@@ -396,6 +398,99 @@ export const cancelarCita = async (req, res) => {
     } catch (error) {
         console.error("Error al cancelar cita:", error);
         res.status(500).json({ error: "Error al cancelar cita" });
+    }
+};
+
+// RESEÑAS
+
+// Dejar una reseña sobre una cita ya pasada (cliente dueño de la cita)
+export const crearResena = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const { valoracion, comentario, imagen } = req.body;
+
+        const cita = await getCitaById(id);
+        if (!cita) {
+            return res.status(404).json({ error: "Cita no encontrada" });
+        }
+
+        const isCliente = cita.clienteId?.toString() === userId;
+        if (!isCliente) {
+            return res.status(403).json({ error: "No tienes permiso para reseñar esta cita" });
+        }
+
+        if (cita.estado === "cancelada") {
+            return res.status(400).json({ error: "No se puede reseñar una cita cancelada" });
+        }
+
+        if (cita.resena) {
+            return res.status(409).json({ error: "Esta cita ya tiene una reseña" });
+        }
+
+        const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+        const ahoraStr = new Date().toLocaleTimeString('en-GB', {
+            timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        const citaHora = cita.horaFin || cita.horaInicio || '00:00';
+        const yaPaso = cita.fecha < hoyStr || (cita.fecha === hoyStr && citaHora <= ahoraStr);
+        if (!yaPaso) {
+            return res.status(400).json({ error: "Solo puedes reseñar citas que ya han tenido lugar" });
+        }
+
+        const valoracionNum = Number(valoracion);
+        if (!Number.isInteger(valoracionNum) || valoracionNum < 1 || valoracionNum > 5) {
+            return res.status(400).json({ error: "La valoración debe ser un número entero entre 1 y 5" });
+        }
+
+        const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, 500) : "";
+
+        let imagenLimpia = null;
+        if (typeof imagen === "string" && imagen.length > 0) {
+            if (!imagen.startsWith("data:image/") || imagen.length > 4_000_000) {
+                return res.status(400).json({ error: "Imagen no válida" });
+            }
+            imagenLimpia = imagen;
+        }
+
+        const resena = {
+            valoracion: valoracionNum,
+            comentario: comentarioLimpio,
+            imagen: imagenLimpia,
+            createdAt: new Date()
+        };
+
+        await setResenaCita(id, resena);
+        res.status(201).json({ message: "Reseña guardada correctamente", resena });
+
+    } catch (error) {
+        console.error("Error al crear reseña:", error);
+        res.status(500).json({ error: "Error al crear reseña" });
+    }
+};
+
+// Obtener las reseñas de la barbería del admin/barbero autenticado
+export const getResenasBarberia = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        let barberia = await getBarberiaByAdminId(userId);
+        if (!barberia) {
+            const user = await getUserById(userId);
+            if (user && user.barberiaId) {
+                barberia = await getBarbershopById(user.barberiaId.toString());
+            }
+        }
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const resenas = await getResenasByBarberiaId(barberia._id.toString());
+        res.json(resenas);
+    } catch (error) {
+        console.error("Error al obtener reseñas de la barbería:", error);
+        res.status(500).json({ error: "Error al obtener reseñas" });
     }
 };
 

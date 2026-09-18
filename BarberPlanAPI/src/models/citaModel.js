@@ -67,7 +67,8 @@ export const getCitasByClienteId = async (clienteId) => {
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
         {
             $project: {
-                "barbero.pw": 0
+                "barbero.pw": 0,
+                "resena.imagen": 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -89,7 +90,8 @@ export const getCitasByBarberoId = async (barberoId) => {
         { $unwind: { path: "$cliente", preserveNullAndEmptyArrays: true } },
         {
             $project: {
-                "cliente.pw": 0
+                "cliente.pw": 0,
+                "resena.imagen": 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -123,10 +125,61 @@ export const getCitasByBarberiaId = async (barberiaId) => {
         {
             $project: {
                 "cliente.pw": 0,
-                "barbero.pw": 0
+                "barbero.pw": 0,
+                "resena.imagen": 0
             }
         },
         { $sort: { fecha: -1 } }
+    ]).toArray();
+};
+
+// ==================== FUNCIONES DE RESEÑAS ====================
+
+// Guardar la reseña de una cita (una única vez, por el cliente dueño)
+export const setResenaCita = async (id, resena) => {
+    return await db.collection("Citas").updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { resena, updatedAt: new Date() } }
+    );
+};
+
+// Obtener las reseñas de una barbería, con datos del cliente, barbero y cita
+export const getResenasByBarberiaId = async (barberiaId) => {
+    return await db.collection("Citas").aggregate([
+        { $match: { barberiaId: new ObjectId(barberiaId), resena: { $exists: true } } },
+        {
+            $lookup: {
+                from: "Usuarios",
+                localField: "clienteId",
+                foreignField: "_id",
+                as: "cliente"
+            }
+        },
+        {
+            $lookup: {
+                from: "Usuarios",
+                localField: "barberoId",
+                foreignField: "_id",
+                as: "barbero"
+            }
+        },
+        { $unwind: { path: "$cliente", preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
+        {
+            $project: {
+                fecha: 1,
+                horaInicio: 1,
+                servicioNombre: 1,
+                servicioPrecio: 1,
+                resena: 1,
+                "cliente.nombre": 1,
+                "cliente.apellido": 1,
+                "cliente.avatar": 1,
+                "barbero.nombre": 1,
+                "barbero.apellido": 1
+            }
+        },
+        { $sort: { "resena.createdAt": -1 } }
     ]).toArray();
 };
 

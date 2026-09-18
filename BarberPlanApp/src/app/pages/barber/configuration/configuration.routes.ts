@@ -20,5 +20,9 @@ export const configurationRoutes: Routes = [
   {
     path: 'schedule',
     loadComponent: () => import('./schedule/schedule.page').then(m => m.SchedulePage)
+  },
+  {
+    path: 'reviews',
+    loadComponent: () => import('../../shared/reviews/reviews.page').then(m => m.ReviewsPage)
   }
 ];

@@ -75,6 +75,7 @@ export class BarberTabsPage implements OnInit, OnDestroy {
     else if (url.includes('barbershop-details')) this.pageName = 'Datos Barbería';
     else if (url.includes('solicitudes')) this.pageName = 'Solicitudes';
     else if (url.includes('catalogo-servicios')) this.pageName = 'Catálogo';
+    else if (url.includes('reviews')) this.pageName = 'Reseñas';
     else if (url.includes('configuration')) this.pageName = 'Configuración';
     else if (url.includes('profile')) this.pageName = 'Perfil';
     else this.pageName = 'Barbero';

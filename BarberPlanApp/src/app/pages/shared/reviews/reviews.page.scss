@@ -1,0 +1,108 @@
+:host {
+  --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
+}
+
+.admin-premium-content,
+.barber-premium-content {
+  --background: var(--ion-background-color);
+}
+
+.review-list {
+  display: grid;
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+.review-card {
+  background: var(--panel-bg);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+
+  .cliente-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    .review-avatar-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1.5px solid var(--ion-color-primary);
+      background: var(--custom-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .review-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .review-avatar-initials {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.28) 0%, rgba(var(--ion-color-primary-rgb), 0.1) 100%);
+        color: var(--ion-color-primary);
+        font-size: 15px;
+        font-weight: 800;
+      }
+    }
+
+    h3 {
+      margin: 0;
+      color: var(--custom-text-primary);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .review-date {
+      margin: 2px 0 0;
+      color: var(--custom-text-muted);
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.review-body {
+  color: var(--custom-text-muted);
+  font-size: 0.95rem;
+
+  .review-meta {
+    margin: 0 0 8px;
+
+    strong {
+      color: var(--custom-text-primary);
+      font-weight: 700;
+    }
+  }
+
+  .review-comment {
+    margin: 0;
+    color: var(--custom-text-primary);
+    line-height: 1.4;
+  }
+
+  app-review-image {
+    display: block;
+    margin-top: 10px;
+  }
+}

@@ -10,6 +10,7 @@ import {
   imageOutline,
   peopleOutline,
   personAddOutline,
+  starOutline,
   chevronForwardOutline
 } from 'ionicons/icons';
 
@@ -29,6 +30,7 @@ export class ConfigurationHubPage {
       'image-outline': imageOutline,
       'people-outline': peopleOutline,
       'person-add-outline': personAddOutline,
+      'star-outline': starOutline,
       'chevron-forward-outline': chevronForwardOutline
     });
   }

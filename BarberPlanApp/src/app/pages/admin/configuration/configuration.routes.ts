@@ -32,5 +32,9 @@ export const configurationRoutes: Routes = [
   {
     path: 'team-requests',
     loadComponent: () => import('./team-requests/team-requests.page').then(m => m.TeamRequestsPage)
+  },
+  {
+    path: 'reviews',
+    loadComponent: () => import('../../shared/reviews/reviews.page').then(m => m.ReviewsPage)
   }
 ];

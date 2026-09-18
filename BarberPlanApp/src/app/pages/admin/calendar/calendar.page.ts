@@ -867,7 +867,7 @@ export class CalendarPage implements OnInit {
 
   private getAppointmentsByDateKey(dateKey: string) {
     return this.citas
-      .filter((cita) => this.toDateKey(cita.fecha) === dateKey)
+      .filter((cita) => this.toDateKey(cita.fecha) === dateKey && cita.estado !== 'cancelada')
       .slice()
       .sort((a, b) => `${a.horaInicio}`.localeCompare(`${b.horaInicio}`));
   }
@@ -1103,7 +1103,7 @@ export class CalendarPage implements OnInit {
     }
     const alert = await this.alertCtrl.create({
       header: 'Cancelar Cita',
-      message: `¿Estás seguro de que deseas cancelar la cita de <b>${cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual'}</b> a las <b>${cita.horaInicio}</b>?`,
+      message: `¿Estás seguro de que deseas cancelar la cita de ${cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual'} a las ${cita.horaInicio}?`,
       buttons: [
         { text: 'Volver', role: 'cancel' },
         {

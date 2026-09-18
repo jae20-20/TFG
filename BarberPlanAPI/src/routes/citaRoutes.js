@@ -6,11 +6,13 @@ import {
     confirmarCita,
     crearCita,
     crearCitaManual,
+    crearResena,
     getCita,
     getCitasBarberia,
     getCitasBarbero,
     getDisponibilidad,
     getMisCitas,
+    getResenasBarberia,
     actualizarPagoCita
 } from "../controllers/citaControllers.js";
 import {
@@ -37,11 +39,15 @@ router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);
 // ==================== RUTAS DE ADMIN ====================
 router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);
 
+// ==================== RUTAS DE RESEÑAS ====================
+router.get("/resenas/barberia", verifyToken, isAdminOrBarbero, getResenasBarberia);
+
 // ==================== RUTAS COMPARTIDAS ====================
 router.get("/:id", verifyToken, getCita);
 router.put("/:id/confirmar", verifyToken, isAdminOrBarbero, confirmarCita);
 router.put("/:id/completar", verifyToken, isAdminOrBarbero, completarCita);
 router.put("/:id/pago", verifyToken, isAdminOrBarbero, actualizarPagoCita);
 router.put("/:id/cancelar", verifyToken, cancelarCita);
+router.post("/:id/resena", verifyToken, isCliente, crearResena);
 
 export default router;

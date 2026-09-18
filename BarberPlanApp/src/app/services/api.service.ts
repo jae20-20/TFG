@@ -273,4 +273,29 @@ export class ApiService {
       this.http.put<any>(`${this.apiUrl}/solicitud/${id}/responder`, { estado, respuestaAdmin }, { headers })
     );
   }
+
+  // --- RESEÑAS ---
+
+  // Dejar una reseña sobre una cita pasada (cliente autenticado)
+  async crearResena(citaId: string, data: { valoracion: number; comentario?: string; imagen?: string | null }) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/cita/${citaId}/resena`, data, { headers })
+    );
+  }
+
+  // Obtener las reseñas de la barbería del admin/barbero autenticado
+  async getResenasMiBarberia() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/cita/resenas/barberia`, { headers })
+    );
+  }
+
+  // Obtener las reseñas públicas de una barbería
+  async getResenasBarberia(barberiaId: string) {
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/resenas`)
+    );
+  }
 }
