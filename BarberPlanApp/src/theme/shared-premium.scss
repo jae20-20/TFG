@@ -69,15 +69,6 @@ ion-content.bg-dark-900,
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38) !important;
 }
 
-/* Excepciones de preview público que son claros intencionalmente */
-.public-preview-shell .premium-card,
-.public-preview-shell .welcome-card,
-.public-preview-shell .preview-content {
-  background: #f3f4f6 !important;
-  border-color: #d1d5db !important;
-  color: var(--custom-surface) !important;
-}
-
 /* 4. BOTONES PRIMARIOS Y SECUNDARIOS */
 .reserve-btn,
 .submit-btn,

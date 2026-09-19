@@ -3,9 +3,9 @@
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
   <ion-list class="config-hub-list">
     <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}" button detail>
-      <div slot="start" class="team-avatar-wrap">
-        <img *ngIf="barber.avatar" [src]="barber.avatar" class="team-avatar-img" alt="Avatar" />
-        <div *ngIf="!barber.avatar" class="team-avatar-initials">{{ getInitials(barber) }}</div>
+      <div slot="start" class="avatar-wrap team-list-avatar">
+        <img *ngIf="barber.avatar" [src]="barber.avatar" alt="Avatar" />
+        <div *ngIf="!barber.avatar" class="avatar-initials">{{ getInitials(barber) }}</div>
       </div>
       <ion-label>
         <h2>{{ barber.nombre }} {{ barber.apellido }} <span *ngIf="isAdmin(barber)" class="admin-badge">(Tú)</span></h2>

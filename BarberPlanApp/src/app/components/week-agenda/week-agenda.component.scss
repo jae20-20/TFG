@@ -33,7 +33,11 @@
   }
 
   &.closed-day {
-    opacity: 0.45;
+    opacity: 0.85;
+
+    .week-strip-number {
+      color: #ef4444;
+    }
   }
 }
 

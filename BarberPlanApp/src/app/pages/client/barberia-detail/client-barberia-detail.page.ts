@@ -32,6 +32,8 @@ export class ClientBarberiaDetailPage implements OnInit {
   servicios: any[] = [];
   barberos: any[] = [];
   resenas: any[] = [];
+  galeriaExpanded = false;
+  private readonly galeriaPreviewLimit = 6;
 
   loading = false;
   error = '';
@@ -124,6 +126,26 @@ export class ClientBarberiaDetailPage implements OnInit {
 
   getLogoImage() {
     return this.barberia?.logoUrl || '';
+  }
+
+  getGaleria(): string[] {
+    return Array.isArray(this.barberia?.galeriaTrabajos) ? this.barberia.galeriaTrabajos : [];
+  }
+
+  getGaleriaVisible(): string[] {
+    const galeria = this.getGaleria();
+    return this.galeriaExpanded ? galeria : galeria.slice(0, this.galeriaPreviewLimit);
+  }
+
+  getGaleriaRestCount(): number {
+    if (this.galeriaExpanded) {
+      return 0;
+    }
+    return Math.max(0, this.getGaleria().length - this.galeriaPreviewLimit);
+  }
+
+  expandGaleria() {
+    this.galeriaExpanded = true;
   }
 
   getBarberoNombre(barbero: any) {

@@ -13,12 +13,14 @@ import {
     closeOutline,
     colorPaletteOutline,
     cutOutline,
+    documentTextOutline,
     imageOutline,
     imagesOutline,
     keyOutline,
     logOutOutline,
     lockClosedOutline,
     lockOpenOutline,
+    mailOpenOutline,
     pencilOutline,
     peopleOutline,
     personOutline,
@@ -58,7 +60,9 @@ addIcons({
   'close-outline': closeOutline,
   'trash-outline': trashOutline,
   'person-add-outline': personAddOutline,
-  'mail-unread-outline': mailUnreadOutline
+  'mail-unread-outline': mailUnreadOutline,
+  'mail-open-outline': mailOpenOutline,
+  'document-text-outline': documentTextOutline
 });
 
 import { ThemeService } from './services/theme.service';

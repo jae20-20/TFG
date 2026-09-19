@@ -1,7 +1,14 @@
 /*
  * Sistema de Paletas Modular - BarberPlan
- * ========================================.
  */
+
+:root, body {
+  color-scheme: dark;
+}
+
+:root.light-mode, body.light-mode {
+  color-scheme: light;
+}
 
 :root, :root.theme-barber, body.theme-barber {
   /*

@@ -84,7 +84,7 @@ ion-content.barber-premium-content {
 }
 
 /* Tarjetas de días y contenedores sin color azul (#15181e), unificados con el tema oscuro de la paleta */
-.schedule-day-card {
+.day-agenda-card {
   background: var(--panel-bg);
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
   border-radius: 16px;
@@ -213,14 +213,14 @@ ion-content.barber-premium-content {
   .nueva-solicitud-btn {
     --background: var(--custom-gold);
     --color: #111317;
-    --border-radius: 10px;
+    --border-radius: 12px;
     --padding-start: 14px;
     --padding-end: 18px;
     font-weight: 700;
     font-size: 13.5px;
-    height: 40px;
+    height: 44px;
     text-transform: none;
-    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.28);
+    box-shadow: 0 4px 14px rgba(var(--ion-color-primary-rgb), 0.28);
     transition: all 0.2s ease;
 
     ion-icon {

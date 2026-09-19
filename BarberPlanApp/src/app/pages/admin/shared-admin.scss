@@ -152,6 +152,136 @@ ion-content {
   border: 1px solid var(--custom-border-subtle);
   color: var(--custom-text-muted);
   font-size: 14px;
+
+  // Variante para estados vacíos con icono + título + texto (en vez de una
+  // sola línea de texto plano), reusada por team-requests y solicitudes.
+  &.empty-state {
+    padding: 32px 20px;
+    text-align: center;
+
+    ion-icon {
+      font-size: 40px;
+      color: var(--custom-gold-light);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--custom-text-primary);
+    }
+
+    p {
+      margin: 8px 0 0;
+      color: var(--custom-text-muted);
+      font-size: 13px;
+    }
+  }
+}
+
+// Avatar circular/redondeado genérico de barbero — sustituye a las copias
+// divergentes (team-avatar-wrap, req-avatar-wrap) que había en varias páginas.
+.avatar-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid var(--ion-color-primary);
+  background: var(--custom-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.28) 0%, rgba(var(--ion-color-primary-rgb), 0.1) 100%);
+    color: var(--ion-color-primary);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  &.avatar-lg {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+
+    .avatar-initials {
+      font-size: 17px;
+    }
+  }
+}
+
+// Tarjeta de solicitud (equipo/barbero) — contenedor y estructura interna
+// comunes a admin/team-requests y barber/solicitudes.
+.solicitud-card {
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
+}
+
+.solicitud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+
+  h3 {
+    margin: 0;
+    color: var(--custom-text-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  ion-badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+}
+
+.solicitud-body {
+  color: var(--custom-text-muted);
+  font-size: 0.95rem;
+
+  p {
+    margin: 6px 0;
+  }
+
+  strong {
+    color: var(--custom-text-primary);
+    font-weight: 700;
+  }
+}
+
+.solicitud-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+
+  ion-button {
+    margin: 0;
+    --border-radius: 12px;
+    font-weight: 600;
+    text-transform: none;
+  }
 }
 
 .field-display-muted {
@@ -786,8 +916,8 @@ ion-content {
   position: relative;
   border-radius: 22px;
   overflow: hidden;
-  background: var(--custom-text-primary);
-  box-shadow: 0 16px 36px var(--custom-surface);
+  background: var(--custom-card-bg);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
 }
 
 .preview-topbar {
@@ -796,8 +926,8 @@ ion-content {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--custom-border);
+  background: var(--custom-card-bg);
+  border-bottom: 1px solid var(--custom-border-subtle);
 }
 
 .preview-business-chip {
@@ -809,7 +939,7 @@ ion-content {
   h3 {
     margin: 0;
     font-size: 16px;
-    color: var(--ion-background-color);
+    color: var(--custom-gold-light);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -818,7 +948,7 @@ ion-content {
   p {
     margin: 2px 0 0;
     font-size: 12px;
-    color: var(--custom-text-muted);
+    color: var(--custom-gold);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -828,7 +958,7 @@ ion-content {
 .preview-logo-mini {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: 12px;
   background: var(--custom-surface);
   background-size: cover;
   background-position: center;
@@ -842,13 +972,6 @@ ion-content {
   }
 }
 
-.reserve-btn-preview {
-  --border-radius: 10px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  font-weight: 700;
-  text-transform: none;
-}
 
 .preview-cover-main {
   min-height: 240px;
@@ -874,7 +997,7 @@ ion-content {
   height: 40px;
   border-radius: 12px;
   background: var(--custom-surface);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -908,8 +1031,8 @@ ion-content {
 }
 
 .preview-content {
-  background: var(--custom-text-primary);
-  color: var(--ion-background-color);
+  background: var(--custom-card-bg);
+  color: var(--custom-text-primary);
   padding: 54px 14px 16px;
 
   h2 {
@@ -918,12 +1041,13 @@ ion-content {
     line-height: 1.12;
     font-weight: 900;
     letter-spacing: -0.02em;
+    color: var(--custom-gold-light);
   }
 
   p {
     margin: 6px 0 14px;
     font-size: 14px;
-    color: var(--custom-text-muted);
+    color: var(--custom-gold);
   }
 }
 
@@ -938,7 +1062,7 @@ ion-content {
   position: relative;
   border-radius: 10px;
   min-height: 88px;
-  background-color: #d1d5db;
+  background-color: var(--custom-surface);
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -963,16 +1087,16 @@ ion-content {
 
 .gallery-upload-tile {
   width: 100%;
-  border: 2px dashed var(--custom-text-muted);
+  border: 2px dashed rgba(var(--ion-color-primary-rgb), 0.44);
   border-radius: 12px;
   min-height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #334155;
+  color: var(--custom-gold-light);
   font-weight: 700;
-  background: rgba(226, 232, 240, 0.7);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
   cursor: pointer;
 
   input {
@@ -1138,7 +1262,6 @@ ion-list ion-item p {
 
 .add-service-button,
 .save-visual-btn,
-.reserve-btn-preview,
 .barberia-actions-footer ion-button[fill='solid'] {
   --background: var(--custom-gold);
   --background-hover: var(--custom-gold-strong);
@@ -1180,29 +1303,3 @@ ion-list ion-item p {
   --color: var(--ion-background-color);
 }
 
-.public-preview-shell,
-.preview-content {
-  background: var(--custom-card-bg);
-  color: var(--premium-text);
-}
-
-.preview-topbar {
-  background: var(--custom-card-bg);
-  border-bottom: 1px solid var(--premium-border);
-}
-
-.preview-business-chip h3,
-.preview-content h2 {
-  color: var(--custom-gold-light);
-}
-
-.preview-business-chip p,
-.preview-content p {
-  color: var(--custom-gold);
-}
-
-.gallery-upload-tile {
-  border-color: rgba(var(--ion-color-primary-rgb), 0.44);
-  background: rgba(var(--ion-color-primary-rgb), 0.08);
-  color: var(--custom-gold-light);
-}

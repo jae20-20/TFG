@@ -5,9 +5,9 @@
   <div class="barberia-profile-card" *ngIf="!loading && barber">
     <div class="barberia-header">
       <div class="barberia-title" style="display: flex; align-items: center; gap: 14px;">
-        <div class="team-avatar-wrap" *ngIf="barber">
-          <img *ngIf="barber.avatar" [src]="barber.avatar" class="team-avatar-img" alt="Avatar" />
-          <div *ngIf="!barber.avatar" class="team-avatar-initials">{{ getInitials(barber) }}</div>
+        <div class="avatar-wrap avatar-lg" *ngIf="barber">
+          <img *ngIf="barber.avatar" [src]="barber.avatar" alt="Avatar" />
+          <div *ngIf="!barber.avatar" class="avatar-initials">{{ getInitials(barber) }}</div>
         </div>
         <h3>{{ barber.nombre }} {{ barber.apellido }}</h3>
       </div>

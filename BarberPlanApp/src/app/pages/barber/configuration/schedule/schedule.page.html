@@ -32,7 +32,7 @@
     </div>
 
     <div class="schedule-week-grid">
-      <div class="schedule-day-card" *ngFor="let day of scheduleDays">
+      <div class="day-agenda-card" *ngFor="let day of scheduleDays">
         <div class="day-header">
           <span class="day-name">{{ day.label }}</span>
           <ion-badge [color]="getSlotsForDay(day.key).length > 0 ? 'success' : 'medium'" class="day-badge">

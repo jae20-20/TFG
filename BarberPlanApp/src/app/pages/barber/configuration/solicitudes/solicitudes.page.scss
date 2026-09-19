@@ -1,17 +1,7 @@
-:host {
-  --page-bg: var(--ion-background-color);
-  --custom-gold: var(--custom-gold);
-  --custom-gold-dark: var(--custom-gold-dark);
-  --custom-gold-light: var(--custom-gold-light);
-  --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-}
-
-.barber-premium-content {
-  --background: var(--page-bg);
-}
+@use '../../../admin/shared-admin.scss';
 
 .nueva-solicitud-card {
-  background: var(--panel-bg);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
   border-radius: 18px;
   padding: 20px;
@@ -68,96 +58,13 @@
   padding: 0;
 }
 
-.solicitud-card {
-  background: var(--panel-bg);
-  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.15);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-
-  .solicitud-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-
-    .sol-tipo {
-      margin: 0;
-      color: var(--custom-text-primary);
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    ion-badge {
-      font-size: 0.75rem;
-      padding: 6px 10px;
-      border-radius: 8px;
-    }
-  }
-
-  .solicitud-body {
-    color: var(--custom-text-muted);
-    font-size: 0.95rem;
-
-    p {
-      margin: 6px 0;
-    }
-
-    strong {
-      color: var(--custom-text-primary);
-      font-weight: 700;
-    }
-    
-    .respuesta-admin {
-      margin-top: 12px;
-      padding: 10px;
-      background: var(--custom-surface);
-      border-left: 3px solid var(--custom-gold);
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-  }
-
-  .solicitud-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 12px;
-
-    ion-button {
-      margin: 0;
-      font-weight: 600;
-      text-transform: none;
-    }
-  }
-}
-
-.placeholder-card {
-  padding: 40px 20px;
-  text-align: center;
-  color: var(--custom-text-primary);
-  background: var(--panel-bg);
-  border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.3);
-  border-radius: 18px;
-
-  ion-icon {
-    font-size: 48px;
-    color: var(--custom-gold);
-    margin-bottom: 16px;
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 800;
-  }
-
-  p {
-    margin: 10px 0 0;
-    color: var(--custom-text-muted);
-    font-size: 14px;
-  }
+.respuesta-admin {
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--custom-surface);
+  border-left: 3px solid var(--custom-gold);
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 .error-msg {
@@ -168,6 +75,8 @@
   text-align: center;
 }
 
+// Estado de carga (spinner centrado) — distinto del .calendar-empty "sin
+// resultados" de shared-admin, se mantiene local a propósito.
 .calendar-empty {
   text-align: center;
   padding: 30px;

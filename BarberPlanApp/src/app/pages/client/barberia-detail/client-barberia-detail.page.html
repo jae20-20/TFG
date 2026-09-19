@@ -45,6 +45,15 @@
         <h1>{{ barberia.nombre || 'Barbería' }}</h1>
         <p>{{ barberia.direccion || 'Dirección no disponible' }}<span *ngIf="barberia.ciudad">, {{ barberia.ciudad }}</span></p>
         <p class="hero-description">{{ barberia.descripcion || 'Descubre sus servicios y reserva tu próxima cita.' }}</p>
+
+        <div class="hero-gallery" *ngIf="getGaleria().length > 0">
+          <div class="hero-gallery-grid">
+            <app-review-image *ngFor="let foto of getGaleriaVisible()" [src]="foto" [size]="76"></app-review-image>
+          </div>
+          <button type="button" class="hero-gallery-more" *ngIf="getGaleriaRestCount() > 0" (click)="expandGaleria()">
+            Ver todas las fotos ({{ getGaleria().length }})
+          </button>
+        </div>
       </div>
     </section>
 

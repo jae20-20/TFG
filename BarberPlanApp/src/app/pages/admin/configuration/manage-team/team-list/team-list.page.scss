@@ -1,33 +1,5 @@
 @use '../../../shared-admin.scss';
 
-.team-avatar-wrap {
-	width: 44px;
-	height: 44px;
-	border-radius: 12px;
-	overflow: hidden;
-	flex-shrink: 0;
-	border: 1.5px solid var(--ion-color-primary);
-	background: var(--custom-surface);
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.team-list-avatar {
 	margin-right: 14px;
-
-	.team-avatar-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.team-avatar-initials {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.28) 0%, rgba(var(--ion-color-primary-rgb), 0.1) 100%);
-		color: var(--ion-color-primary);
-		font-size: 15px;
-		font-weight: 800;
-	}
 }

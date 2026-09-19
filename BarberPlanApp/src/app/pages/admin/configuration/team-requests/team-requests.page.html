@@ -10,9 +10,9 @@
     <div class="solicitud-card" *ngFor="let solicitud of solicitudes">
       <div class="solicitud-header">
         <div class="barbero-info">
-          <div class="req-avatar-wrap">
-            <img *ngIf="solicitud.barberoAvatar" [src]="solicitud.barberoAvatar" class="req-avatar-img" alt="Avatar" />
-            <div *ngIf="!solicitud.barberoAvatar" class="req-avatar-initials">{{ getInitials(solicitud.barberoNombre) }}</div>
+          <div class="avatar-wrap">
+            <img *ngIf="solicitud.barberoAvatar" [src]="solicitud.barberoAvatar" alt="Avatar" />
+            <div *ngIf="!solicitud.barberoAvatar" class="avatar-initials">{{ getInitials(solicitud.barberoNombre) }}</div>
           </div>
           <h3>{{ solicitud.barberoNombre }}</h3>
         </div>
@@ -44,7 +44,7 @@
     </div>
   </ion-list>
 
-  <div *ngIf="!loading && solicitudes.length === 0 && !error" class="config-placeholder-card">
+  <div *ngIf="!loading && solicitudes.length === 0 && !error" class="config-placeholder-card empty-state">
     <ion-icon name="mail-open-outline"></ion-icon>
     <h2>Sin Solicitudes</h2>
     <p>No hay solicitudes pendientes del equipo.</p>
