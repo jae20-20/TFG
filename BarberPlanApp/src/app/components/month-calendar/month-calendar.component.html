@@ -1,0 +1,21 @@
+<div class="calendar-weekdays">
+  <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+</div>
+
+<div class="calendar-grid">
+  <button
+    type="button"
+    class="calendar-day"
+    *ngFor="let day of calendarDays"
+    [class.outside-month]="!day.inCurrentMonth"
+    [class.today]="day.isToday"
+    [class.selected]="day.isSelected"
+    [class.has-appointments]="day.hasAppointments"
+    [class.closed-day]="day.isClosed"
+    [class.special-open-day]="day.isSpecialOpen"
+    (click)="onDayClick(day)"
+  >
+    <span class="calendar-day-number">{{ day.dayNumber }}</span>
+    <span class="calendar-day-count" *ngIf="day.appointmentCount > 0">{{ day.appointmentCount }}</span>
+  </button>
+</div>

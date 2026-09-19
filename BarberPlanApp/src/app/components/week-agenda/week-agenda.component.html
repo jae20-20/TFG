@@ -1,0 +1,108 @@
+<div class="week-strip">
+  <button
+    type="button"
+    class="week-strip-day"
+    *ngFor="let day of weekDays"
+    [class.selected]="day.isSelected"
+    [class.today]="day.isToday"
+    [class.closed-day]="day.closed"
+    (click)="onDayClick(day.key)"
+  >
+    <span class="week-strip-label">{{ day.weekdayLabel }}</span>
+    <span class="week-strip-number">{{ day.dayNumber }}</span>
+    <span class="week-strip-dot" *ngIf="day.appointmentCount > 0"></span>
+  </button>
+</div>
+
+<div class="week-grid-wrap">
+  <div class="hour-axis" [style.height.px]="gridHeight">
+    <span class="hour-axis-label" *ngFor="let mark of hourMarks" [style.top.px]="mark.top">{{ mark.label }}</span>
+  </div>
+
+  <div class="week-grid" [style.height.px]="gridHeight">
+    <div class="hour-line" *ngFor="let mark of hourMarks" [style.top.px]="mark.top"></div>
+
+    <div class="closed-band" *ngFor="let band of closedBands" [style.top.px]="band.top" [style.height.px]="band.height"></div>
+
+    <div class="absence-band" *ngFor="let band of absenceBands" [style.top.px]="band.top" [style.height.px]="band.height">
+      <span *ngIf="band.height > 20">Ausente</span>
+    </div>
+
+    <div class="now-line" *ngIf="nowTop !== null" [style.top.px]="nowTop"></div>
+
+    <div
+      class="week-cita-block"
+      *ngFor="let item of positionedCitas"
+      [class.paid]="item.cita.pagado"
+      [style.top.px]="item.top"
+      [style.height.px]="item.height"
+      [style.left.%]="item.leftPct"
+      [style.width.%]="item.widthPct"
+      (click)="openDetail(item.cita)"
+    >
+      <span class="week-cita-time">{{ item.cita.horaInicio }}-{{ item.cita.horaFin }}</span>
+      <span class="week-cita-client">{{ getClienteNombre(item.cita) }} - {{ getServicioNombre(item.cita) }}</span>
+    </div>
+
+    <div class="week-closed-message" *ngIf="isDayEntirelyClosed && positionedCitas.length === 0">
+      Día cerrado
+    </div>
+  </div>
+</div>
+
+<ion-modal [isOpen]="isDetailOpen" (didDismiss)="closeDetail()" class="premium-modal compact-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ selectedCita?.horaInicio }} - {{ selectedCita?.horaFin }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeDetail()" style="color: #ef4444; font-weight: 600;">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <div class="compact-modal-body" *ngIf="selectedCita as cita">
+      <div class="detalle-row">
+        <span>Cliente</span>
+        <strong class="plain">{{ getClienteNombre(cita) }}</strong>
+      </div>
+      <div class="detalle-row" *ngIf="cita.cliente?.correo">
+        <span>Correo</span>
+        <strong class="plain">{{ cita.cliente.correo }}</strong>
+      </div>
+      <div class="detalle-row" *ngIf="cita.cliente?.telefono">
+        <span>Teléfono</span>
+        <strong>{{ cita.cliente.telefono }}</strong>
+      </div>
+      <div class="detalle-row">
+        <span>Servicio</span>
+        <strong>{{ getServicioNombre(cita) }}</strong>
+      </div>
+      <div class="detalle-row" *ngIf="cita.servicioDuracion">
+        <span>Duración</span>
+        <strong>{{ cita.servicioDuracion }} min</strong>
+      </div>
+      <div class="detalle-comment" *ngIf="cita.comentario">
+        <span>Comentario del cliente</span>
+        <p>{{ cita.comentario }}</p>
+      </div>
+
+      <div class="detalle-pago-row">
+        <span class="detalle-pago-precio" [class.editable-price]="cita.pagado" (click)="cita.pagado ? onEditImporteClick() : null" [title]="cita.pagado ? 'Haz clic para modificar importe' : ''">
+          PVP: {{ getPrecio(cita) }}€
+          <ion-icon name="pencil-outline" *ngIf="cita.pagado"></ion-icon>
+        </span>
+        <div class="pago-toggle-wrapper">
+          <ion-toggle [checked]="cita.pagado" (ionChange)="onTogglePagoChange($event)" color="success"></ion-toggle>
+          <span class="pago-label" [class.paid]="cita.pagado">{{ cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
+        </div>
+      </div>
+
+      <div class="detalle-actions">
+        <ion-button fill="clear" class="cita-cancel-btn" (click)="onCancelClick()">
+          <ion-icon slot="start" name="close-outline"></ion-icon>
+          Cancelar cita
+        </ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

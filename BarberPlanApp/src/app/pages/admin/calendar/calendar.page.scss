@@ -1,4 +1,29 @@
 @use '../shared-admin.scss';
+
+.view-mode-segment {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
+.segment-chip {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: var(--custom-surface);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+  color: var(--custom-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+
+  &.selected {
+    background: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    color: var(--ion-background-color);
+    font-weight: 800;
+  }
+}
+
 .date-header-row {
   display: flex;
   justify-content: flex-start;

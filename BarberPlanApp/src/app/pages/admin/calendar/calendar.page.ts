@@ -4,26 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
+import { resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
+import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
+import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
 
-interface CalendarDay {
-  date: Date;
-  key: string;
-  dayNumber: number;
-  inCurrentMonth: boolean;
-  isToday: boolean;
-  isSelected: boolean;
-  hasAppointments: boolean;
-  appointmentCount: number;
-  isClosed: boolean;
-  isSpecialOpen?: boolean;
-}
+const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
 
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.page.html',
   styleUrls: ['./calendar.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent]
 })
 export class CalendarPage implements OnInit {
   user: any = null;
@@ -48,6 +40,13 @@ export class CalendarPage implements OnInit {
   dayCloseTime: string | null = null;
   scheduleLimitsText: string | null = null;
   barberAbsence: { start: string, end: string } | null = null;
+  daySlots: ScheduleSlot[] = [];
+  dayAbsences: ScheduleSlot[] = [];
+
+  // Vista del calendario (mes / semana)
+  viewMode: 'month' | 'week' = this.loadSavedViewMode();
+  weekDays: WeekAgendaDay[] = [];
+  weekRangeLabel = '';
 
   // Modal para gestionar día barbero
   isGestionarDiaModalOpen = false;
@@ -166,6 +165,85 @@ export class CalendarPage implements OnInit {
     }
     this.buildCalendar(this.currentMonthDate);
     this.updateSelectedDayAppointments();
+  }
+
+  private loadSavedViewMode(): 'month' | 'week' {
+    const saved = localStorage.getItem(CALENDAR_VIEW_STORAGE_KEY);
+    return saved === 'month' ? 'month' : 'week';
+  }
+
+  setViewMode(mode: 'month' | 'week') {
+    if (this.viewMode === mode) return;
+    this.viewMode = mode;
+    localStorage.setItem(CALENDAR_VIEW_STORAGE_KEY, mode);
+    if (mode === 'week') {
+      this.buildWeek();
+    }
+  }
+
+  selectWeekDay(dateKey: string) {
+    this.selectedDateKey = dateKey;
+    const parsed = this.parseDateKey(dateKey);
+    if (parsed.getMonth() !== this.currentMonthDate.getMonth() || parsed.getFullYear() !== this.currentMonthDate.getFullYear()) {
+      this.currentMonthDate = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+    }
+    this.buildCalendar(this.currentMonthDate);
+    this.updateSelectedDayAppointments();
+  }
+
+  changeWeek(step: number) {
+    const current = this.parseDateKey(this.selectedDateKey);
+    current.setDate(current.getDate() + step * 7);
+    this.selectWeekDay(this.toDateKey(current));
+  }
+
+  private buildWeek() {
+    const selected = this.parseDateKey(this.selectedDateKey);
+    const mondayOffset = (selected.getDay() + 6) % 7;
+    const monday = new Date(selected);
+    monday.setDate(selected.getDate() - mondayOffset);
+    const todayKey = this.toDateKey(new Date());
+    const weekdayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+    this.weekDays = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      const key = this.toDateKey(date);
+
+      return {
+        date,
+        key,
+        dayNumber: date.getDate(),
+        weekdayLabel: weekdayLabels[index],
+        isToday: key === todayKey,
+        isSelected: key === this.selectedDateKey,
+        closed: this.isBarberDayClosed(key),
+        appointmentCount: this.getAppointmentsForSelectedBarber(key).length
+      };
+    });
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    this.weekRangeLabel = this.formatWeekRange(monday, sunday);
+  }
+
+  private formatWeekRange(start: Date, end: Date): string {
+    const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+    const monthYear = new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric' }).format(end);
+
+    if (sameMonth) {
+      return `${start.getDate()} – ${end.getDate()} ${monthYear}`;
+    }
+
+    const startLabel = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' }).format(start);
+    return `${startLabel} – ${end.getDate()} ${monthYear}`;
+  }
+
+  // Citas del barbero actualmente seleccionado para una fecha cualquiera
+  // (no solo la seleccionada) — la usan la tira de semana y la rejilla.
+  getAppointmentsForSelectedBarber(dateKey: string) {
+    if (!this.selectedBarberId) return [];
+    return this.getAppointmentsByDateKey(dateKey).filter(cita => cita.barbero?._id === this.selectedBarberId);
   }
 
   onBarberChange() {
@@ -682,90 +760,43 @@ export class CalendarPage implements OnInit {
       day: 'numeric',
       month: 'long'
     }).format(this.parseDateKey(this.selectedDateKey));
-    
+
     this.updateScheduleLimits();
     this.buildCalendar(this.currentMonthDate);
+    if (this.viewMode === 'week') {
+      this.buildWeek();
+    }
   }
-  //anyadido para las lineas de los limites de cada cita en calendario
+
+  // Resuelve el horario efectivo del día seleccionado (barbero + global) y
+  // deriva de él los campos que usa el template (envolvente + texto) y los
+  // que necesita la vista semanal (franjas y ausencias).
   private updateScheduleLimits() {
-    this.dayOpenTime = null;
-    this.dayCloseTime = null;
-    this.scheduleLimitsText = null;
-    this.barberAbsence = null;
+    if (!this.selectedDateKey) {
+      this.dayOpenTime = null;
+      this.dayCloseTime = null;
+      this.scheduleLimitsText = null;
+      this.barberAbsence = null;
+      this.daySlots = [];
+      this.dayAbsences = [];
+      return;
+    }
 
-    if (!this.selectedDateKey) return;
-
-    // Verificar si el barbero tiene un cierre parcial
     const barber = this.teamBarbers.find(b => b._id === this.selectedBarberId);
-    if (barber && barber.horarioPersonal && barber.horarioPersonal.exceptions) {
-      const bEx = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey);
-      if (bEx && bEx.type === 'custom' && bEx.isAbsence) {
-        this.barberAbsence = { start: bEx.start, end: bEx.end };
-      }
-    }
+    const resolved = resolveDaySchedule(this.selectedDateKey, this.horarioBarberia, barber);
 
-    const dateObj = this.parseDateKey(this.selectedDateKey);
-    const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    const dayKey = dayNames[dateObj.getDay()];
+    this.daySlots = resolved.slots;
+    this.dayAbsences = resolved.absences;
+    this.barberAbsence = resolved.absences.length > 0 ? resolved.absences[0] : null;
 
-    // 1. Comprobar Horario Personal del Barbero (tiene prioridad)
-    if (barber && barber.horarioPersonal && barber.horarioPersonal.enabled) {
-      if (barber.horarioPersonal.exceptions && Array.isArray(barber.horarioPersonal.exceptions)) {
-        const closedEx = barber.horarioPersonal.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
-        if (closedEx) return;
-
-        const customExceptions = barber.horarioPersonal.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && !ex.isAbsence && ex.start && ex.end);
-        if (customExceptions.length > 0) {
-           // Sort them by start time
-           customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
-           this.dayOpenTime = customExceptions[0].start;
-           this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
-           this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
-           return;
-        }
-      }
-
-      const weeklyTemplate = barber.horarioPersonal.weeklyTemplate;
-      if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
-        const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
-        if (slots.length > 0) {
-          this.dayOpenTime = slots[0].start;
-          this.dayCloseTime = slots[slots.length - 1].end;
-          this.scheduleLimitsText = slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
-          return;
-        } else {
-          return; // No hay turnos definidos, está cerrado
-        }
-      }
-    }
-
-    if (!this.horarioBarberia) return;
-   
-    if (this.horarioBarberia.exceptions && Array.isArray(this.horarioBarberia.exceptions)) {
-      const closedEx = this.horarioBarberia.exceptions.find((ex: any) => ex.date === this.selectedDateKey && ex.type === 'closed');
-      if (closedEx) return; // Cerrado todo el día
-
-      const customExceptions = this.horarioBarberia.exceptions.filter((ex: any) => ex.date === this.selectedDateKey && ex.type === 'custom' && ex.start && ex.end);
-      if (customExceptions.length > 0) {
-         customExceptions.sort((a: any, b: any) => a.start.localeCompare(b.start));
-         this.dayOpenTime = customExceptions[0].start;
-         this.dayCloseTime = customExceptions[customExceptions.length - 1].end;
-         this.scheduleLimitsText = customExceptions.map((ex: any) => `${ex.start} a ${ex.end}`).join('  |  ');
-         return;
-      }
-    }
-
-    // 2. Regular schedule
-    const weeklyTemplate = this.horarioBarberia.weeklyTemplate;
-    if (weeklyTemplate && weeklyTemplate[dayKey] && Array.isArray(weeklyTemplate[dayKey])) {
-      const slots = [...weeklyTemplate[dayKey]].sort((a, b) => a.start.localeCompare(b.start));
-      if (slots.length > 0) {
-        this.dayOpenTime = slots[0].start;
-        this.dayCloseTime = slots[slots.length - 1].end;
-        
-        // Formatear el texto completo con parones
-        this.scheduleLimitsText = slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
-      }
+    if (resolved.slots.length > 0) {
+      this.dayOpenTime = resolved.slots[0].start;
+      this.dayCloseTime = resolved.slots[resolved.slots.length - 1].end;
+      this.scheduleLimitsText = resolved.slots.map(slot => `${slot.start} a ${slot.end}`).join('  |  ');
+    } else {
+      this.dayOpenTime = null;
+      this.dayCloseTime = null;
+      this.scheduleLimitsText = null;
     }
   }
 
@@ -1090,6 +1121,18 @@ export class CalendarPage implements OnInit {
 
   isCitaExpanded(cita: any) {
     return this.expandedCitaId === (cita._id || cita.id);
+  }
+
+  onWeekTogglePago({ cita, event }: { cita: any; event: any }) {
+    this.onTogglePago(cita, event);
+  }
+
+  onWeekEditImporte(cita: any) {
+    this.modificarImporte(cita);
+  }
+
+  onWeekCancelCita(cita: any) {
+    this.confirmarCancelarCita(cita);
   }
 
   toggleCitaDetalle(cita: any) {
