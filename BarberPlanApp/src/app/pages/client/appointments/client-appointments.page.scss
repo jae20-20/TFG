@@ -58,9 +58,16 @@ ion-content.client-premium-content {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 16px;
+	overflow-x: auto;
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .segment-chip {
+	flex-shrink: 0;
 	padding: 9px 16px;
 	border-radius: 999px;
 	background: var(--custom-surface);
@@ -176,6 +183,32 @@ ion-content.client-premium-content {
 	color: var(--custom-text-secondary);
 	font-size: 12px;
 	line-height: 1.4;
+}
+
+.appointment-request {
+	margin-top: 8px;
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+
+	ion-icon {
+		flex-shrink: 0;
+		margin-top: 2px;
+		font-size: 14px;
+		color: var(--custom-gold-light);
+	}
+
+	p {
+		margin: 0;
+		color: var(--custom-text-secondary);
+		font-size: 12px;
+		line-height: 1.4;
+
+		strong {
+			color: var(--custom-text-primary);
+			font-weight: 700;
+		}
+	}
 }
 
 .appointment-actions {

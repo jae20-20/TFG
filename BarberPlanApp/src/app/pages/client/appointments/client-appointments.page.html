@@ -41,6 +41,14 @@
     <button
       type="button"
       class="segment-chip"
+      [class.selected]="filtroCitas === 'canceladas'"
+      (click)="seleccionarFiltro('canceladas')"
+    >
+      Canceladas
+    </button>
+    <button
+      type="button"
+      class="segment-chip"
       [class.selected]="filtroCitas === 'todas'"
       (click)="seleccionarFiltro('todas')"
     >
@@ -63,7 +71,7 @@
   </div>
 
   <div class="client-state" *ngIf="!loadingCitas && !citasError && citas.length > 0 && citasFiltradas.length === 0">
-    <p>No tienes citas {{ filtroCitas === 'proximas' ? 'próximas' : 'anteriores' }}.</p>
+    <p>No tienes citas {{ getFiltroEmptyLabel() }}.</p>
   </div>
 
   <div class="appointments-list" *ngIf="!loadingCitas && !citasError && citasFiltradas.length > 0">
@@ -90,6 +98,11 @@
       <p class="appointment-location" *ngIf="cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion">
         {{ cita?.barberia?.direccion || cita?.barberiaDireccion || cita?.direccion }}
       </p>
+
+      <div class="appointment-request" *ngIf="cita?.comentario">
+        <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+        <p><strong>Petición:</strong> {{ cita.comentario }}</p>
+      </div>
 
       <div class="appointment-actions" *ngIf="puedeCancelar(cita) || puedeResenar(cita)">
         <button type="button" class="action-btn cancel-btn" *ngIf="puedeCancelar(cita)" (click)="confirmarCancelarCita(cita)">

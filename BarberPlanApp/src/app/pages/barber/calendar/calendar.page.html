@@ -79,7 +79,7 @@
                       PVP: {{ cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0) }}€
                       <ion-icon name="pencil-outline" *ngIf="cita.pagado" class="price-edit-icon"></ion-icon>
                     </span>
-                    <ion-icon *ngIf="cita.comentario" name="chatbubble-ellipses-outline" class="cita-comment-flag" title="Tiene un comentario del cliente"></ion-icon>
+                    <ion-icon *ngIf="cita.comentario" name="chatbubble-ellipses-outline" class="cita-comment-flag" title="Tiene una petición del cliente"></ion-icon>
                   </div>
                 </div>
 
@@ -110,10 +110,10 @@
                   <strong>{{ cita.servicioDuracion }} min</strong>
                 </div>
                 <div class="detalle-comment" *ngIf="cita.comentario">
-                  <span>Comentario del cliente</span>
+                  <span>Petición del cliente</span>
                   <p>{{ cita.comentario }}</p>
                 </div>
-                <p class="detalle-empty" *ngIf="!cita.comentario">El cliente no dejó ningún comentario.</p>
+                <p class="detalle-empty" *ngIf="!cita.comentario">El cliente no dejó ninguna petición.</p>
 
                 <div class="detalle-actions">
                   <ion-button fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(cita, $event)">

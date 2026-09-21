@@ -11,9 +11,9 @@ import { StarRatingComponent } from '../../../components/star-rating/star-rating
 import { ReviewImageComponent } from '../../../components/review-image/review-image.component';
 
 import { addIcons } from 'ionicons';
-import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline } from 'ionicons/icons';
+import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline } from 'ionicons/icons';
 
-type FiltroCitas = 'proximas' | 'anteriores' | 'todas';
+type FiltroCitas = 'proximas' | 'anteriores' | 'canceladas' | 'todas';
 
 interface ResenaForm {
   valoracion: number;
@@ -61,7 +61,8 @@ export class ClientAppointmentsPage implements OnInit {
       'close-outline': closeOutline,
       'star-outline': starOutline,
       'image-outline': imageOutline,
-      'trash-outline': trashOutline
+      'trash-outline': trashOutline,
+      'chatbubble-ellipses-outline': chatbubbleEllipsesOutline
     });
 
     this.router.events.subscribe((event) => {
@@ -107,8 +108,16 @@ export class ClientAppointmentsPage implements OnInit {
     const ahora = new Date();
 
     const citas = this.citas.filter((cita) => {
+      const cancelada = this.estaCancelada(cita);
+
+      if (this.filtroCitas === 'canceladas') {
+        return cancelada;
+      }
       if (this.filtroCitas === 'todas') {
         return true;
+      }
+      if (cancelada) {
+        return false;
       }
 
       const fechaHora = this.getCitaDateTime(cita);
@@ -127,6 +136,15 @@ export class ClientAppointmentsPage implements OnInit {
 
   seleccionarFiltro(filtro: FiltroCitas) {
     this.filtroCitas = filtro;
+  }
+
+  getFiltroEmptyLabel(): string {
+    switch (this.filtroCitas) {
+      case 'proximas': return 'próximas';
+      case 'canceladas': return 'canceladas';
+      case 'todas': return '';
+      default: return 'anteriores';
+    }
   }
 
   private getCitaDateTime(cita: any): Date | null {
