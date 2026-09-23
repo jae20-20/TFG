@@ -74,8 +74,11 @@
       </div>
       
       <div class="barberia-field-group" *ngIf="!isEditingPerfil">
-        <label>Código de acceso (Barberos)</label>
-        <div class="field-display"><strong>{{ barberia.codigo || 'No disponible' }}</strong></div>
+        <label>Incorporar empleados</label>
+        <div class="field-display">
+          Genera un código de invitación de un solo uso desde
+          <a routerLink="/admin/configuration/manage-team" class="inline-link">Gestión de Equipo</a>.
+        </div>
       </div>
     </div>
 

@@ -1,6 +1,6 @@
 <ion-content class="bg-dark-900">
   <div class="auth-container">
-    
+
     <!-- Branding -->
     <div class="auth-brand">
       <ion-icon src="assets/icon/logo.svg" class="auth-brand-logo"></ion-icon>
@@ -10,140 +10,173 @@
       </div>
     </div>
 
-    <!-- Tarjeta de registro -->
-    <div class="auth-card">
-      <!-- Header -->
-      <div class="auth-card-header">
-        <h2 class="auth-card-title">Crear Cuenta</h2>
-        <p class="auth-card-desc">Únete a BarberPlan en segundos</p>
-      </div>
+    <!-- Selector de tipo de cuenta -->
+    <div class="rol-toggle" role="tablist">
+      <div class="rol-toggle-indicator" [class.is-barbero]="rol === 'barbero'"></div>
+      <button type="button" class="rol-toggle-btn" [class.selected]="rol === 'cliente'" (click)="selectRol('cliente')" role="tab" [attr.aria-selected]="rol === 'cliente'">
+        <ion-icon name="person-outline"></ion-icon>
+        Cliente
+      </button>
+      <button type="button" class="rol-toggle-btn" [class.selected]="rol === 'barbero'" (click)="selectRol('barbero')" role="tab" [attr.aria-selected]="rol === 'barbero'">
+        <ion-icon name="cut-outline"></ion-icon>
+        Barbero
+      </button>
+    </div>
 
-      <!-- Formulario -->
-      <form (ngSubmit)="register()" class="auth-form">
-        <!-- Fila: Nombre y Apellido -->
-        <div class="auth-row">
-          <div class="auth-field">
-            <label class="auth-label">Nombre</label>
-            <input
-              type="text"
-              [(ngModel)]="nombre"
-              name="nombre"
-              placeholder="Tu nombre"
-              required
-              class="auth-input"
-            />
+    <!-- Escenario de la tarjeta con efecto de giro 3D -->
+    <div class="flip-scene">
+      <form (ngSubmit)="register()" class="flip-card" [class.is-flipped]="rol === 'barbero'" [class.height-ready]="cardHeight !== null" [style.height.px]="cardHeight">
+
+        <!-- CARA FRONTAL: Cliente -->
+        <div class="flip-face flip-face--front auth-card" #frontFace [attr.inert]="rol === 'barbero' ? '' : null">
+          <div class="auth-card-header">
+            <h2 class="auth-card-title">Crear Cuenta de Cliente</h2>
+            <p class="auth-card-desc">Reserva citas en tus barberías favoritas</p>
           </div>
-          <div class="auth-field">
-            <label class="auth-label">Apellido</label>
-            <input
-              type="text"
-              [(ngModel)]="apellido"
-              name="apellido"
-              placeholder="Tu apellido"
-              required
-              class="auth-input"
-            />
-          </div>
-        </div>
 
-        <!-- Usuario -->
-        <div class="auth-field">
-          <label class="auth-label">Usuario</label>
-          <input
-            type="text"
-            [(ngModel)]="usuario"
-            name="usuario"
-            placeholder="Tu nombre de usuario"
-            required
-            class="auth-input"
-          />
-        </div>
+          <div class="auth-form">
+            <div class="auth-row">
+              <div class="auth-field">
+                <label class="auth-label">Nombre</label>
+                <input type="text" [(ngModel)]="nombre" name="nombreCliente" placeholder="Tu nombre" [required]="rol === 'cliente'" class="auth-input" />
+              </div>
+              <div class="auth-field">
+                <label class="auth-label">Apellido</label>
+                <input type="text" [(ngModel)]="apellido" name="apellidoCliente" placeholder="Tu apellido" [required]="rol === 'cliente'" class="auth-input" />
+              </div>
+            </div>
 
-        <!-- Email -->
-        <div class="auth-field">
-          <label class="auth-label">Email</label>
-          <input
-            type="email"
-            [(ngModel)]="correo"
-            name="correo"
-            placeholder="tu@email.com"
-            required
-            class="auth-input"
-          />
-        </div>
+            <div class="auth-field">
+              <label class="auth-label">Usuario</label>
+              <input type="text" [(ngModel)]="usuario" name="usuarioCliente" placeholder="Tu nombre de usuario" [required]="rol === 'cliente'" class="auth-input" />
+            </div>
 
-        <!-- Tipo de Cuenta -->
-        <div class="auth-field">
-          <label class="auth-label">Tipo de Cuenta</label>
-          <select
-            [(ngModel)]="rol"
-            name="rol"
-            required
-            class="auth-input auth-select"
-          >
-            <option value="" disabled selected>Selecciona un tipo</option>
-            <option value="cliente">Cliente</option>
-            <option value="barbero">Barbero</option>
-          </select>
-        </div>
+            <div class="auth-field">
+              <label class="auth-label">Email</label>
+              <input type="email" [(ngModel)]="correo" name="correoCliente" placeholder="tu@email.com" [required]="rol === 'cliente'" class="auth-input" />
+            </div>
 
-        <!-- Ciudad (solo cliente) -->
-        <div *ngIf="rol === 'cliente'" class="auth-field">
-          <label class="auth-label">Ciudad *</label>
-          <select
-            [(ngModel)]="ciudad"
-            name="ciudad"
-            required
-            class="auth-input auth-select"
-          >
-            <option value="" disabled selected>Selecciona una ciudad</option>
-            <option *ngFor="let city of ciudades" [value]="city">{{ city }}</option>
-          </select>
-        </div>
+            <div class="auth-field">
+              <label class="auth-label">Ciudad *</label>
+              <select [(ngModel)]="ciudad" name="ciudad" [required]="rol === 'cliente'" class="auth-input auth-select">
+                <option value="" disabled selected>Selecciona una ciudad</option>
+                <option *ngFor="let city of ciudades" [value]="city">{{ city }}</option>
+              </select>
+            </div>
 
-        <!-- Código de Barbería (solo barbero) -->
-        <div *ngIf="rol === 'barbero'" class="auth-field">
-          <label class="auth-label">Código de Barbería</label>
-          <input
-            type="text"
-            [(ngModel)]="code"
-            name="codigoBarberia"
-            placeholder="Código proporcionado"
-            required
-            class="auth-input"
-          />
-          <p class="auth-hint">Solicita el código a tu barbería</p>
-        </div>
+            <div class="auth-row">
+              <div class="auth-field">
+                <label class="auth-label">Contraseña</label>
+                <input type="password" [(ngModel)]="pw" name="pwCliente" placeholder="Mínimo 6 caracteres" [required]="rol === 'cliente'" class="auth-input" />
+              </div>
+              <div class="auth-field">
+                <label class="auth-label">Confirmar</label>
+                <input type="password" [(ngModel)]="confirmPw" name="confirmPwCliente" placeholder="Repite contraseña" [required]="rol === 'cliente'" class="auth-input" />
+              </div>
+            </div>
 
-        <!-- Fila: Contraseña y Confirmar -->
-        <div class="auth-row">
-          <div class="auth-field">
-            <label class="auth-label">Contraseña</label>
-            <input
-              type="password"
-              [(ngModel)]="pw"
-              name="pw"
-              placeholder="Mínimo 6 caracteres"
-              required
-              class="auth-input"
-            />
-          </div>
-          <div class="auth-field">
-            <label class="auth-label">Confirmar</label>
-            <input
-              type="password"
-              [(ngModel)]="confirmPw"
-              name="confirmPw"
-              placeholder="Repite contraseña"
-              required
-              class="auth-input"
-            />
+            <button type="submit" class="auth-submit-btn" *ngIf="rol === 'cliente'" [disabled]="registrando">
+              <ion-spinner *ngIf="registrando" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+              <span *ngIf="!registrando">Crear Cuenta</span>
+            </button>
           </div>
         </div>
 
-        <button type="submit" class="auth-submit-btn">
-          Crear Cuenta
-        </button>
+        <!-- CARA TRASERA: Barbero -->
+        <div class="flip-face flip-face--back auth-card" #backFace [attr.inert]="rol === 'cliente' ? '' : null">
+          <div class="auth-card-header">
+            <h2 class="auth-card-title">Crear Cuenta de Barbero</h2>
+            <p class="auth-card-desc">Únete al equipo de tu barbería</p>
+          </div>
+
+          <div class="auth-form">
+
+            <!-- Paso 1: código de invitación -->
+            <ng-container *ngIf="barberStep === 'code'">
+              <div class="auth-field">
+                <label class="auth-label">Código de invitación</label>
+                <input
+                  type="text"
+                  [(ngModel)]="code"
+                  name="codigoInvitacion"
+                  placeholder="XXXX-XXXX"
+                  class="auth-input auth-input-code"
+                  [required]="rol === 'barbero'"
+                  autocapitalize="characters"
+                  (keyup.enter)="validateCode()"
+                />
+                <p class="auth-hint">Pide el código a tu administrador; solo se puede usar una vez.</p>
+                <p class="auth-error-hint" *ngIf="codeError">{{ codeError }}</p>
+              </div>
+
+              <button
+                type="button"
+                class="auth-submit-btn"
+                [disabled]="!code.trim() || validandoCodigo"
+                (click)="validateCode()"
+              >
+                <ion-spinner *ngIf="validandoCodigo" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+                <span *ngIf="!validandoCodigo">Validar código</span>
+              </button>
+            </ng-container>
+
+            <!-- Paso 2: datos del barbero (precargados por la invitación) -->
+            <ng-container *ngIf="barberStep === 'details'">
+              <div class="invite-confirm-chip" *ngIf="invitacionInfo?.nombreBarberia">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Te unes a <strong>{{ invitacionInfo?.nombreBarberia }}</strong>
+              </div>
+
+              <div class="auth-row">
+                <div class="auth-field">
+                  <label class="auth-label">Nombre</label>
+                  <input type="text" [(ngModel)]="nombre" name="nombreBarbero" placeholder="Tu nombre" [required]="rol === 'barbero'" class="auth-input" />
+                </div>
+                <div class="auth-field">
+                  <label class="auth-label">Apellido</label>
+                  <input type="text" [(ngModel)]="apellido" name="apellidoBarbero" placeholder="Tu apellido" [required]="rol === 'barbero'" class="auth-input" />
+                </div>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Puesto</label>
+                <input type="text" [value]="invitacionInfo?.cargo" disabled class="auth-input auth-input-locked" />
+                <p class="auth-hint">Asignado por tu administrador.</p>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Usuario</label>
+                <input type="text" [(ngModel)]="usuario" name="usuarioBarbero" placeholder="Tu nombre de usuario" [required]="rol === 'barbero'" class="auth-input" />
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label">Email</label>
+                <input type="email" [(ngModel)]="correo" name="correoBarbero" placeholder="tu@email.com" [required]="rol === 'barbero'" class="auth-input" />
+              </div>
+
+              <div class="auth-row">
+                <div class="auth-field">
+                  <label class="auth-label">Contraseña</label>
+                  <input type="password" [(ngModel)]="pw" name="pwBarbero" placeholder="Mínimo 6 caracteres" [required]="rol === 'barbero'" class="auth-input" />
+                </div>
+                <div class="auth-field">
+                  <label class="auth-label">Confirmar</label>
+                  <input type="password" [(ngModel)]="confirmPw" name="confirmPwBarbero" placeholder="Repite contraseña" [required]="rol === 'barbero'" class="auth-input" />
+                </div>
+              </div>
+
+              <div class="auth-actions-row">
+                <button type="button" (click)="backToCodeStep()" class="auth-secondary-btn">← Cambiar código</button>
+                <button type="submit" class="auth-submit-btn" [disabled]="registrando">
+                  <ion-spinner *ngIf="registrando" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+                  <span *ngIf="!registrando">Crear Cuenta</span>
+                </button>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
+
       </form>
     </div>
 

@@ -3,3 +3,157 @@
 .team-list-avatar {
 	margin-right: 14px;
 }
+
+.team-list-header {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 14px;
+}
+
+.add-employee-btn {
+	--background: var(--ion-color-primary);
+	--color: #0f172a;
+	--border-radius: 12px;
+	font-weight: 700;
+	text-transform: none;
+}
+
+.section-subtitle {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	font-weight: 700;
+	font-size: 0.9rem;
+	color: var(--custom-text-muted-alt, #94a3b8);
+	margin: 24px 4px 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.pending-avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(var(--ion-color-primary-rgb), 0.12);
+	color: var(--ion-color-primary);
+	font-size: 1.3rem;
+}
+
+/* ==================== MODAL: AÑADIR EMPLEADO ==================== */
+
+.modal-subtitle-text {
+	color: var(--custom-text-muted-alt, #94a3b8);
+	font-size: 0.88rem;
+	line-height: 1.4;
+}
+
+.cargo-field {
+	display: flex;
+	flex-direction: column;
+}
+
+.cargo-label {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	font-weight: 600;
+	font-size: 0.85rem;
+	color: var(--custom-text-primary, #f8fafc);
+	margin-bottom: 8px;
+}
+
+.cargo-chip-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cargo-chip {
+	padding: 8px 14px;
+	border-radius: 999px;
+	border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.25));
+	background: rgba(255, 255, 255, 0.04);
+	color: var(--custom-text-primary, #f8fafc);
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.cargo-chip.selected {
+	background: var(--ion-color-primary);
+	border-color: var(--ion-color-primary);
+	color: #0f172a;
+}
+
+.cargo-custom-input {
+	margin-top: 10px;
+	--padding-start: 14px;
+	--padding-end: 14px;
+	--padding-top: 10px;
+	--padding-bottom: 10px;
+	border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.25));
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.04);
+	color: var(--custom-text-primary, #f8fafc);
+}
+
+/* Pantalla de éxito con el código generado */
+.invite-success {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 8px 4px 4px;
+}
+
+.invite-success-icon {
+	font-size: 2.6rem;
+	color: var(--ion-color-success, #22c55e);
+	margin-bottom: 10px;
+}
+
+.invite-success-text {
+	color: var(--custom-text-primary, #f8fafc);
+	font-size: 0.95rem;
+	margin: 0 0 4px;
+}
+
+.invite-hint-text {
+	color: var(--custom-text-muted-alt, #94a3b8);
+	font-size: 0.78rem;
+	margin: 0 0 18px;
+}
+
+.invite-code-box {
+	width: 100%;
+	padding: 18px 12px;
+	border-radius: 14px;
+	border: 1.5px dashed var(--ion-color-primary);
+	background: rgba(var(--ion-color-primary-rgb), 0.08);
+	margin-bottom: 18px;
+}
+
+.invite-code-text {
+	font-family: 'Courier New', monospace;
+	font-weight: 800;
+	font-size: 1.7rem;
+	letter-spacing: 0.12em;
+	color: var(--ion-color-primary);
+}
+
+.invite-actions-row {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+}
+
+.invite-actions-row button {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+}
+
+.invite-expiry-text {
+	color: var(--custom-text-muted-alt, #64748b);
+	font-size: 0.72rem;
+	margin-top: 16px;
+}

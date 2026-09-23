@@ -101,13 +101,11 @@ export class RegisterBarberiaPage implements OnInit {
     this.isLoading = true;
 
     try {
-      const response = await this.authService.registerBarberia(this.formData);
+      await this.authService.registerBarberia(this.formData);
 
-      // Mostrar el código de la barbería
       const alert = await this.alertCtrl.create({
         header: '¡Barbería Registrada!',
-        subHeader: `Código: ${response.barberia.codigo}`,
-        message: 'Guarda este código y compártelo con tus barberos para que puedan registrarse en tu barbería.',
+        message: 'Ya puedes invitar a tus barberos desde Configuración > Gestión de Equipo, generando un código de un solo uso para cada uno.',
         cssClass: 'premium-alert codigo-alert',
         buttons: [
           {

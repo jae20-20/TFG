@@ -1,5 +1,4 @@
 //consultas a la bdd - Barberías
-import crypto from "crypto";
 import { ObjectId } from "mongodb";
 import { client } from "../db/connection.js";
 
@@ -45,18 +44,6 @@ export const updateBarbershop = async (id, updatedData) => {
 // Eliminar barbería
 export const deleteBarbershop = async (id) => {
     return await db.collection("Barberias").deleteOne({ _id: new ObjectId(id) });
-};
-
-// ==================== FUNCIONES DE CÓDIGO ====================
-
-// Generar código único para la barbería
-export const generateUniqueCode = () => {
-    return crypto.randomBytes(4).toString("hex").toUpperCase(); // Ej: "A1B2C3D4"
-};
-
-// Obtener barbería por código
-export const getBarberiaByCode = async (code) => {
-    return await db.collection("Barberias").findOne({ codigo: code });
 };
 
 // ==================== FUNCIONES DE ADMIN ====================

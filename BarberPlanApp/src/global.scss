@@ -957,6 +957,181 @@ ion-content.bg-dark-900::part(scroll) {
   font-size: 0.8rem !important;
 }
 
+/* ==================== SELECTOR CLIENTE / BARBERO (registro) ==================== */
+
+.rol-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.15));
+}
+
+.rol-toggle-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  border-radius: 10px;
+  background: var(--ion-color-primary);
+  transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+  z-index: 0;
+}
+
+.rol-toggle-indicator.is-barbero {
+  transform: translateX(100%);
+}
+
+.rol-toggle-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--custom-text-muted-alt, #94a3b8);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.rol-toggle-btn.selected {
+  color: #0f172a;
+}
+
+body.light-mode .rol-toggle-btn.selected {
+  color: #ffffff;
+}
+
+/* ==================== TARJETA CON GIRO 3D (Crear Cuenta) ==================== */
+
+.flip-scene {
+  width: 100%;
+  perspective: 1600px;
+}
+
+.flip-card {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1), height 0.4s ease;
+}
+
+.flip-card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-face--back {
+  transform: rotateY(180deg);
+}
+
+/* Antes de que JS calcule la altura real de la cara activa, se evita el
+   colapso de la tarjeta (las caras son position:absolute) dejando la cara
+   frontal en flujo normal y ocultando la trasera. */
+.flip-card:not(.height-ready) .flip-face {
+  position: relative;
+}
+
+.flip-card:not(.height-ready) .flip-face--back {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card {
+    transition: opacity 0.25s ease, height 0.25s ease;
+    transform: none !important;
+  }
+
+  .flip-face {
+    backface-visibility: visible;
+    transition: opacity 0.25s ease;
+  }
+
+  .flip-face--front {
+    opacity: 1;
+  }
+
+  .flip-face--back {
+    transform: none;
+    opacity: 0;
+  }
+
+  .flip-card.is-flipped .flip-face--front {
+    opacity: 0;
+  }
+
+  .flip-card.is-flipped .flip-face--back {
+    opacity: 1;
+  }
+}
+
+/* Código de invitación: input destacado, tipo "ticket" */
+.auth-input-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.auth-input-locked {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Badges con colores primario y success: texto oscuro para mejor contraste en modo oscuro */
+ion-badge[color="primary"] {
+  --color: #0f172a !important;
+}
+
+ion-badge[color="success"] {
+  --color: #ffffff !important;
+}
+
+.auth-error-hint {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.75rem;
+  color: var(--ion-color-danger, #ef4444);
+  margin: 6px 0 0;
+}
+
+.invite-confirm-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: var(--ion-color-success, #22c55e);
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+}
+
 /* Autofill styling para Chrome */
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,

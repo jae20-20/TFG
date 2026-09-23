@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../services/api.service';
 
@@ -9,7 +10,7 @@ import { ApiService } from '../../../../services/api.service';
   templateUrl: './barbershop-details.page.html',
   styleUrls: ['./barbershop-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule]
 })
 export class BarbershopDetailsPage implements OnInit {
   barberia: any = null;

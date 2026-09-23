@@ -2,7 +2,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import { addBarberoToBarberia, getBarberiaByCode } from "../models/barbershopModel.js";
+import { addBarberoToBarberia } from "../models/barbershopModel.js";
+import {
+    consumeInvitacion,
+    getInvitacionPendienteByHash,
+    hashInvitationCode,
+    normalizeInvitationCode
+} from "../models/invitacionModel.js";
 import {
     createUser,
     deleteUser,
@@ -87,17 +93,21 @@ export const addUser = async (req, res) => {
             return res.status(400).json({ error: "El nombre de usuario ya está en uso" });
         }
 
-        let barberia = null;
+        let invitacion = null;
+        let codigoHash = null;
 
-        // Si es barbero → validar código
+        // Si es barbero → validar la invitación del admin (código de un solo uso)
         if (rol === "barbero") {
-            if (!code) {
-                return res.status(400).json({ error: "El código de barbería es obligatorio" });
+            const codigoNormalizado = normalizeInvitationCode(code);
+            if (!codigoNormalizado) {
+                return res.status(400).json({ error: "El código de invitación es obligatorio" });
             }
 
-            barberia = await getBarberiaByCode(code);
-            if (!barberia) {
-                return res.status(404).json({ error: "Código de barbería inválido" });
+            codigoHash = hashInvitationCode(codigoNormalizado);
+            invitacion = await getInvitacionPendienteByHash(codigoHash);
+
+            if (!invitacion || invitacion.expiresAt < new Date()) {
+                return res.status(404).json({ error: "Código de invitación inválido o caducado" });
             }
         }
 
@@ -105,6 +115,8 @@ export const addUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(pw, salt);
 
+        // El puesto ("cargo") nunca lo decide quien se registra: siempre viene
+        // de la invitación creada por el admin, para que no pueda falsificarse.
         const newUser = await createUser({
             nombre,
             correo,
@@ -113,14 +125,24 @@ export const addUser = async (req, res) => {
             usuario,
             rol,
             ciudad: rol === "cliente" ? ciudad : null,
-            barberiaId: barberia ? barberia._id : null,
+            cargo: rol === "barbero" ? invitacion.cargo : null,
+            barberiaId: invitacion ? invitacion.barberiaId : null,
             createdAt: new Date(),
             updatedAt: new Date()
         });
 
-        // Si es barbero → añadirlo a la barbería
+        // Si es barbero → consumir la invitación (de forma atómica) y añadirlo a la barbería
         if (rol === "barbero") {
-            await addBarberoToBarberia(barberia._id, newUser.insertedId);
+            const invitacionConsumida = await consumeInvitacion(codigoHash, newUser.insertedId);
+
+            if (!invitacionConsumida) {
+                // La invitación se usó (o fue revocada) en la fracción de segundo
+                // entre la validación y este punto: deshacemos la cuenta creada.
+                await deleteUser(newUser.insertedId);
+                return res.status(409).json({ error: "El código de invitación ya no está disponible" });
+            }
+
+            await addBarberoToBarberia(invitacion.barberiaId, newUser.insertedId);
         }
 
         res.status(201).json({ message: "Usuario creado correctamente" });

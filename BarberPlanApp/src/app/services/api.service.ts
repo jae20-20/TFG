@@ -38,9 +38,53 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/barberia/register`, data);
   }
 
-  // Validar código de barbería
-  validateBarberiaCode(code: string) {
-    return this.http.post(`${this.apiUrl}/barberia/validate-code`, { code });
+  // Validar código de invitación de empleado (paso 1 del registro de barbero)
+  async validateInvitationCode(code: string) {
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones/validar`, { code })
+    );
+  }
+
+  // --- INVITACIONES DE EMPLEADOS (ADMIN) ---
+
+  // Crear invitación para un nuevo empleado (devuelve el código en claro una única vez)
+  async createInvitacion(data: { nombre: string; apellido: string; cargo: string }) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones`, data, { headers })
+    );
+  }
+
+  // Listar invitaciones de la barbería del admin autenticado
+  async getInvitaciones() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any[]>(`${this.apiUrl}/barberia/invitaciones`, { headers })
+    );
+  }
+
+  // Regenerar el código de una invitación pendiente
+  async regenerarInvitacion(invitacionId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}/regenerar`, {}, { headers })
+    );
+  }
+
+  // Revocar una invitación pendiente
+  async revocarInvitacion(invitacionId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}/revocar`, {}, { headers })
+    );
+  }
+
+  // Eliminar una invitación del listado
+  async deleteInvitacion(invitacionId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}`, { headers })
+    );
   }
 
   // Obtener barberías públicas para clientes

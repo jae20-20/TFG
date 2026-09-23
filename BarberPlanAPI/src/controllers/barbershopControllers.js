@@ -1,14 +1,13 @@
 //manejar http request - Barberías
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { ObjectId } from "mongodb";
 
 import {
     addServicioToBarberia,
     createBarbershop,
-    generateUniqueCode,
     getAllBarbershops,
     getBarberiaByAdminId,
-    getBarberiaByCode,
     getBarberosByBarberiaId,
     getBarbershopById,
     getDefaultBarberiaSchedule,
@@ -21,6 +20,20 @@ import {
     updateServicioInBarberia
 } from "../models/barbershopModel.js";
 
+import {
+    consumeInvitacion,
+    createInvitacion,
+    deleteInvitacion,
+    generateInvitationCode,
+    getInvitacionesByBarberia,
+    getInvitacionPendienteByHash,
+    hashInvitationCode,
+    INVITACION_DIAS_VALIDEZ,
+    normalizeInvitationCode,
+    regenerarInvitacionCode,
+    revocarInvitacion
+} from "../models/invitacionModel.js";
+
 import { createUser, getUserByEmail, getUserByUsername, getUserById } from "../models/userModel.js";
 import { getResenasByBarberiaId } from "../models/citaModel.js";
 
@@ -30,7 +43,7 @@ export const getBarberias = async (req, res) => {
     try {
         const barberias = await getAllBarbershops();
         // Excluir información sensible
-        const barberiasPublicas = barberias.map(({ codigo, adminId, ...barberia }) => barberia);
+        const barberiasPublicas = barberias.map(({ adminId, ...barberia }) => barberia);
         res.json(barberiasPublicas);
     } catch (error) {
         console.error("Error al obtener barberías:", error);
@@ -48,9 +61,7 @@ export const getBarberia = async (req, res) => {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
 
-        // Excluir código para usuarios no admin
-        const { codigo, ...barberiaPublica } = barberia;
-        res.json(barberiaPublica);
+        res.json(barberia);
     } catch (error) {
         console.error("Error al obtener barbería:", error);
         res.status(500).json({ error: "Error al obtener barbería" });
@@ -137,15 +148,6 @@ export const registerBarberia = async (req, res) => {
             updatedAt: new Date()
         });
 
-        // Generar código único para la barbería
-        let codigo;
-        let codigoExiste = true;
-        while (codigoExiste) {
-            codigo = generateUniqueCode();
-            const barberiaConCodigo = await getBarberiaByCode(codigo);
-            codigoExiste = !!barberiaConCodigo;
-        }
-
         // Crear barbería
         const newBarberia = await createBarbershop({
             nombre: nombreBarberia,
@@ -154,7 +156,6 @@ export const registerBarberia = async (req, res) => {
             descripcion: descripcion || null,
             horario: horario || null,
             schedule: schedule || getDefaultBarberiaSchedule(),
-            codigo,
             adminId: adminUser.insertedId,
             barberos: [],
             servicios: [],
@@ -192,8 +193,7 @@ export const registerBarberia = async (req, res) => {
             },
             barberia: {
                 id: newBarberia.insertedId,
-                nombre: nombreBarberia,
-                codigo // Mostrar código solo en el registro
+                nombre: nombreBarberia
             }
         });
 
@@ -261,11 +261,22 @@ export const editBarberia = async (req, res) => {
     }
 };
 
-// Obtener horario estructurado de la barbería del admin autenticado
+// Obtener horario estructurado de la barbería del usuario autenticado
+// (admin o barbero: ambos necesitan poder leer el horario general de su
+// barbería, aunque solo el admin pueda modificarlo).
 export const getMyHorario = async (req, res) => {
     try {
-        const adminId = req.user.id;
-        const barberia = await getBarberiaByAdminId(adminId);
+        const userId = req.user.id;
+        let barberia = await getBarberiaByAdminId(userId);
+
+        if (!barberia) {
+            const user = await getUserById(userId);
+            if (user && user.barberiaId) {
+                barberia = await getBarbershopById(user.barberiaId.toString());
+            } else if (req.user.barberiaId) {
+                barberia = await getBarbershopById(req.user.barberiaId.toString());
+            }
+        }
 
         if (!barberia) {
             return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
@@ -464,32 +475,203 @@ export const removeBarbero = async (req, res) => {
     }
 };
 
-// VALIDAR CÓDIGO
+// -*-*-*-*-*-*-*- INVITACIONES DE EMPLEADOS (SOLO ADMIN) -*-*-*-*-*-*-*-*-*-
 
-export const validateCode = async (req, res) => {
+// Crear invitación: el admin da de alta al futuro barbero y recibe un
+// código de un solo uso para enviárselo. El código solo se muestra aquí,
+// en la base de datos únicamente se guarda su hash.
+export const createInvitacionEmpleado = async (req, res) => {
     try {
-        const { code } = req.body;
-
-        if (!code) {
-            return res.status(400).json({ error: "El código es obligatorio" });
-        }
-
-        const barberia = await getBarberiaByCode(code);
+        const adminId = req.user.id;
+        const barberia = await getBarberiaByAdminId(adminId);
 
         if (!barberia) {
-            return res.status(404).json({ valid: false, error: "Código inválido" });
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
         }
 
-        res.json({
-            valid: true,
-            barberia: {
-                id: barberia._id,
-                nombre: barberia.nombre
+        const { nombre, apellido, cargo } = req.body;
+
+        if (!nombre?.trim() || !apellido?.trim() || !cargo?.trim()) {
+            return res.status(400).json({ error: "Nombre, apellido y puesto son obligatorios" });
+        }
+
+        const codigo = generateInvitationCode();
+        const expiresAt = new Date(Date.now() + INVITACION_DIAS_VALIDEZ * 24 * 60 * 60 * 1000);
+
+        const invitacion = await createInvitacion({
+            barberiaId: barberia._id,
+            nombre: nombre.trim(),
+            apellido: apellido.trim(),
+            cargo: cargo.trim(),
+            codigoHash: hashInvitationCode(codigo),
+            estado: "pendiente",
+            expiresAt,
+            createdBy: new ObjectId(adminId),
+            createdAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        res.status(201).json({
+            message: "Invitación creada correctamente",
+            invitacion: {
+                id: invitacion.insertedId,
+                nombre,
+                apellido,
+                cargo,
+                estado: "pendiente",
+                expiresAt,
+                codigo // Se devuelve una única vez; no se puede recuperar después
             }
         });
 
     } catch (error) {
-        console.error("Error al validar código:", error);
+        console.error("Error al crear invitación:", error);
+        res.status(500).json({ error: "Error al crear invitación" });
+    }
+};
+
+// Listar invitaciones de la barbería del admin autenticado
+export const getInvitacionesEmpleados = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const invitaciones = await getInvitacionesByBarberia(barberia._id);
+        // No se expone codigoHash
+        const invitacionesSeguras = invitaciones.map(({ codigoHash, ...inv }) => inv);
+        res.json(invitacionesSeguras);
+
+    } catch (error) {
+        console.error("Error al obtener invitaciones:", error);
+        res.status(500).json({ error: "Error al obtener invitaciones" });
+    }
+};
+
+// Regenerar el código de una invitación pendiente (invalida el anterior)
+export const regenerarInvitacionEmpleado = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const { invitacionId } = req.params;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const codigo = generateInvitationCode();
+        const expiresAt = new Date(Date.now() + INVITACION_DIAS_VALIDEZ * 24 * 60 * 60 * 1000);
+
+        const invitacion = await regenerarInvitacionCode(
+            invitacionId,
+            barberia._id,
+            hashInvitationCode(codigo),
+            expiresAt
+        );
+
+        if (!invitacion) {
+            return res.status(404).json({ error: "Invitación no encontrada o ya utilizada" });
+        }
+
+        res.json({
+            message: "Código regenerado correctamente",
+            invitacion: {
+                id: invitacion._id,
+                nombre: invitacion.nombre,
+                apellido: invitacion.apellido,
+                cargo: invitacion.cargo,
+                estado: invitacion.estado,
+                expiresAt,
+                codigo
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al regenerar invitación:", error);
+        res.status(500).json({ error: "Error al regenerar invitación" });
+    }
+};
+
+// Revocar (invalidar) una invitación pendiente
+export const revocarInvitacionEmpleado = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const { invitacionId } = req.params;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const result = await revocarInvitacion(invitacionId, barberia._id);
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: "Invitación no encontrada o ya utilizada" });
+        }
+
+        res.json({ message: "Invitación revocada correctamente" });
+
+    } catch (error) {
+        console.error("Error al revocar invitación:", error);
+        res.status(500).json({ error: "Error al revocar invitación" });
+    }
+};
+
+// Eliminar una invitación (usada, expirada o revocada) del listado
+export const deleteInvitacionEmpleado = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const { invitacionId } = req.params;
+        const barberia = await getBarberiaByAdminId(adminId);
+
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const result = await deleteInvitacion(invitacionId, barberia._id);
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "Invitación no encontrada" });
+        }
+
+        res.json({ message: "Invitación eliminada correctamente" });
+
+    } catch (error) {
+        console.error("Error al eliminar invitación:", error);
+        res.status(500).json({ error: "Error al eliminar invitación" });
+    }
+};
+
+// VALIDAR CÓDIGO DE INVITACIÓN (público, paso 1 del registro de barbero)
+
+export const validateInvitationCode = async (req, res) => {
+    try {
+        const { code } = req.body;
+
+        const normalizado = normalizeInvitationCode(code);
+        if (!normalizado) {
+            return res.status(400).json({ valid: false, error: "Formato de código inválido" });
+        }
+
+        const invitacion = await getInvitacionPendienteByHash(hashInvitationCode(normalizado));
+
+        if (!invitacion || invitacion.expiresAt < new Date()) {
+            return res.status(404).json({ valid: false, error: "Código inválido o caducado" });
+        }
+
+        const barberia = await getBarbershopById(invitacion.barberiaId.toString());
+
+        res.json({
+            valid: true,
+            nombre: invitacion.nombre,
+            apellido: invitacion.apellido,
+            cargo: invitacion.cargo,
+            nombreBarberia: barberia?.nombre || null
+        });
+
+    } catch (error) {
+        console.error("Error al validar código de invitación:", error);
         res.status(500).json({ error: "Error al validar código" });
     }
 };

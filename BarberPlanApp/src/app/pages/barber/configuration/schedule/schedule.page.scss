@@ -205,6 +205,17 @@ ion-content.barber-premium-content {
   }
 }
 
+ion-badge.status-badge {
+  --background: var(--ion-color-primary) !important;
+  --color: #0f172a !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+
+  &::part(native) {
+    color: #0f172a !important;
+  }
+}
+
 .schedule-actions-footer {
   margin-top: 24px;
   display: flex;

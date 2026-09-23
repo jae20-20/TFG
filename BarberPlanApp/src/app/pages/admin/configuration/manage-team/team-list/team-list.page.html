@@ -1,6 +1,14 @@
 
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+
+  <div class="team-list-header">
+    <ion-button class="add-employee-btn" (click)="openAddModal()">
+      <ion-icon slot="start" name="person-add-outline"></ion-icon>
+      Añadir empleado
+    </ion-button>
+  </div>
+
   <ion-list class="config-hub-list">
     <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}" button detail>
       <div slot="start" class="avatar-wrap team-list-avatar">
@@ -14,4 +22,134 @@
       </ion-label>
     </ion-item>
   </ion-list>
+
+  <!-- Invitaciones pendientes -->
+  <div class="pending-invitations-section" *ngIf="!loadingInvitaciones && invitacionesPendientes.length > 0">
+    <h3 class="section-subtitle">Invitaciones pendientes</h3>
+    <ion-list class="config-hub-list">
+      <ion-item *ngFor="let inv of invitacionesPendientes" lines="full">
+        <div slot="start" class="avatar-wrap team-list-avatar pending-avatar">
+          <ion-icon name="hourglass-outline"></ion-icon>
+        </div>
+        <ion-label>
+          <h2>{{ inv.nombre }} {{ inv.apellido }}</h2>
+          <p>{{ inv.cargo }}</p>
+        </ion-label>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" size="small" (click)="regenerarInvitacion(inv, $event)" title="Regenerar código">
+            <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" color="danger" (click)="revocarInvitacion(inv, $event)" title="Revocar invitación">
+            <ion-icon slot="icon-only" name="close-circle-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- MODAL: Añadir empleado -->
+  <ion-modal [isOpen]="isAddModalOpen" (didDismiss)="closeAddModal()" class="premium-modal compact-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ addModalStage === 'form' ? 'Añadir empleado' : 'Código generado' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAddModal()" style="color: #ef4444; font-weight: 600;">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <div class="compact-modal-body">
+
+        <!-- ETAPA 1: Formulario -->
+        <ng-container *ngIf="addModalStage === 'form'">
+          <p class="modal-subtitle-text ion-margin-bottom">
+            Da de alta al empleado y genera un código de invitación de un solo uso para que cree su cuenta.
+          </p>
+
+          <ion-item class="time-item ion-margin-bottom" lines="none">
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre *</ion-label>
+            <ion-input type="text" [(ngModel)]="nuevoEmpleado.nombre" placeholder="Nombre"></ion-input>
+          </ion-item>
+
+          <ion-item class="time-item ion-margin-bottom" lines="none">
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Apellido *</ion-label>
+            <ion-input type="text" [(ngModel)]="nuevoEmpleado.apellido" placeholder="Apellido"></ion-input>
+          </ion-item>
+
+          <div class="cargo-field ion-margin-bottom">
+            <label class="cargo-label">Puesto / Pseudónimo *</label>
+            <div class="cargo-chip-row">
+              <button
+                type="button"
+                *ngFor="let preset of cargosPreset"
+                class="cargo-chip"
+                [class.selected]="!cargoEsPersonalizado && nuevoEmpleado.cargo === preset"
+                (click)="selectCargoPreset(preset)"
+              >{{ preset }}</button>
+              <button
+                type="button"
+                class="cargo-chip"
+                [class.selected]="cargoEsPersonalizado"
+                (click)="selectCargoPersonalizado()"
+              >Otro...</button>
+            </div>
+            <ion-input
+              *ngIf="cargoEsPersonalizado"
+              type="text"
+              class="cargo-custom-input"
+              [(ngModel)]="nuevoEmpleado.cargo"
+              placeholder="Ej. Barbero especializado en fade"
+            ></ion-input>
+          </div>
+        </ng-container>
+
+        <!-- ETAPA 2: Éxito, mostrar código -->
+        <ng-container *ngIf="addModalStage === 'success' && invitacionCreada">
+          <div class="invite-success">
+            <ion-icon name="checkmark-circle" class="invite-success-icon"></ion-icon>
+            <p class="invite-success-text">
+              Código generado para <strong>{{ invitacionCreada.nombre }} {{ invitacionCreada.apellido }}</strong> ({{ invitacionCreada.cargo }})
+            </p>
+            <p class="invite-hint-text">Este código es de un solo uso y solo se muestra ahora. Cópialo y envíaselo.</p>
+
+            <div class="invite-code-box">
+              <span class="invite-code-text">{{ invitacionCreada.codigo }}</span>
+            </div>
+
+            <div class="invite-actions-row">
+              <button type="button" class="auth-secondary-btn" (click)="copyCode()">
+                <ion-icon [name]="codigoCopiado ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                {{ codigoCopiado ? 'Copiado' : 'Copiar' }}
+              </button>
+              <button type="button" class="auth-submit-btn" (click)="shareCode()">
+                <ion-icon name="share-social-outline"></ion-icon>
+                Compartir
+              </button>
+            </div>
+
+            <p class="invite-expiry-text" *ngIf="invitacionCreada.expiresAt">
+              Caduca el {{ invitacionCreada.expiresAt | date: 'dd/MM/yyyy' }} si no se utiliza.
+            </p>
+          </div>
+        </ng-container>
+
+      </div>
+
+      <ion-footer *ngIf="addModalStage === 'form'">
+        <ion-toolbar>
+          <ion-button
+            expand="block"
+            class="premium-modal-button-solid ion-margin"
+            [disabled]="!isFormValid() || creandoInvitacion"
+            (click)="submitInvitacion()"
+          >
+            <ion-spinner *ngIf="creandoInvitacion" name="crescent"></ion-spinner>
+            <span *ngIf="!creandoInvitacion">Generar código</span>
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
 </ion-content>

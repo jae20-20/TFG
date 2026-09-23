@@ -1,1 +1,11 @@
 @use '../../shared-admin.scss';
+
+.inline-link {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
