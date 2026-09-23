@@ -191,14 +191,51 @@ ion-modal.premium-modal {
     border-bottom: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.1));
   }
 
+
   ion-toolbar {
     --background: transparent;
     --color: var(--ion-text-color, var(--custom-text-primary));
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --min-height: 52px;
+  }
+
+  ion-toolbar::part(container) {
+    align-items: center;
   }
 
   ion-title {
     color: var(--custom-text-primary, #ffffff) !important;
     font-weight: 800;
+    padding: 0;
+  }
+
+  .modal-close-btn {
+    --background: rgba(148, 163, 184, 0.14);
+    --background-hover: rgba(148, 163, 184, 0.24);
+    --background-activated: rgba(148, 163, 184, 0.3);
+    --border-radius: 50%;
+    --color: var(--custom-text-primary, #f8fafc);
+    --padding-start: 0;
+    --padding-end: 0;
+    position: relative;
+    right: -16px;
+    top: 5px;
+    margin: 0;
+
+    &::part(native) {
+      width: 35px;
+      height: 35px;
+      min-width: 26px;
+      min-height: 26px;
+      padding: 0;
+    }
+
+    ion-icon {
+      font-size: 18px;
+    }
   }
 
   ion-content {
@@ -231,8 +268,12 @@ ion-modal.premium-modal {
     background: var(--ion-color-primary) !important;
     --color: #ffffff !important;
     color: #ffffff !important;
-    --border-radius: 12px;
+    --border-radius: 12px !important;
     font-weight: 700 !important;
+
+    &::part(native) {
+      border-radius: 12px !important;
+    }
   }
 
   .slot-container {
@@ -243,9 +284,13 @@ ion-modal.premium-modal {
     margin-bottom: 15px;
   }
 
+  
   .time-item {
     --background: transparent !important;
     --color: var(--custom-text-primary);
+    --padding-start: 0;
+    --padding-end: 0;
+    --inner-padding-end: 0;
   }
   
   ion-input, ion-datetime {
@@ -423,14 +468,7 @@ ion-alert::part(backdrop) {
   -webkit-backdrop-filter: none !important;
 }
 
-/*
- * El header "boutique" con glassmorphism (posición absoluta + blur) está pensado
- * para la cabecera de una página completa mientras se hace scroll. Como el
- * selector es genérico (ion-header), también capturaba las cabeceras internas
- * de los ion-modal (Personalización, Filtros, etc.), sacándolas del flujo y
- * generando el desenfoque/recorte visual dentro del modal. Se neutraliza aquí
- * para que el header de un modal se comporte como un elemento normal, en flujo.
- */
+
 ion-modal ion-header {
   position: relative !important;
   top: auto !important;
@@ -444,13 +482,6 @@ ion-modal ion-header {
   background: transparent !important;
 }
 
-/*
- * Igual que con ion-header: la regla genérica "ion-content { --padding-top: 72px }"
- * (shared-premium.scss) reserva hueco para la cabecera flotante de una PÁGINA
- * completa. Al no estar restringida, ese padding también se aplicaba dentro del
- * ion-content de los modales/sheets, empujando su contenido hacia abajo y
- * comiéndose el espacio disponible para el footer. Se anula aquí.
- */
 ion-modal ion-content {
   --padding-top: 0 !important;
 }
@@ -623,10 +654,10 @@ ion-title::part(native) {
   align-items: center !important;
 }
 
-/* ==========================================================================
+/* 
    SISTEMA DE DISEÑO UNIFICADO PARA PÁGINAS DE AUTENTICACIÓN
    Usa la tipografía Inter y los tokens CSS de la app (--custom-*, --ion-*)
-   ========================================================================== */
+    */
 
 /* Línea profesional superior e inferior en páginas de autenticación */
 ion-content.bg-dark-900::part(scroll) {

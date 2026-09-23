@@ -1,1 +1,75 @@
 @use '../../../shared-admin.scss';
+
+// Separador entre secciones (datos, horario especial, días libres) dentro
+// de la tarjeta única de detalle del barbero.
+.section-divider {
+  height: 1px;
+  margin: 28px 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--custom-border-subtle) 15%,
+    var(--custom-border-subtle) 85%,
+    transparent 100%
+  );
+}
+
+// Cabecera de cada sección (título + descripción), con separación respecto
+// al bloque de contenido que viene justo debajo.
+.barber-detail-section-head {
+  margin-bottom: 16px;
+
+  p {
+    margin-top: 4px;
+  }
+}
+
+.dias-libres-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-dia-libre {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  .service-input-item {
+    flex: 1;
+    min-width: 0;
+  }
+
+  ion-button {
+    flex-shrink: 0;
+    height: 44px;
+    margin: 0;
+  }
+}
+
+.dias-libres-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  ion-chip {
+    margin: 0;
+    font-weight: 600;
+
+    ion-icon {
+      cursor: pointer;
+      opacity: 0.75;
+      transition: opacity 0.15s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Botones de acción finales, con más separación respecto al contenido
+// anterior (más allá del gap propio de .barberia-actions-footer).
+.barber-detail-footer {
+  margin-top: 28px;
+}

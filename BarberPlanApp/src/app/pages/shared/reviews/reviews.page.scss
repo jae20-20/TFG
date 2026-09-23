@@ -1,3 +1,5 @@
+@use '../../admin/shared-admin.scss';
+
 :host {
   --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
 }

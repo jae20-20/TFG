@@ -288,6 +288,54 @@ ion-content {
   color: var(--custom-text-muted) !important;
 }
 
+.cargo-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.cargo-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--custom-text-primary, #f8fafc);
+  margin-bottom: 8px;
+}
+
+.cargo-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cargo-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.25));
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--custom-text-primary, #f8fafc);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.selected {
+    background: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    color: #0f172a;
+  }
+}
+
+.cargo-custom-input {
+  margin-top: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.25));
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--custom-text-primary, #f8fafc);
+}
+
 .schedule-editor-card {
   display: flex;
   flex-direction: column;

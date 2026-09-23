@@ -56,7 +56,9 @@
       <ion-toolbar>
         <ion-title>{{ selectedCita?.horaInicio }} - {{ selectedCita?.horaFin }}</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="closeDetail()" style="color: #ef4444; font-weight: 600;">Cerrar</ion-button>
+          <ion-button class="modal-close-btn" (click)="closeDetail()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>

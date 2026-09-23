@@ -39,7 +39,9 @@ import { ThemeService, AppTheme } from '../../services/theme.service';
           <ion-toolbar>
             <ion-title>Personalización</ion-title>
             <ion-buttons slot="end">
-              <ion-button (click)="cancelModal()" style="color: #ef4444 !important; font-weight: 700 !important;">Cancelar</ion-button>
+              <ion-button class="modal-close-btn" (click)="cancelModal()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
             </ion-buttons>
           </ion-toolbar>
         </ion-header>

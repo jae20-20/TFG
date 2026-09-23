@@ -2,13 +2,6 @@
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
 
-  <div class="team-list-header">
-    <ion-button class="add-employee-btn" (click)="openAddModal()">
-      <ion-icon slot="start" name="person-add-outline"></ion-icon>
-      Añadir empleado
-    </ion-button>
-  </div>
-
   <ion-list class="config-hub-list">
     <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}" button detail>
       <div slot="start" class="avatar-wrap team-list-avatar">
@@ -54,7 +47,9 @@
         <ion-toolbar>
           <ion-title>{{ addModalStage === 'form' ? 'Añadir empleado' : 'Código generado' }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="closeAddModal()" style="color: #ef4444; font-weight: 600;">Cerrar</ion-button>
+            <ion-button class="modal-close-btn" (click)="closeAddModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -63,22 +58,18 @@
 
         <!-- ETAPA 1: Formulario -->
         <ng-container *ngIf="addModalStage === 'form'">
-          <p class="modal-subtitle-text ion-margin-bottom">
-            Da de alta al empleado y genera un código de invitación de un solo uso para que cree su cuenta.
-          </p>
-
           <ion-item class="time-item ion-margin-bottom" lines="none">
-            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre *</ion-label>
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre</ion-label>
             <ion-input type="text" [(ngModel)]="nuevoEmpleado.nombre" placeholder="Nombre"></ion-input>
           </ion-item>
 
           <ion-item class="time-item ion-margin-bottom" lines="none">
-            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Apellido *</ion-label>
+            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Apellido</ion-label>
             <ion-input type="text" [(ngModel)]="nuevoEmpleado.apellido" placeholder="Apellido"></ion-input>
           </ion-item>
 
           <div class="cargo-field ion-margin-bottom">
-            <label class="cargo-label">Puesto / Pseudónimo *</label>
+            <label class="cargo-label">Puesto / Pseudónimo</label>
             <div class="cargo-chip-row">
               <button
                 type="button"
@@ -151,5 +142,12 @@
       </ion-footer>
     </ng-template>
   </ion-modal>
+
+  <!-- FAB: Añadir empleado (abajo a la derecha) -->
+  <div class="team-list-fab">
+    <ion-button class="add-employee-fab-btn" (click)="openAddModal()">
+      <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+    </ion-button>
+  </div>
 
 </ion-content>

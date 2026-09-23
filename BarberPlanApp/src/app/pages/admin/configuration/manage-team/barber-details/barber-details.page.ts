@@ -7,6 +7,8 @@ import { ApiService } from '../../../../../services/api.service';
 
 type ScheduleDayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
+const CARGOS_PRESET = ['Barbero Profesional', 'Barbero Aprendiz', 'Estilista', 'Barbero Sénior'];
+
 interface ScheduleSlot {
   start: string;
   end: string;
@@ -18,6 +20,7 @@ interface BarberDetail {
   apellido: string;
   telefono: string;
   correo: string;
+  cargo?: string;
   avatar?: string;
   diasLibres?: string[];
   vacaciones?: { fechaInicio: string; fechaFin: string; motivo: string }[];
@@ -54,6 +57,9 @@ export class BarberDetailsPage implements OnInit {
 
   newDiaLibre = '';
 
+  cargosPreset = CARGOS_PRESET;
+  cargoEsPersonalizado = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -84,6 +90,7 @@ export class BarberDetailsPage implements OnInit {
       }
       if (!this.barber!.diasLibres) this.barber!.diasLibres = [];
       if (!this.barber!.vacaciones) this.barber!.vacaciones = [];
+      this.cargoEsPersonalizado = !!this.barber!.cargo && !this.cargosPreset.includes(this.barber!.cargo);
     } catch (e) {
       console.error('Error cargando detalle de barbero', e);
       this.error = 'No se pudo cargar la información del barbero.';
@@ -125,6 +132,16 @@ export class BarberDetailsPage implements OnInit {
     }
   }
 
+  selectCargoPreset(cargo: string) {
+    this.cargoEsPersonalizado = false;
+    if (this.barber) this.barber.cargo = cargo;
+  }
+
+  selectCargoPersonalizado() {
+    this.cargoEsPersonalizado = true;
+    if (this.barber) this.barber.cargo = '';
+  }
+
   async saveChanges() {
     if (!this.barber) return;
     this.saving = true;
@@ -132,7 +149,8 @@ export class BarberDetailsPage implements OnInit {
       const payload = {
         horarioPersonal: this.barber.horarioPersonal,
         diasLibres: this.barber.diasLibres,
-        vacaciones: this.barber.vacaciones
+        vacaciones: this.barber.vacaciones,
+        cargo: this.barber.cargo
       };
       await this.apiService.updateBarbero(this.barber._id, payload);
       

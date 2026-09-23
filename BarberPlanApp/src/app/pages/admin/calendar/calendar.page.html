@@ -193,7 +193,9 @@
         <ion-toolbar>
           <ion-title>Gestionar Día</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="isGestionarDiaModalOpen = false" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
+            <ion-button class="modal-close-btn" (click)="isGestionarDiaModalOpen = false">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -243,7 +245,9 @@
         <ion-toolbar>
           <ion-title>Apertura Especial</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="slotsModal.dismiss(); cancelSlotsModal()" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
+            <ion-button class="modal-close-btn" (click)="slotsModal.dismiss(); cancelSlotsModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
@@ -288,7 +292,9 @@
         <ion-toolbar>
           <ion-title>Añadir Cita</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="newCitaModal.dismiss(); cancelNewCitaModal()" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
+            <ion-button class="modal-close-btn" (click)="newCitaModal.dismiss(); cancelNewCitaModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>

@@ -294,8 +294,8 @@ export const deleteUserAccount = async (req, res) => {
 export const updateBarberoHorario = async (req, res) => {
     try {
         const { id } = req.params;
-        const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados } = req.body;
-        
+        const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados, cargo } = req.body;
+
         // Verificar permisos
         if (req.user.rol !== "admin" && req.user.id !== id) {
             return res.status(403).json({ error: "No tienes permiso para actualizar este barbero" });
@@ -315,6 +315,8 @@ export const updateBarberoHorario = async (req, res) => {
         if (telefono !== undefined) updatedData.telefono = telefono;
         if (avatar !== undefined) updatedData.avatar = avatar;
         if (serviciosBloqueados !== undefined) updatedData.serviciosBloqueados = serviciosBloqueados;
+        // El cargo solo lo puede cambiar el admin, igual que en el alta por invitación.
+        if (cargo !== undefined && req.user.rol === "admin") updatedData.cargo = cargo;
         updatedData.updatedAt = new Date();
 
         await updateUser(id, updatedData);

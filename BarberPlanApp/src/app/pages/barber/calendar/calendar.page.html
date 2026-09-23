@@ -159,7 +159,9 @@
         <ion-toolbar>
           <ion-title>Añadir Cita</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="newCitaModal.dismiss(); cancelNewCitaModal()" style="color: #ef4444; font-weight: 600;">Cancelar</ion-button>
+            <ion-button class="modal-close-btn" (click)="newCitaModal.dismiss(); cancelNewCitaModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>

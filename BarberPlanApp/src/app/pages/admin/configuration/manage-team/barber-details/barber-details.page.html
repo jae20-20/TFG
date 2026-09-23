@@ -33,15 +33,40 @@
         <label>Correo</label>
         <div class="field-display">{{ barber.correo || 'No especificado' }}</div>
       </div>
+
+      <div class="cargo-field">
+        <label class="cargo-label">Puesto / Pseudónimo</label>
+        <div class="cargo-chip-row">
+          <button
+            type="button"
+            *ngFor="let preset of cargosPreset"
+            class="cargo-chip"
+            [class.selected]="!cargoEsPersonalizado && barber.cargo === preset"
+            (click)="selectCargoPreset(preset)"
+          >{{ preset }}</button>
+          <button
+            type="button"
+            class="cargo-chip"
+            [class.selected]="cargoEsPersonalizado"
+            (click)="selectCargoPersonalizado()"
+          >Otro...</button>
+        </div>
+        <ion-input
+          *ngIf="cargoEsPersonalizado"
+          type="text"
+          class="cargo-custom-input"
+          [(ngModel)]="barber.cargo"
+          placeholder="Ej. Barbero especializado en fade"
+        ></ion-input>
+      </div>
     </div>
     
-    <div class="divider"></div>
+    <div class="section-divider"></div>
 
-    <div class="schedule-editor-head">
+    <div class="schedule-editor-head barber-detail-section-head">
       <div>
         <h3>Horario Especial de {{ barber.nombre }}</h3>
-        
-        <br>
+        <p>Anula el horario general de la barbería solo para este barbero.</p>
       </div>
       <ion-toggle color="success" [checked]="barber.horarioPersonal?.enabled" (ionChange)="toggleHorarioEspecial($event)"></ion-toggle>
     </div>
@@ -81,22 +106,25 @@
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div class="section-divider"></div>
 
-    <div class="schedule-editor-head">
+    <div class="schedule-editor-head barber-detail-section-head">
       <div>
-        <br>
-        <h3>Días Libres de {{ barber.nombre}}</h3>
-        <br>
+        <h3>Días Libres de {{ barber.nombre }}</h3>
+        <p>Días concretos en los que no trabaja, además de su horario habitual.</p>
       </div>
     </div>
 
     <div class="dias-libres-section">
       <div class="add-dia-libre">
         <ion-item lines="none" class="service-input-item">
+          <ion-label position="stacked">Nueva fecha</ion-label>
           <ion-input type="date" [(ngModel)]="newDiaLibre"></ion-input>
         </ion-item>
-        <ion-button class="add-service-button" (click)="addDiaLibre()">Añadir</ion-button>
+        <ion-button class="add-service-button" (click)="addDiaLibre()" [disabled]="!newDiaLibre">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Añadir
+        </ion-button>
       </div>
 
       <div class="dias-libres-list" *ngIf="barber.diasLibres && barber.diasLibres.length > 0">
@@ -110,12 +138,11 @@
       </p>
     </div>
 
-    <div class="barberia-actions-footer">
+    <div class="barberia-actions-footer barber-detail-footer">
       <ion-button expand="block" color="primary" class="save-visual-btn" (click)="saveChanges()" [disabled]="saving">
         <ion-icon slot="start" name="save-outline"></ion-icon>
         {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
       </ion-button>
-      <br>
       <ion-button expand="block" color="danger" fill="outline" (click)="confirmRemoveBarber()" [disabled]="saving">
         <ion-icon slot="start" name="trash-outline"></ion-icon>
         Eliminar barbero

@@ -27,18 +27,39 @@
         </p>
       </div>
     </div>
-    
-    <div class="services-form-card">
-      <h3>Nuevo servicio</h3>
-      <p>Nombre, precio y duración en minutos.</p>
 
-      <div class="services-form-grid">
-        <ion-item lines="none" class="service-input-item">
+    <ng-template #noServices>
+      <div class="config-placeholder-card empty-state">
+        <ion-icon name="cut-outline"></ion-icon>
+        <h2>Sin Servicios</h2>
+        <p>Todavía no hay servicios creados en tu catálogo.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <p *ngIf="loading" class="calendar-empty">Cargando servicios...</p>
+
+  <!-- MODAL: Nuevo servicio -->
+  <ion-modal [isOpen]="isAddModalOpen" (didDismiss)="closeAddModal()" class="premium-modal compact-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nuevo Servicio</ion-title>
+          <ion-buttons slot="end">
+            <ion-button class="modal-close-btn" (click)="closeAddModal()">
+              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <div class="compact-modal-body">
+        <ion-item lines="none" class="service-input-item ion-margin-bottom">
           <ion-label position="stacked">Nombre</ion-label>
           <ion-input type="text" placeholder="Corte clásico" [(ngModel)]="newServicioForm.nombre"></ion-input>
         </ion-item>
 
-        <ion-item lines="none" class="service-input-item">
+        <ion-item lines="none" class="service-input-item ion-margin-bottom">
           <ion-label position="stacked">Precio</ion-label>
           <ion-input type="number" inputmode="decimal" placeholder="12.50" [(ngModel)]="newServicioForm.precio"></ion-input>
         </ion-item>
@@ -47,20 +68,30 @@
           <ion-label position="stacked">Duración (min)</ion-label>
           <ion-input type="number" inputmode="numeric" placeholder="30" [(ngModel)]="newServicioForm.duracion"></ion-input>
         </ion-item>
+
+        <p *ngIf="serviciosError" class="barberia-error ion-margin-top">{{ serviciosError }}</p>
       </div>
 
-      <ion-button expand="block" color="primary" class="add-service-button" (click)="addServicio()" [disabled]="savingServicio">
-        <ion-icon slot="start" name="add-outline"></ion-icon>
-        {{ savingServicio ? 'Añadiendo...' : 'Añadir servicio' }}
-      </ion-button>
-
-      <p *ngIf="serviciosError" class="barberia-error">{{ serviciosError }}</p>
-    </div>
-    
-    <ng-template #noServices>
-      <div class="config-placeholder-card">Todavía no hay servicios creados.</div>
+      <ion-footer>
+        <ion-toolbar>
+          <ion-button
+            expand="block"
+            class="premium-modal-button-solid ion-margin"
+            (click)="addServicio()"
+            [disabled]="savingServicio"
+          >
+            <ion-spinner *ngIf="savingServicio" name="crescent"></ion-spinner>
+            <span *ngIf="!savingServicio">Añadir servicio</span>
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
     </ng-template>
-  </div>
+  </ion-modal>
 
-  <p *ngIf="loading" class="calendar-empty">Cargando servicios...</p>
+  <!-- FAB: Nuevo Servicio (abajo a la derecha) -->
+  <div class="services-fab">
+    <ion-button class="add-service-fab-btn" (click)="openAddModal()">
+      <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+    </ion-button>
+  </div>
 </ion-content>

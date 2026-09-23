@@ -19,6 +19,9 @@ export class ServicesPage implements OnInit {
   deletingServicioId: string | null = null;
   serviciosError = '';
 
+  // Modal "Nuevo servicio"
+  isAddModalOpen = false;
+
   constructor(
     private apiService: ApiService,
     private toastCtrl: ToastController,
@@ -41,6 +44,16 @@ export class ServicesPage implements OnInit {
     }
   }
 
+  openAddModal() {
+    this.newServicioForm = { nombre: '', precio: null, duracion: null };
+    this.serviciosError = '';
+    this.isAddModalOpen = true;
+  }
+
+  closeAddModal() {
+    this.isAddModalOpen = false;
+  }
+
   async addServicio() {
     if (!this.barberia?._id) {
       this.serviciosError = 'No se encontró la barbería para añadir el servicio.';
@@ -61,10 +74,11 @@ export class ServicesPage implements OnInit {
         precio: Number(this.newServicioForm.precio),
         duracion: Number(this.newServicioForm.duracion)
       });
-      
+
       this.newServicioForm = { nombre: '', precio: null, duracion: null };
+      this.isAddModalOpen = false;
       await this.loadData();
-      
+
       const toast = await this.toastCtrl.create({
         message: 'Servicio añadido correctamente',
         duration: 2000,
@@ -75,7 +89,7 @@ export class ServicesPage implements OnInit {
     } catch (error) {
       console.error('Error al añadir servicio:', error);
       this.serviciosError = 'No se pudo añadir el servicio.';
-      
+
       const toast = await this.toastCtrl.create({
         message: 'Error al añadir servicio',
         duration: 2000,
