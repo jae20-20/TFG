@@ -5,13 +5,14 @@ import { Router, RouterLink } from '@angular/router';
 import { AlertController, IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { PhoneInputComponent } from '../../components/phone-input/phone-input.component';
 
 @Component({
   selector: 'app-register-barberia',
   templateUrl: './register-barberia.page.html',
   styleUrls: ['./register-barberia.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, RouterLink]
+  imports: [IonicModule, CommonModule, FormsModule, RouterLink, PhoneInputComponent]
 })
 export class RegisterBarberiaPage implements OnInit {
   @ViewChild(IonContent, { static: false }) content?: IonContent;

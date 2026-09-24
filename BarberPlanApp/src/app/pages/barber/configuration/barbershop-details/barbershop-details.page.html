@@ -24,7 +24,7 @@
 
       <div class="barberia-field-group">
         <label>Teléfono</label>
-        <div class="field-display">{{ barberia.telefono || 'No disponible' }}</div>
+        <div class="field-display">{{ (barberia.telefono | phoneDisplay) || 'No disponible' }}</div>
       </div>
 
       <div class="barberia-field-group">

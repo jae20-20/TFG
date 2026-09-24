@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ApiService } from '../../../../services/api.service';
+import { PhoneDisplayPipe } from '../../../../components/phone-input/phone-display.pipe';
 
 @Component({
   selector: 'app-barbershop-details',
   templateUrl: './barbershop-details.page.html',
   styleUrls: ['./barbershop-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, PhoneDisplayPipe]
 })
 export class BarbershopDetailsPage implements OnInit {
   barberia: any = null;

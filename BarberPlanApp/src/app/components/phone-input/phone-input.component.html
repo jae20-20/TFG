@@ -1,0 +1,20 @@
+<div class="phone-input" [class.disabled]="disabled">
+  <select
+    class="phone-input-code"
+    [ngModel]="selectedCountry.dialCode"
+    (ngModelChange)="onCountryDialChange($event)"
+    [disabled]="disabled"
+  >
+    <option *ngFor="let country of countries" [value]="country.dialCode">{{ country.flag }} {{ country.dialCode }}</option>
+  </select>
+
+  <input
+    type="tel"
+    class="phone-input-number"
+    [ngModel]="nationalNumber"
+    (ngModelChange)="onNumberChange($event)"
+    (blur)="onTouchedFn()"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+  />
+</div>

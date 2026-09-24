@@ -84,10 +84,10 @@
       <div class="barberia-field-group">
         <label>Teléfono</label>
         <ng-container *ngIf="!isEditingAdmin">
-          <div class="field-display">{{ user.telefono || 'No disponible' }}</div>
+          <div class="field-display">{{ (user.telefono | phoneDisplay) || 'No disponible' }}</div>
         </ng-container>
         <ng-container *ngIf="isEditingAdmin && adminEditForm">
-          <ion-input class="field-input" type="tel" placeholder="Teléfono" [(ngModel)]="adminEditForm.telefono"></ion-input>
+          <app-phone-input [(ngModel)]="adminEditForm.telefono"></app-phone-input>
         </ng-container>
       </div>
 

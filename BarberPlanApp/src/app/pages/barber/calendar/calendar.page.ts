@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
@@ -58,7 +58,8 @@ export class BarberCalendarPage implements OnInit {
     private apiService: ApiService,
     private storage: Storage,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private cdr: ChangeDetectorRef
   ) { }
 
   async ngOnInit() {
@@ -123,6 +124,7 @@ export class BarberCalendarPage implements OnInit {
     } finally {
       this.loadingCitas = false;
       this.updateSelectedDayAppointments();
+      this.cdr.detectChanges();
     }
   }
 

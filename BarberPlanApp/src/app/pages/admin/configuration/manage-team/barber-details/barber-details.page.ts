@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../../services/api.service';
+import { PhoneDisplayPipe } from '../../../../../components/phone-input/phone-display.pipe';
 
 type ScheduleDayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -36,7 +37,7 @@ interface BarberDetail {
   templateUrl: './barber-details.page.html',
   styleUrls: ['./barber-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PhoneDisplayPipe]
 })
 export class BarberDetailsPage implements OnInit {
   barberId: string | null = null;

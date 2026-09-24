@@ -56,10 +56,10 @@
       <div class="barberia-field-group">
         <label>Teléfono</label>
         <ng-container *ngIf="!isEditingPerfil">
-          <div class="field-display">{{ barberia.telefono || 'No disponible' }}</div>
+          <div class="field-display">{{ (barberia.telefono | phoneDisplay) || 'No disponible' }}</div>
         </ng-container>
         <ng-container *ngIf="isEditingPerfil">
-          <ion-input class="field-input" type="tel" placeholder="Teléfono" [(ngModel)]="barberiaEditForm.telefono"></ion-input>
+          <app-phone-input [(ngModel)]="barberiaEditForm.telefono"></app-phone-input>
         </ng-container>
       </div>
 

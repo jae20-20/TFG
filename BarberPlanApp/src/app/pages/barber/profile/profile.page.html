@@ -83,10 +83,10 @@
       <div class="barbero-field-group">
         <label>Teléfono</label>
         <ng-container *ngIf="!isEditingBarbero; else editTelefono">
-          <div class="field-display">{{ user?.telefono || 'No disponible' }}</div>
+          <div class="field-display">{{ (user?.telefono | phoneDisplay) || 'No disponible' }}</div>
         </ng-container>
         <ng-template #editTelefono>
-          <ion-input class="field-input" type="tel" [(ngModel)]="barberoEditForm.telefono" placeholder="Teléfono"></ion-input>
+          <app-phone-input [(ngModel)]="barberoEditForm.telefono"></app-phone-input>
         </ng-template>
       </div>
 

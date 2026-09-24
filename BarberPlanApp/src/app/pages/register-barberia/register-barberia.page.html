@@ -65,13 +65,7 @@
           <!-- Teléfono -->
           <div class="auth-field">
             <label class="auth-label">Teléfono *</label>
-            <input
-              type="tel"
-              [(ngModel)]="formData.telefono"
-              name="telefono"
-              placeholder="+34 600 123 456"
-              class="auth-input"
-            />
+            <app-phone-input [(ngModel)]="formData.telefono" name="telefono"></app-phone-input>
           </div>
 
           <!-- Descripción -->

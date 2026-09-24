@@ -4,13 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../services/api.service';
+import { PhoneInputComponent } from '../../../../components/phone-input/phone-input.component';
+import { PhoneDisplayPipe } from '../../../../components/phone-input/phone-display.pipe';
 
 @Component({
   selector: 'app-barbershop-details',
   templateUrl: './barbershop-details.page.html',
   styleUrls: ['./barbershop-details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, RouterModule]
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule, PhoneInputComponent, PhoneDisplayPipe]
 })
 export class BarbershopDetailsPage implements OnInit {
   barberia: any = null;

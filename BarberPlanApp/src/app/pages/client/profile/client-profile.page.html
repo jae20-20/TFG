@@ -98,10 +98,10 @@
       <div class="cliente-field-group">
         <label>Teléfono</label>
         <ng-container *ngIf="!isEditingClient; else editTelefono">
-          <div class="field-display">{{ user?.telefono || profile?.telefono || 'No disponible' }}</div>
+          <div class="field-display">{{ (user?.telefono || profile?.telefono | phoneDisplay) || 'No disponible' }}</div>
         </ng-container>
         <ng-template #editTelefono>
-          <ion-input class="field-input" type="tel" [(ngModel)]="clientEditForm.telefono" placeholder="Teléfono"></ion-input>
+          <app-phone-input [(ngModel)]="clientEditForm.telefono"></app-phone-input>
         </ng-template>
       </div>
 

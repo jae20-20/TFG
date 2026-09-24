@@ -7,6 +7,8 @@ import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
+import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
 
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutline, checkmarkOutline, closeOutline, cameraOutline } from 'ionicons/icons';
@@ -16,7 +18,7 @@ import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutli
   templateUrl: './client-profile.page.html',
   styleUrls: ['./client-profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe]
 })
 export class ClientProfilePage implements OnInit {
   user: any = null;

@@ -4,13 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
+import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
+import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
 
 @Component({
   selector: 'app-barber-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PhoneInputComponent, PhoneDisplayPipe]
 })
 export class BarberProfilePage implements OnInit {
   user: any = null;
