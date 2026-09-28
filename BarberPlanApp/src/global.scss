@@ -261,6 +261,10 @@ ion-modal.premium-modal {
     --color: var(--custom-gold, #d4af37);
     --border-radius: var(--bp-radius-sm);
     font-weight: 600;
+
+    &::part(native) {
+      border-radius: var(--bp-radius-sm) !important;
+    }
   }
   
   .premium-modal-button-solid {
@@ -1197,12 +1201,23 @@ ion-item ion-label[position="stacked"],
 .cargo-label,
 .auth-label {
   transform: none !important;
-  margin-bottom: 6px !important;
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
   font-size: var(--bp-fs-caption) !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--custom-label) !important;
+}
+
+
+ion-item.item-label-stacked ion-input,
+ion-item.item-label-floating ion-input,
+ion-item.item-label-stacked ion-select,
+ion-item.item-label-floating ion-select,
+ion-item.item-label-stacked ion-textarea,
+ion-item.item-label-floating ion-textarea {
+  min-height: 24px !important;
 }
 
 .field-note {

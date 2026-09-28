@@ -76,15 +76,27 @@ ion-content.bg-dark-900,
 .save-visual-btn,
 .booking-step-btn.primary,
 .btn-primary,
+.premium-modal-button-solid,
 button.bg-gold-500,
 a.bg-gold-500 {
+  /* Variables de Ionic: son las que realmente pintan el Shadow DOM de ion-button */
+  --background: var(--ion-color-primary) !important;
+  --color: var(--ion-color-primary-contrast) !important;
+  --border-width: 0 !important;
+  --border-radius: var(--bp-radius-sm) !important;
+  --box-shadow: none !important;
+  /* Propiedades planas: cubren el caso de <button>/<a> nativos (bg-gold-500) */
   background: var(--ion-color-primary) !important;
   color: var(--ion-color-primary-contrast) !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: var(--bp-radius-sm) !important;
   border: none !important;
   box-shadow: none !important;
   transition: transform 0.2s ease, background 0.2s ease !important;
+
+  &::part(native) {
+    border-radius: var(--bp-radius-sm) !important;
+  }
 }
 
 /* Fuerza SOLO el texto blanco en botones de guardar/submit y botones primarios de Ionic */
@@ -93,8 +105,13 @@ button[type="submit"],
 ion-button[color="primary"] {
   --color: var(--ion-color-primary-contrast);
   color: var(--ion-color-primary-contrast);
+  --border-radius: var(--bp-radius-sm) !important;
   --box-shadow: none !important;
   box-shadow: none !important;
+
+  &::part(native) {
+    border-radius: var(--bp-radius-sm) !important;
+  }
 }
 
 .reserve-btn:hover,
@@ -103,6 +120,7 @@ ion-button[color="primary"] {
 .save-visual-btn:hover,
 .booking-step-btn.primary:hover,
 .btn-primary:hover,
+.premium-modal-button-solid:hover,
 button.bg-gold-500:hover,
 a.bg-gold-500:hover {
   filter: brightness(1.15);
@@ -113,15 +131,28 @@ a.bg-gold-500:hover {
 /* Botones secundarios (cancelar, atrás) */
 .cancel-btn,
 .btn-secondary {
+  --background: transparent !important;
+  --border-color: var(--custom-border-subtle) !important;
+  --border-width: 1px !important;
+  --border-style: solid !important;
+  --border-radius: var(--bp-radius-sm) !important;
+  --color: var(--custom-text-muted) !important;
   background: transparent !important;
   border: 1px solid var(--custom-border-subtle) !important;
   color: var(--custom-text-muted) !important;
-  border-radius: 12px !important;
+  border-radius: var(--bp-radius-sm) !important;
   font-weight: 600 !important;
+
+  &::part(native) {
+    border-radius: var(--bp-radius-sm) !important;
+    border-color: var(--custom-border-subtle) !important;
+  }
 }
 
 .cancel-btn:hover,
 .btn-secondary:hover {
+  --border-color: var(--custom-gold) !important;
+  --color: var(--custom-gold-light) !important;
   border-color: var(--custom-gold) !important;
   color: var(--custom-gold-light) !important;
 }

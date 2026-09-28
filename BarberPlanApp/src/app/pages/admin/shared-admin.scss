@@ -502,8 +502,8 @@ ion-content {
   ion-input,
   ion-select {
     --color: var(--custom-text-primary);
-    --padding-top: 2px;
-    --padding-bottom: 2px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
     font-size: 14px;
   }
 }
@@ -613,7 +613,9 @@ ion-content {
   --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
-  --min-height: 58px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  --min-height: 0;
   --inner-padding-end: 0;
   border: 1px solid var(--custom-border-subtle);
   border-radius: 12px;
@@ -626,6 +628,8 @@ ion-content {
 
   ion-input {
     --color: var(--custom-text-primary);
+    --padding-top: 0;
+    --padding-bottom: 0;
   }
 }
 
