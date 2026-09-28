@@ -1,0 +1,22 @@
+@mixin state-box {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: var(--bp-radius-md);
+  border: 1px solid var(--custom-border-subtle);
+  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
+  color: var(--custom-text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+
+  ion-spinner {
+    color: var(--custom-gold);
+  }
+}

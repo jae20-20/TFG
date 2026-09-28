@@ -75,7 +75,7 @@
 
       <ng-container *ngIf="!loadingCitas">
       <ng-container *ngIf="viewMode === 'month'">
-        <div class="schedule-delimiter closed-partial" *ngIf="barberAbsence" style="color: var(--ion-color-danger); border-color: var(--ion-color-danger);">
+        <div class="schedule-delimiter closed-partial" *ngIf="barberAbsence">
           <span>-- CERRADO DE  {{ barberAbsence.start }} A {{ barberAbsence.end }} --</span>
         </div>
 
@@ -252,20 +252,20 @@
         </ion-toolbar>
       </ion-header>
       <div class="compact-modal-body">
-        <p class="ion-margin-bottom" style="color: #94a3b8; font-size: 0.95rem;">
+        <p class="modal-subtitle-text ion-margin-bottom">
           Añade las franjas horarias en las que estará abierto este día.
         </p>
 
         <div *ngFor="let slot of currentSlots; let i = index" class="slot-container">
-          <ion-item class="time-item" lines="none" style="flex: 1;">
-            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Inicio</ion-label>
+          <ion-item class="time-item" lines="none">
+            <ion-label position="stacked">Inicio</ion-label>
             <ion-input type="time" [(ngModel)]="slot.start"></ion-input>
           </ion-item>
-          <ion-item class="time-item" lines="none" style="flex: 1;">
-            <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Fin</ion-label>
+          <ion-item class="time-item" lines="none">
+            <ion-label position="stacked">Fin</ion-label>
             <ion-input type="time" [(ngModel)]="slot.end"></ion-input>
           </ion-item>
-          <ion-button fill="clear" color="danger" (click)="removeSlot(i)" [disabled]="currentSlots.length === 1" style="margin-top: 25px;">
+          <ion-button fill="clear" color="danger" (click)="removeSlot(i)" [disabled]="currentSlots.length === 1">
             <ion-icon name="trash" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
@@ -304,7 +304,7 @@
         </p>
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
-          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Servicio *</ion-label>
+          <ion-label position="stacked">Servicio</ion-label>
           <ion-select [(ngModel)]="selectedServicioId" placeholder="Selecciona un servicio" interface="alert" cancelText="Cancelar" okText="Guardar">
             <ion-select-option *ngFor="let s of serviciosBarberia" [value]="s._id">
               {{ s.nombre }} ({{ s.duracion }} min - {{ s.precio }}€)
@@ -313,20 +313,20 @@
         </ion-item>
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
-          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Hora de inicio *</ion-label>
-          <div *ngIf="loadingHoras" style="padding: 10px 0; color: #94a3b8;">Cargando horas disponibles...</div>
+          <ion-label position="stacked">Hora de inicio</ion-label>
+          <div *ngIf="loadingHoras" class="field-note">Cargando horas disponibles...</div>
           <ion-select *ngIf="!loadingHoras && horasDisponibles.length > 0" [(ngModel)]="selectedHoraInicio" placeholder="Selecciona una hora" interface="alert" cancelText="Cancelar" okText="Guardar">
             <ion-select-option *ngFor="let hora of horasDisponibles" [value]="hora">
               {{ hora }}
             </ion-select-option>
           </ion-select>
-          <div *ngIf="!loadingHoras && horasDisponibles.length === 0" style="padding: 10px 0; color: #ef4444; font-size: 0.9rem;">
+          <div *ngIf="!loadingHoras && horasDisponibles.length === 0" class="field-note field-note-danger">
             No hay franjas horarias disponibles en este día.
           </div>
         </ion-item>
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
-          <ion-label position="stacked" style="color: #64748b; font-weight: 600;">Nombre del Cliente (Opcional)</ion-label>
+          <ion-label position="stacked">Nombre del cliente (opcional)</ion-label>
           <ion-input type="text" [(ngModel)]="clienteNombreManual" placeholder="Ej. Cliente Walk-in"></ion-input>
         </ion-item>
       </div>

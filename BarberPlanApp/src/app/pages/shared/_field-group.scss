@@ -1,0 +1,48 @@
+@mixin field-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: var(--bp-fs-caption);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--custom-label);
+  }
+
+  .field-display {
+    padding: 12px 14px;
+    border-radius: var(--bp-radius-sm);
+    background: var(--custom-surface);
+    border: 1px solid var(--custom-border-subtle);
+    font-size: var(--bp-fs-body);
+    color: var(--custom-text-primary);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .field-display-muted {
+    color: var(--custom-text-muted);
+  }
+
+  .field-input {
+    --background: var(--custom-surface);
+    --border-radius: var(--bp-radius-sm);
+    --color: var(--custom-text-primary);
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    border: 1px solid var(--custom-border-subtle);
+    border-radius: var(--bp-radius-sm);
+
+    &::placeholder {
+      color: var(--custom-text-muted);
+    }
+
+    &:focus {
+      --background: var(--custom-border-subtle);
+    }
+  }
+}

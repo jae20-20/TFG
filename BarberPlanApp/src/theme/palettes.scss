@@ -4,6 +4,20 @@
 
 :root, body {
   color-scheme: dark;
+
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #dc2626;
+  --ion-color-danger-tint: #f16565;
+
+  --ion-color-success: #22c55e;
+  --ion-color-success-rgb: 34, 197, 94;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #16a34a;
+  --ion-color-success-tint: #4ade80;
 }
 
 :root.light-mode, body.light-mode {
@@ -16,8 +30,8 @@
     */
   --ion-color-primary: #d4af37;
   --ion-color-primary-rgb: 212, 175, 55;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-contrast: #121212;
+  --ion-color-primary-contrast-rgb: 18, 18, 18;
   --ion-color-primary-shade: #bb9a30;
   --ion-color-primary-tint: #d8b74b;
 
@@ -56,6 +70,8 @@
   --custom-gold-light: #f5d47a;
   --custom-gold-dark: #b88f1f;
   --custom-gold-soft: rgba(var(--ion-color-primary-rgb), 0.15);
+
+  --custom-label: var(--custom-gold-light);
 
   /* ALIAS DE COMPATIBILIDAD CON SISTEMA ANTIGUO */
   --premium-gold: var(--custom-gold);
@@ -167,6 +183,9 @@
  * MODO CLARO (LIGHT MODE) - BARBERPLAN
  *  */
 :root.light-mode, body.light-mode {
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+
   /* FONDOS CLAROS */
   --ion-background-color: #f8fafc;
   --ion-background-color-rgb: 248, 250, 252;
@@ -183,6 +202,7 @@
   --custom-text-muted: #64748b;
   --custom-text-muted-alt: #94a3b8;
   --custom-text-heading: #0f172a;
+  --custom-label: var(--ion-color-primary);
 
   /* TOKENS DE BORDES EN MODO CLARO */
   --custom-border-subtle: rgba(var(--ion-color-primary-rgb), 0.15);

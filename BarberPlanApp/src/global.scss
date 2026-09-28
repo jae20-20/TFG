@@ -173,7 +173,7 @@ body.dark .custom-header-center {
 ion-modal.premium-modal {
   --background: var(--custom-surface, #17191d);
   --backdrop-opacity: 0.7;
-  --border-radius: 16px;
+  --border-radius: var(--bp-radius-lg);
   --border-width: 1.5px;
   --border-style: solid;
   --border-color: var(--ion-color-primary);
@@ -182,7 +182,7 @@ ion-modal.premium-modal {
   &::part(content),
   .modal-wrapper {
     border: 1.5px solid var(--ion-color-primary) !important;
-    border-radius: 16px !important;
+    border-radius: var(--bp-radius-lg) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
   }
 
@@ -259,32 +259,23 @@ ion-modal.premium-modal {
     --border-style: solid;
     --border-width: 1px;
     --color: var(--custom-gold, #d4af37);
-    --border-radius: 8px;
+    --border-radius: var(--bp-radius-sm);
     font-weight: 600;
   }
   
   .premium-modal-button-solid {
     --background: var(--ion-color-primary) !important;
     background: var(--ion-color-primary) !important;
-    --color: #ffffff !important;
-    color: #ffffff !important;
-    --border-radius: 12px !important;
+    --color: var(--ion-color-primary-contrast) !important;
+    color: var(--ion-color-primary-contrast) !important;
+    --border-radius: var(--bp-radius-sm) !important;
     font-weight: 700 !important;
 
     &::part(native) {
-      border-radius: 12px !important;
+      border-radius: var(--bp-radius-sm) !important;
     }
   }
 
-  .slot-container {
-    background: var(--custom-surface);
-    border: 1px solid var(--custom-border-subtle);
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 15px;
-  }
-
-  
   .time-item {
     --background: transparent !important;
     --color: var(--custom-text-primary);
@@ -419,7 +410,7 @@ ion-alert.select-alert {
 
   .alert-button.alert-button-role-cancel,
   button.alert-button:first-child {
-    color: #ef4444 !important;
+    color: var(--ion-color-danger) !important;
     font-weight: 700 !important;
   }
 }
@@ -492,7 +483,7 @@ ion-modal ion-header ion-button.cancel-btn,
 ion-modal ion-toolbar ion-button.cancel-btn,
 ion-alert .alert-button-role-cancel,
 ion-alert button.alert-button:first-child {
-  color: #ef4444 !important;
+  color: var(--ion-color-danger) !important;
   font-weight: 700 !important;
 }
 
@@ -527,30 +518,30 @@ button,
 .gestionar-dia-btn.btn-parcial {
   background: var(--ion-color-primary) !important;
   border: 1.5px solid var(--ion-color-primary) !important;
-  color: #ffffff !important;
+  color: var(--ion-color-primary-contrast) !important;
 
   ion-icon {
-    color: #ffffff !important;
+    color: var(--ion-color-primary-contrast) !important;
   }
 }
 
 .gestionar-dia-btn.btn-cerrar {
-  background: rgba(239, 68, 68, 0.14) !important;
-  border: 1.5px solid #ef4444 !important;
-  color: #ef4444 !important;
+  background: rgba(var(--ion-color-danger-rgb), 0.14) !important;
+  border: 1.5px solid var(--ion-color-danger) !important;
+  color: var(--ion-color-danger) !important;
 
   ion-icon {
-    color: #ef4444 !important;
+    color: var(--ion-color-danger) !important;
   }
 }
 
 .gestionar-dia-btn.btn-abrir {
-  background: rgba(16, 185, 129, 0.14) !important;
-  border: 1.5px solid #10b981 !important;
-  color: #10b981 !important;
+  background: rgba(var(--ion-color-success-rgb), 0.14) !important;
+  border: 1.5px solid var(--ion-color-success) !important;
+  color: var(--ion-color-success) !important;
 
   ion-icon {
-    color: #10b981 !important;
+    color: var(--ion-color-success) !important;
   }
 }
 
@@ -566,11 +557,11 @@ body:not(.light-mode) .modal-subtitle-text {
 }
 
 body.light-mode .modal-subtitle-text {
-  color: #334155 !important;
+  color: var(--custom-text-secondary) !important;
   font-size: 0.95rem;
 
   b, strong {
-    color: #0f172a !important;
+    color: var(--custom-text-primary) !important;
     font-weight: 800;
   }
 }
@@ -588,12 +579,12 @@ body:not(.light-mode) {
   .btn-primary,
   .save-btn,
   button[type="submit"] {
-    --color: #0f172a !important;
-    color: #0f172a !important;
+    --color: var(--ion-color-primary-contrast) !important;
+    color: var(--ion-color-primary-contrast) !important;
     font-weight: 800 !important;
 
     span, * {
-      color: #0f172a !important;
+      color: var(--ion-color-primary-contrast) !important;
     }
   }
 }
@@ -670,7 +661,7 @@ ion-content.bg-dark-900::part(scroll) {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 12px 18px 48px;
+  padding: calc(env(safe-area-inset-top, 0px) + 24px) 18px 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -684,7 +675,7 @@ ion-content.bg-dark-900::part(scroll) {
 .auth-container-centered {
   min-height: 100%;
   justify-content: flex-start;
-  padding-top: 4vh;
+  padding-top: max(4vh, calc(env(safe-area-inset-top, 0px) + 24px));
 }
 
 /* Branding: Logo + Título lado a lado (Estándar para Crear Cuenta y Registrar Barbería) */
@@ -707,7 +698,7 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 .auth-brand-title {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 800;
   font-size: 1.75rem;
   line-height: 1;
@@ -717,7 +708,7 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 .auth-brand-subtitle {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 500;
   font-size: 0.8rem;
   margin: 4px 0 0;
@@ -763,7 +754,7 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 .auth-card-title {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 800;
   font-size: 1.65rem;
   color: var(--custom-text-primary, #f8fafc);
@@ -772,7 +763,7 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 .auth-card-desc {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 400;
   font-size: 0.88rem;
   color: var(--custom-text-muted-alt, #94a3b8);
@@ -781,7 +772,7 @@ ion-content.bg-dark-900::part(scroll) {
 
 /* Indicador de paso */
 .auth-step-indicator {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -812,15 +803,6 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 /* Label */
-.auth-label {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--custom-text-primary, #f8fafc);
-  margin-bottom: 8px;
-  letter-spacing: 0.01em;
-}
-
 /* Input / Select / Textarea */
 .auth-input {
   width: 100%;
@@ -829,7 +811,7 @@ ion-content.bg-dark-900::part(scroll) {
   border: 1px solid var(--custom-border-subtle, rgba(148, 163, 184, 0.15));
   background: rgba(255, 255, 255, 0.04);
   color: var(--custom-text-primary, #f8fafc);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-size: 0.875rem;
   font-weight: 400;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
@@ -870,7 +852,7 @@ ion-content.bg-dark-900::part(scroll) {
 
 /* Hint text */
 .auth-hint {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-size: 0.7rem;
   color: var(--custom-text-muted-alt, #64748b);
   margin: 4px 0 0;
@@ -905,8 +887,8 @@ ion-content.bg-dark-900::part(scroll) {
   border-radius: 12px;
   border: none;
   background: var(--ion-color-primary) !important;
-  color: #0f172a !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ion-color-primary-contrast) !important;
+  font-family: var(--ion-font-family);
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.01em;
@@ -943,7 +925,7 @@ ion-content.bg-dark-900::part(scroll) {
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.4);
   background: transparent !important;
   color: var(--ion-color-primary) !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -977,7 +959,7 @@ ion-content.bg-dark-900::part(scroll) {
 
 .auth-links p {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-size: 0.8rem;
   color: var(--custom-text-muted-alt, #94a3b8);
 }
@@ -1027,7 +1009,7 @@ ion-content.bg-dark-900::part(scroll) {
   border: none;
   background: transparent;
   color: var(--custom-text-muted-alt, #94a3b8);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
@@ -1035,11 +1017,7 @@ ion-content.bg-dark-900::part(scroll) {
 }
 
 .rol-toggle-btn.selected {
-  color: #0f172a;
-}
-
-body.light-mode .rol-toggle-btn.selected {
-  color: #ffffff;
+  color: var(--ion-color-primary-contrast);
 }
 
 /* ==================== TARJETA CON GIRO 3D (Crear Cuenta) ==================== */
@@ -1127,19 +1105,18 @@ body.light-mode .rol-toggle-btn.selected {
   cursor: not-allowed;
 }
 
-/* Badges con colores primario y success: texto oscuro para mejor contraste en modo oscuro */
 ion-badge[color="primary"] {
-  --color: #0f172a !important;
+  --color: var(--ion-color-primary-contrast) !important;
 }
 
 ion-badge[color="success"] {
-  --color: #ffffff !important;
+  --color: var(--ion-color-success-contrast) !important;
 }
 
 .auth-error-hint {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ion-font-family);
   font-size: 0.75rem;
-  color: var(--ion-color-danger, #ef4444);
+  color: var(--ion-color-danger, var(--ion-color-danger));
   margin: 6px 0 0;
 }
 
@@ -1151,7 +1128,7 @@ ion-badge[color="success"] {
   border-radius: 10px;
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
-  color: var(--ion-color-success, #22c55e);
+  color: var(--ion-color-success);
   font-size: 0.85rem;
   font-weight: 600;
 
@@ -1184,10 +1161,6 @@ body.light-mode {
     -webkit-box-shadow: 0 0 0 1000px rgba(245, 245, 245, 1) inset !important;
     -webkit-text-fill-color: var(--custom-text-primary, #0f172a) !important;
   }
-
-  .auth-submit-btn:not(.auth-btn-disabled) {
-    color: #ffffff !important;
-  }
 }
 
 /* Mantener el color del logo del header del cliente siempre con la paleta activa en todas las páginas */
@@ -1197,3 +1170,54 @@ body.light-mode {
   color: var(--ion-color-primary) !important;
 }
 
+
+ion-button {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.premium-modal-button-solid,
+.save-visual-btn,
+.add-service-button,
+.barberia-actions-footer ion-button {
+  --border-radius: var(--bp-radius-sm);
+  min-height: var(--bp-control-height);
+  font-size: var(--bp-fs-button);
+  font-weight: 700;
+}
+
+.auth-submit-btn,
+.auth-secondary-btn {
+  min-height: var(--bp-control-height);
+  border-radius: var(--bp-radius-sm);
+  font-size: var(--bp-fs-button);
+}
+
+ion-item ion-label[position="stacked"],
+.cargo-label,
+.auth-label {
+  transform: none !important;
+  margin-bottom: 6px !important;
+  font-size: var(--bp-fs-caption) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--custom-label) !important;
+}
+
+.field-note {
+  padding: 10px 0;
+  font-size: var(--bp-fs-secondary);
+  color: var(--custom-text-muted-alt);
+
+  &.field-note-danger {
+    color: var(--ion-color-danger);
+    font-size: 0.9rem;
+  }
+}
+
+.scissors-icon {
+  color: #ec4899 !important;
+  transform: rotate(-45deg);
+  display: inline-block;
+}

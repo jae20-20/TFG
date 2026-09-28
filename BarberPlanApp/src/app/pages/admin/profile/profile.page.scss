@@ -78,7 +78,7 @@
 		width: 22px;
 		height: 22px;
 		border-radius: 50%;
-		background: #ef4444;
+		background: var(--ion-color-danger);
 		color: #ffffff;
 		border: 2px solid var(--custom-card-bg);
 		display: flex;
@@ -91,7 +91,7 @@
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 
 		&:hover {
-			background: #dc2626;
+			background: var(--ion-color-danger-shade);
 		}
 	}
 }

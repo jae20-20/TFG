@@ -1,3 +1,5 @@
+@use '../../shared/state-box' as sb;
+
 :host {
 	--premium-border: rgba(var(--ion-color-primary-rgb), 0.2);
 	--premium-text: var(--custom-text-primary);
@@ -8,17 +10,6 @@ ion-content.client-premium-content {
 		radial-gradient(circle at top, rgba(var(--ion-color-primary-rgb), 0.08), transparent 36%),
 		var(--ion-background-color);
 	--padding-bottom: 92px;
-}
-
-.client-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	--border-color: rgba(var(--ion-color-primary-rgb), 0.26);
-	border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
-}
-
-.client-topbar-title {
-	color: var(--premium-text);
-	font-weight: 800;
 }
 
 .client-logout-btn {
@@ -66,38 +57,8 @@ ion-content.client-premium-content {
 	}
 }
 
-.segment-chip {
-	flex-shrink: 0;
-	padding: 9px 16px;
-	border-radius: 999px;
-	background: var(--custom-surface);
-	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
-	color: var(--custom-text-primary);
-	font-size: 13px;
-	font-weight: 600;
-	transition: all 0.15s ease;
-
-	&.selected {
-		background: var(--ion-color-primary);
-		border-color: var(--ion-color-primary);
-		color: var(--ion-background-color);
-		font-weight: 800;
-	}
-}
-
 .client-state {
-	margin-top: 22px;
-	padding: 18px;
-	border-radius: 16px;
-	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	color: var(--premium-text);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	text-align: center;
-	flex-direction: column;
+	@include sb.state-box;
 }
 
 .client-state.error {
@@ -236,15 +197,15 @@ ion-content.client-premium-content {
 	}
 
 	&.cancel-btn {
-		border-color: rgba(239, 68, 68, 0.5);
-		color: #ef4444 !important;
+		border-color: rgba(var(--ion-color-danger-rgb), 0.5);
+		color: var(--ion-color-danger) !important;
 
 		ion-icon {
-			color: #ef4444;
+			color: var(--ion-color-danger);
 		}
 
 		&:active {
-			background: rgba(239, 68, 68, 0.14);
+			background: rgba(var(--ion-color-danger-rgb), 0.14);
 		}
 	}
 

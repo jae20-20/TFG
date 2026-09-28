@@ -4,37 +4,16 @@
 	margin-right: 14px;
 }
 
-// Floating Action Button: Añadir empleado
-// Posicionado abajo a la derecha, flotante sobre el contenido.
-// Sigue patrón Material Design 3 (FAB circular).
 .team-list-fab {
-	position: fixed;
-	bottom: 32px;
-	right: 24px;
-	z-index: 99;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	@include shared-admin.fab-container;
 }
 
 .add-employee-fab-btn {
-	--background: var(--ion-color-primary);
-	--color: #0f172a;
-	--border-radius: 50%;
-	width: 56px;
-	height: 56px;
-	--box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
-	font-weight: 700;
-	text-transform: none;
-	margin: 0;
-
-	ion-icon {
-		font-size: 28px;
-	}
+	@include shared-admin.fab-button;
 }
 
 .section-subtitle {
-	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	font-family: var(--ion-font-family);
 	font-weight: 700;
 	font-size: 0.9rem;
 	color: var(--custom-text-muted-alt, #94a3b8);
@@ -52,15 +31,6 @@
 	font-size: 1.3rem;
 }
 
-/* ==================== MODAL: AÑADIR EMPLEADO ==================== */
-
-.modal-subtitle-text {
-	color: var(--custom-text-muted-alt, #94a3b8);
-	font-size: 0.88rem;
-	line-height: 1.4;
-}
-
-/* Pantalla de éxito con el código generado */
 .invite-success {
 	display: flex;
 	flex-direction: column;
@@ -71,7 +41,7 @@
 
 .invite-success-icon {
 	font-size: 2.6rem;
-	color: var(--ion-color-success, #22c55e);
+	color: var(--ion-color-success);
 	margin-bottom: 10px;
 }
 

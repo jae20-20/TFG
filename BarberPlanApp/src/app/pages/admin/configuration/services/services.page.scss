@@ -1,30 +1,9 @@
 @use '../../shared-admin.scss';
 
-// Floating Action Button: Nuevo Servicio
-// Posicionado abajo a la derecha, flotante sobre el contenido.
-// Sigue patrón Material Design 3 (FAB circular).
 .services-fab {
-  position: fixed;
-  bottom: 32px;
-  right: 24px;
-  z-index: 99;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include shared-admin.fab-container;
 }
 
 .add-service-fab-btn {
-  --background: var(--ion-color-primary);
-  --color: #0f172a;
-  --border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  --box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
-  font-weight: 700;
-  text-transform: none;
-  margin: 0;
-
-  ion-icon {
-    font-size: 28px;
-  }
+  @include shared-admin.fab-button;
 }

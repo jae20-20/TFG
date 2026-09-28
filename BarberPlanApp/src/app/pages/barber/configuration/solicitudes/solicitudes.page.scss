@@ -1,5 +1,10 @@
 @use '../../../admin/shared-admin.scss';
 
+.franjas-list {
+  margin-top: 10px;
+  width: 100%;
+}
+
 .nueva-solicitud-card {
   background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
@@ -68,17 +73,10 @@
 }
 
 .error-msg {
-  color: #ef4444;
+  color: var(--ion-color-danger);
   padding: 12px;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
   border-radius: 8px;
   text-align: center;
 }
 
-// Estado de carga (spinner centrado) — distinto del .calendar-empty "sin
-// resultados" de shared-admin, se mantiene local a propósito.
-.calendar-empty {
-  text-align: center;
-  padding: 30px;
-  color: var(--custom-text-muted);
-}

@@ -1,3 +1,32 @@
+@use '../shared/field-group' as fg;
+@use '../shared/state-box' as sb;
+
+@mixin fab-container {
+  position: fixed;
+  bottom: 32px;
+  right: 24px;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin fab-button {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  --border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  --box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);
+  font-weight: 700;
+  text-transform: none;
+  margin: 0;
+
+  ion-icon {
+    font-size: 28px;
+  }
+}
+
 .welcome-card {
   margin: 10px;
   border-radius: 12px;
@@ -98,9 +127,6 @@ ion-content {
   }
 }
 
-// La rejilla mensual (.calendar-weekdays / .calendar-grid / .calendar-day...)
-// vive ahora en components/month-calendar, que es self-contained.
-
 .calendar-detail {
   margin-top: 16px;
   padding-top: 16px;
@@ -153,8 +179,6 @@ ion-content {
   color: var(--custom-text-muted);
   font-size: 14px;
 
-  // Variante para estados vacíos con icono + título + texto (en vez de una
-  // sola línea de texto plano), reusada por team-requests y solicitudes.
   &.empty-state {
     padding: 32px 20px;
     text-align: center;
@@ -180,8 +204,6 @@ ion-content {
   }
 }
 
-// Avatar circular/redondeado genérico de barbero — sustituye a las copias
-// divergentes (team-avatar-wrap, req-avatar-wrap) que había en varias páginas.
 .avatar-wrap {
   width: 44px;
   height: 44px;
@@ -223,8 +245,6 @@ ion-content {
   }
 }
 
-// Tarjeta de solicitud (equipo/barbero) — contenedor y estructura interna
-// comunes a admin/team-requests y barber/solicitudes.
 .solicitud-card {
   background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
   border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
@@ -293,13 +313,6 @@ ion-content {
   flex-direction: column;
 }
 
-.cargo-label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--custom-text-primary, #f8fafc);
-  margin-bottom: 8px;
-}
-
 .cargo-chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -320,7 +333,7 @@ ion-content {
   &.selected {
     background: var(--ion-color-primary);
     border-color: var(--ion-color-primary);
-    color: #0f172a;
+    color: var(--ion-color-primary-contrast);
   }
 }
 
@@ -502,7 +515,7 @@ ion-content {
   --padding-start: 0;
   --padding-end: 0;
   --border-radius: 10px;
-  --background-hover: rgba(239, 68, 68, 0.12);
+  --background-hover: rgba(var(--ion-color-danger-rgb), 0.12);
   align-self: center;
   flex-shrink: 0;
 }
@@ -664,21 +677,20 @@ ion-content {
 }
 
 .delete-service-button {
-  --color: #ef4444;
-  --color-hover: #dc2626;
-  --color-focused: #dc2626;
+  --color: var(--ion-color-danger);
+  --color-hover: var(--ion-color-danger-shade);
+  --color-focused: var(--ion-color-danger-shade);
   --padding-start: 0;
   --padding-end: 0;
   width: 36px;
   height: 36px;
 
   ion-icon {
-    color: #ef4444;
+    color: var(--ion-color-danger);
     font-size: 20px;
   }
 }
 
-// ===== Barbería Profile Card Styles =====
 .barberia-profile-card {
   margin-top: 16px;
   padding: 20px;
@@ -740,48 +752,7 @@ ion-content {
 }
 
 .barberia-field-group {
-  margin-bottom: 16px;
-
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--custom-text-muted);
-  }
-
-  .field-display {
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: var(--custom-surface);
-    border: 1px solid var(--custom-border-subtle);
-    font-size: 14px;
-    color: var(--custom-text-primary);
-    line-height: 1.5;
-    word-break: break-word;
-  }
-
-  .field-input {
-    --background: var(--custom-surface);
-    --border-bottom: 1px solid var(--custom-border-subtle);
-    --border-radius: 12px;
-    --color: var(--custom-text-primary);
-    --padding-start: 14px;
-    --padding-end: 14px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-
-    &::placeholder {
-      color: var(--custom-text-muted);
-    }
-
-    &:focus {
-      --background: var(--custom-border-subtle);
-      --border-bottom: 1px solid var(--custom-gold);
-    }
-  }
+  @include fg.field-group;
 }
 
 .barberia-info-section {
@@ -846,8 +817,8 @@ ion-content {
   margin-top: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
   color: var(--custom-danger-light);
   font-size: 13px;
 }
@@ -875,12 +846,7 @@ ion-content {
 }
 
 .calendar-empty {
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--custom-surface);
-  color: var(--custom-text-secondary);
-  font-size: 14px;
-  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  @include sb.state-box;
 }
 
 .calendar-detail ion-list {
@@ -952,7 +918,7 @@ ion-content {
     --background: var(--ion-color-primary, var(--custom-gold));
     --background-hover: var(--ion-color-primary-shade, var(--custom-gold-dark));
     --background-focused: var(--ion-color-primary-shade, var(--custom-gold-dark));
-    --color: #121212;
+    --color: var(--ion-color-primary-contrast);
   }
 }
 
@@ -1019,7 +985,6 @@ ion-content {
     font-size: 20px;
   }
 }
-
 
 .preview-cover-main {
   min-height: 240px;
@@ -1163,7 +1128,6 @@ ion-content {
   min-height: 44px;
 }
 
-/* ===== Premium Dark-Gold Theme Overrides ===== */
 :host {
   --premium-bg: var(--ion-background-color, #121212);
   --premium-surface: var(--custom-card-bg, var(--custom-card-bg));
@@ -1178,18 +1142,6 @@ ion-content {
 
 ion-content.admin-premium-content {
   --background: var(--premium-bg);
-}
-
-.admin-topbar {
-  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  --border-color: rgba(var(--ion-color-primary-rgb), 0.26);
-  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
-}
-
-.admin-topbar-title {
-  color: var(--premium-text);
-  font-weight: 800;
-  letter-spacing: 0.01em;
 }
 
 .admin-logout-btn {
@@ -1289,7 +1241,7 @@ ion-list ion-item p {
 .service-input-item ion-label,
 .schedule-time-item ion-label,
 .schedule-exception-item ion-label {
-  color: var(--custom-gold-light) !important;
+  color: var(--custom-label) !important;
 }
 
 .barberia-field-group .field-display,
@@ -1314,7 +1266,7 @@ ion-list ion-item p {
   --background: var(--custom-gold);
   --background-hover: var(--custom-gold-strong);
   --background-focused: var(--custom-gold-strong);
-  --color: var(--ion-background-color);
+  --color: var(--ion-color-primary-contrast);
 }
 
 .barberia-actions-footer .cancel-btn {
@@ -1348,6 +1300,14 @@ ion-list ion-item p {
   --background: var(--custom-gold);
   --background-hover: var(--custom-gold-strong);
   --background-focused: var(--custom-gold-strong);
-  --color: var(--ion-background-color);
+  --color: var(--ion-color-primary-contrast);
 }
 
+.franjas-solicitadas {
+  margin-top: 5px;
+
+  ul {
+    margin: 5px 0;
+    padding-left: 20px;
+  }
+}

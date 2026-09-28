@@ -1,3 +1,5 @@
+@use '../../shared/field-group' as fg;
+
 :host {
 	--premium-border: rgba(var(--ion-color-primary-rgb), 0.2);
 	--premium-text: var(--custom-text-primary);
@@ -6,17 +8,6 @@
 ion-content.client-premium-content {
 	--background: var(--ion-background-color);
 	--padding-bottom: 92px;
-}
-
-.client-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	--border-color: rgba(var(--ion-color-primary-rgb), 0.26);
-	border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
-}
-
-.client-topbar-title {
-	color: var(--premium-text);
-	font-weight: 800;
 }
 
 .client-logout-btn {
@@ -115,7 +106,7 @@ ion-content.client-premium-content {
 		width: 22px;
 		height: 22px;
 		border-radius: 50%;
-		background: #ef4444;
+		background: var(--ion-color-danger);
 		color: #ffffff;
 		border: 2px solid var(--custom-card-bg);
 		display: flex;
@@ -128,7 +119,7 @@ ion-content.client-premium-content {
 		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 
 		&:hover {
-			background: #dc2626;
+			background: var(--ion-color-danger-shade);
 			transform: scale(1.1);
 		}
 	}
@@ -160,41 +151,7 @@ ion-content.client-premium-content {
 }
 
 .cliente-field-group {
-	label {
-		display: block;
-		margin-bottom: 6px;
-		font-size: 12px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--custom-gold-light);
-	}
-
-	.field-display {
-		padding: 12px 14px;
-		border-radius: 12px;
-		background: var(--custom-surface);
-		border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-		font-size: 14px;
-		color: var(--custom-text-primary);
-		line-height: 1.4;
-	}
-
-	.field-display-muted {
-		color: var(--custom-text-muted);
-	}
-
-	.field-input {
-		--background: var(--custom-surface);
-		--border-radius: 12px;
-		--color: var(--custom-text-primary);
-		--padding-start: 14px;
-		--padding-end: 14px;
-		--padding-top: 12px;
-		--padding-bottom: 12px;
-		border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-		border-radius: 12px;
-	}
+	@include fg.field-group;
 }
 
 .cliente-actions {
@@ -213,7 +170,7 @@ ion-content.client-premium-content {
 		--background: var(--custom-gold);
 		--background-hover: var(--custom-gold-dark);
 		--background-focused: var(--custom-gold-dark);
-		--color: var(--ion-background-color);
+		--color: var(--ion-color-primary-contrast);
 		--border-radius: 12px;
 		font-weight: 700;
 		text-transform: none;
@@ -231,8 +188,8 @@ ion-content.client-premium-content {
 	margin-top: 12px;
 	padding: 12px 14px;
 	border-radius: 12px;
-	background: rgba(239, 68, 68, 0.1);
-	border: 1px solid rgba(239, 68, 68, 0.3);
+	background: rgba(var(--ion-color-danger-rgb), 0.1);
+	border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
 	color: var(--custom-danger-light);
 	font-size: 13px;
 }

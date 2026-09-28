@@ -27,9 +27,9 @@
         <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Desde:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }} <strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
         <p *ngIf="solicitud.tipo !== 'vacaciones' && solicitud.tipo !== 'bloqueo_servicio'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
         
-        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
+        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" class="franjas-solicitadas">
           <strong>Horas solicitadas:</strong>
-          <ul style="margin: 5px 0; padding-left: 20px;">
+          <ul>
             <li *ngFor="let franja of solicitud.franjas">{{ franja.start }} - {{ franja.end }}</li>
           </ul>
         </div>

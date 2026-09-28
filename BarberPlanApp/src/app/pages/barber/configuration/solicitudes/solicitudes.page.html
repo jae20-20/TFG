@@ -29,17 +29,17 @@
         <ion-input type="date" [(ngModel)]="newSolicitud.fechaFin"></ion-input>
       </ion-item>
 
-      <div *ngIf="newSolicitud.tipo === 'horas_puntuales'" style="margin-top: 10px; width: 100%;">
-        <div *ngFor="let franja of newSolicitud.franjas; let i = index" class="slot-container" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.12); border-radius: 8px;">
-          <ion-item class="time-item" lines="none" style="flex: 1; --background: transparent;">
-            <ion-label position="stacked" style="color: #64748b;">Inicio</ion-label>
+      <div *ngIf="newSolicitud.tipo === 'horas_puntuales'" class="franjas-list">
+        <div *ngFor="let franja of newSolicitud.franjas; let i = index" class="slot-container">
+          <ion-item class="time-item" lines="none">
+            <ion-label position="stacked">Inicio</ion-label>
             <ion-input type="time" [(ngModel)]="franja.start"></ion-input>
           </ion-item>
-          <ion-item class="time-item" lines="none" style="flex: 1; --background: transparent;">
-            <ion-label position="stacked" style="color: #64748b;">Fin</ion-label>
+          <ion-item class="time-item" lines="none">
+            <ion-label position="stacked">Fin</ion-label>
             <ion-input type="time" [(ngModel)]="franja.end"></ion-input>
           </ion-item>
-          <ion-button fill="clear" color="danger" (click)="removeFranja(i)" [disabled]="newSolicitud.franjas.length === 1" style="margin-top: 25px;">
+          <ion-button fill="clear" color="danger" (click)="removeFranja(i)" [disabled]="newSolicitud.franjas.length === 1">
             <ion-icon name="trash" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
@@ -82,9 +82,9 @@
         <p *ngIf="solicitud.tipo === 'vacaciones'"><strong>Hasta:</strong> {{ solicitud.fechaFin | date:'dd/MM/yyyy' }}</p>
         <p *ngIf="solicitud.tipo !== 'vacaciones' && solicitud.tipo !== 'bloqueo_servicio'"><strong>Fecha:</strong> {{ solicitud.fechaInicio | date:'dd/MM/yyyy' }}</p>
         
-        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" style="margin-top: 5px;">
+        <div *ngIf="solicitud.tipo === 'horas_puntuales' && solicitud.franjas && solicitud.franjas.length > 0" class="franjas-solicitadas">
           <strong>Horas solicitadas:</strong>
-          <ul style="margin: 5px 0; padding-left: 20px;">
+          <ul>
             <li *ngFor="let franja of solicitud.franjas">{{ franja.start }} - {{ franja.end }}</li>
           </ul>
         </div>

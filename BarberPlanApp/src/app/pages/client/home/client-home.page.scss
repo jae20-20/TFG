@@ -1,3 +1,5 @@
+@use '../../shared/state-box' as sb;
+
 :host {
 	--premium-bg: var(--ion-background-color);
 	--premium-surface: var(--custom-card-bg);
@@ -14,18 +16,6 @@ ion-content.client-premium-content {
 		radial-gradient(circle at top, rgba(var(--ion-color-primary-rgb), 0.08), transparent 36%),
 		var(--ion-background-color);
 	--padding-bottom: 92px;
-}
-
-.client-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	--border-color: rgba(var(--ion-color-primary-rgb), 0.26);
-	border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.26);
-}
-
-.client-topbar-title {
-	color: var(--premium-text);
-	font-weight: 800;
-	letter-spacing: 0.01em;
 }
 
 .client-logout-btn {
@@ -140,7 +130,7 @@ ion-content.client-premium-content {
 
 	&.active {
 		background: var(--ion-color-primary);
-		color: var(--ion-background-color);
+		color: var(--ion-color-primary-contrast);
 		border-color: var(--ion-color-primary);
 	}
 
@@ -370,7 +360,7 @@ ion-content.sheet-body {
 	&.selected {
 		background: var(--ion-color-primary);
 		border-color: var(--ion-color-primary);
-		color: var(--ion-background-color);
+		color: var(--ion-color-primary-contrast);
 		font-weight: 800;
 		box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.35);
 	}
@@ -474,22 +464,7 @@ ion-footer.sheet-footer {
 }
 
 .client-state {
-	margin-top: 22px;
-	padding: 18px;
-	border-radius: 16px;
-	border: 1px solid var(--premium-border);
-	background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-	color: var(--premium-text);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	text-align: center;
-	flex-direction: column;
-
-	p {
-		margin: 0;
-	}
+	@include sb.state-box;
 }
 
 .client-state.error {

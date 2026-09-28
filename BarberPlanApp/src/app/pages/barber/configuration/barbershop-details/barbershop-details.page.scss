@@ -5,13 +5,3 @@ ion-content.barber-premium-content {
   --padding-bottom: 88px;
 }
 
-.calendar-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--custom-text-muted);
-
-  ion-spinner {
-    color: var(--custom-gold);
-    margin-bottom: 12px;
-  }
-}

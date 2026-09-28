@@ -29,16 +29,16 @@
 }
 
 :host-context(body.light-mode) .services-info-banner {
-  background: #ffffff !important;
+  background: var(--custom-card-bg) !important;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 
   h3, strong {
-    color: #0f172a !important;
+    color: var(--custom-text-primary) !important;
   }
 
   p {
-    color: #334155 !important;
+    color: var(--custom-text-secondary) !important;
   }
 }
 

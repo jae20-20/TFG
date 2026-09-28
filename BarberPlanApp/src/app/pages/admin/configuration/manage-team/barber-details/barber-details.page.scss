@@ -1,7 +1,5 @@
 @use '../../../shared-admin.scss';
 
-// Separador entre secciones (datos, horario especial, días libres) dentro
-// de la tarjeta única de detalle del barbero.
 .section-divider {
   height: 1px;
   margin: 28px 0;
@@ -14,8 +12,6 @@
   );
 }
 
-// Cabecera de cada sección (título + descripción), con separación respecto
-// al bloque de contenido que viene justo debajo.
 .barber-detail-section-head {
   margin-bottom: 16px;
 
@@ -68,8 +64,6 @@
   }
 }
 
-// Botones de acción finales, con más separación respecto al contenido
-// anterior (más allá del gap propio de .barberia-actions-footer).
 .barber-detail-footer {
   margin-top: 28px;
 }

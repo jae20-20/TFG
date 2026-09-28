@@ -1,15 +1,3 @@
-.barber-topbar {
-	--background: linear-gradient(180deg, var(--custom-card-bg, var(--custom-card-bg)) 0%, var(--ion-background-color, var(--ion-background-color)) 100%);
-	--border-color: var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.26));
-	border-bottom: 1px solid var(--custom-border-subtle, rgba(var(--ion-color-primary-rgb), 0.26));
-}
-
-.barber-topbar-title {
-	color: var(--ion-text-color, var(--custom-text-primary));
-	font-weight: 800;
-	letter-spacing: 0.01em;
-}
-
 .barber-logout-btn {
 	--color: var(--custom-text-primary);
 }

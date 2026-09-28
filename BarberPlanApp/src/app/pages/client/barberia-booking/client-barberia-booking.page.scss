@@ -1,3 +1,5 @@
+@use '../../shared/state-box' as sb;
+
 :host {
   --premium-bg: var(--ion-background-color);
   --premium-surface: var(--custom-card-bg);
@@ -13,36 +15,12 @@ ion-content.booking-premium-content {
     var(--ion-background-color);
 }
 
-.booking-topbar {
-  --background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  border-bottom: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
-}
-
-.booking-topbar-title {
-  color: var(--premium-text);
-  font-weight: 800;
-}
-
 .back-btn {
   --color: var(--custom-gold);
 }
 
 .booking-state {
-  margin-top: 20px;
-  padding: 18px;
-  border-radius: 16px;
-  border: 1px solid var(--premium-border);
-  background: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
-  color: var(--premium-text);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-
-  p {
-    margin: 0;
-  }
+  @include sb.state-box;
 }
 
 .booking-state.error {
