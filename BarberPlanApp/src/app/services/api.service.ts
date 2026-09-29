@@ -108,10 +108,11 @@ export class ApiService {
     );
   }
 
-  // Obtener barberos públicos de una barbería
+  // Obtener barberos de una barbería (público; con sesión de admin devuelve los datos completos)
   async getBarberosBarberia(barberiaId: string) {
+    const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/barberos`)
+      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/barberos`, { headers })
     );
   }
 

@@ -231,3 +231,40 @@ export const getCitasByBarberoAndFecha = async (barberoId, fecha) => {
         estado: { $in: ["pendiente", "confirmada"] }
     }).sort({ horaInicio: 1 }).toArray();
 };
+
+// ==================== ANALÍTICAS ====================
+
+// Citas de una barbería entre dos fechas (YYYY-MM-DD, ambas incluidas) con el nombre del cliente
+export const getCitasBarberiaEnRango = async (barberiaId, desde, hasta) => {
+    return await db.collection("Citas").aggregate([
+        { $match: { barberiaId: new ObjectId(barberiaId), fecha: { $gte: desde, $lte: hasta } } },
+        {
+            $lookup: {
+                from: "Usuarios",
+                localField: "clienteId",
+                foreignField: "_id",
+                as: "cliente",
+                pipeline: [{ $project: { nombre: 1, apellido: 1 } }]
+            }
+        },
+        { $unwind: { path: "$cliente", preserveNullAndEmptyArrays: true } },
+        {
+            $project: {
+                barberoId: 1, clienteId: 1, clienteNombre: 1, cliente: 1, estado: 1, fecha: 1, horaInicio: 1,
+                servicioId: 1, servicioNombre: 1, servicioPrecio: 1, pagado: 1, importePagado: 1
+            }
+        }
+    ]).toArray();
+};
+
+// De una lista de clientes, cuáles ya tenían alguna cita no cancelada en la barbería antes de una fecha
+export const getClientesConCitasAnteriores = async (barberiaId, clienteIds, antesDe) => {
+    if (clienteIds.length === 0) return [];
+    const ids = await db.collection("Citas").distinct("clienteId", {
+        barberiaId: new ObjectId(barberiaId),
+        clienteId: { $in: clienteIds },
+        estado: { $ne: "cancelada" },
+        fecha: { $lt: antesDe }
+    });
+    return ids.map(id => id.toString());
+};

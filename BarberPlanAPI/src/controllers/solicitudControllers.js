@@ -1,16 +1,60 @@
 import { ObjectId } from "mongodb";
 import { createSolicitud, getSolicitudesByBarbero, getSolicitudesByBarberia, updateSolicitudEstado, deleteSolicitud, getSolicitudById } from "../models/solicitudModel.js";
 import { getUserById, updateUser } from "../models/userModel.js";
+import { getBarberiaByAdminId, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
+import { esObjectIdValido } from "../middleware/validateMiddleware.js";
+
+const TIPOS_SOLICITUD = ["dia_libre", "vacaciones", "horas_puntuales", "bloqueo_servicio"];
+const MAX_DIAS_SOLICITUD = 366;
+const MAX_FRANJAS = 24;
+const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 // Crear nueva solicitud (Barbero)
 export const createBarberSolicitud = async (req, res) => {
     try {
-        const { tipo, fechaInicio, fechaFin, motivo, franjas } = req.body;
+        const { tipo, fechaInicio, fechaFin, motivo, franjas, servicioId } = req.body;
         const barberoId = req.user.id;
         const barbero = await getUserById(barberoId);
 
         if (!barbero) return res.status(404).json({ message: "Barbero no encontrado" });
         if (!barbero.barberiaId) return res.status(400).json({ message: "El barbero no pertenece a ninguna barbería" });
+
+        if (!TIPOS_SOLICITUD.includes(tipo)) {
+            return res.status(400).json({ message: "Tipo de solicitud no válido" });
+        }
+
+        const inicio = typeof fechaInicio === "string" ? Date.parse(fechaInicio) : NaN;
+        const fin = typeof fechaFin === "string" ? Date.parse(fechaFin) : NaN;
+        if (Number.isNaN(inicio) || Number.isNaN(fin) || fin < inicio) {
+            return res.status(400).json({ message: "Fechas no válidas" });
+        }
+        if ((fin - inicio) / (24 * 60 * 60 * 1000) > MAX_DIAS_SOLICITUD) {
+            return res.status(400).json({ message: `El periodo no puede superar ${MAX_DIAS_SOLICITUD} días` });
+        }
+
+        if (motivo !== undefined && typeof motivo !== "string") {
+            return res.status(400).json({ message: "Motivo no válido" });
+        }
+
+        // Las franjas solo aplican a horas puntuales; el formulario envía filas vacías que se descartan
+        let franjasLimpias = [];
+        if (tipo === "horas_puntuales") {
+            const rellenas = (Array.isArray(franjas) ? franjas : []).filter((f) => f && (f.start || f.end));
+            const validas = rellenas.every((f) => RE_HORA.test(f.start) && RE_HORA.test(f.end) && f.start < f.end);
+            if (rellenas.length === 0 || rellenas.length > MAX_FRANJAS || !validas) {
+                return res.status(400).json({ message: "Franjas horarias no válidas" });
+            }
+            franjasLimpias = rellenas.map((f) => ({ start: f.start, end: f.end }));
+        }
+
+        // El servicio debe existir en la barbería del barbero; el nombre sale de la BD, no del cliente
+        let servicio = null;
+        if (tipo === "bloqueo_servicio") {
+            servicio = esObjectIdValido(servicioId) ? await getServicioById(barbero.barberiaId.toString(), servicioId) : null;
+            if (!servicio) {
+                return res.status(400).json({ message: "Servicio no válido" });
+            }
+        }
 
         const solicitudData = {
             barberoId: new ObjectId(barberoId),
@@ -18,17 +62,17 @@ export const createBarberSolicitud = async (req, res) => {
             tipo,
             fechaInicio,
             fechaFin,
-            motivo,
-            franjas: franjas || [],
-            servicioId: req.body.servicioId || null,
-            servicioNombre: req.body.servicioNombre || null
+            motivo: motivo ? motivo.trim().slice(0, 500) : "",
+            franjas: franjasLimpias,
+            servicioId: servicio ? servicio._id.toString() : null,
+            servicioNombre: servicio ? servicio.nombre : null
         };
 
         const result = await createSolicitud(solicitudData);
         res.status(201).json({ message: "Solicitud creada exitosamente", id: result.insertedId });
     } catch (error) {
         console.error("Error al crear solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
@@ -39,17 +83,17 @@ export const getMisSolicitudes = async (req, res) => {
         res.json({ solicitudes });
     } catch (error) {
         console.error("Error al obtener solicitudes:", error);
-        res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
 // Obtener solicitudes del equipo (Admin)
 export const getSolicitudesEquipo = async (req, res) => {
     try {
-        const barberiaId = req.user.barberiaId;
-        if (!barberiaId) return res.status(400).json({ message: "No tienes una barbería asignada" });
+        const barberia = await getBarberiaByAdminId(req.user.id);
+        if (!barberia) return res.status(400).json({ message: "No tienes una barbería asignada" });
 
-        const solicitudes = await getSolicitudesByBarberia(barberiaId);
+        const solicitudes = await getSolicitudesByBarberia(barberia._id);
 
         // Populate barbero names for admin view
         const populatedSolicitudes = await Promise.all(solicitudes.map(async (sol) => {
@@ -64,7 +108,7 @@ export const getSolicitudesEquipo = async (req, res) => {
         res.json({ solicitudes: populatedSolicitudes });
     } catch (error) {
         console.error("Error al obtener solicitudes del equipo:", error);
-        res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
@@ -80,6 +124,16 @@ export const responderSolicitud = async (req, res) => {
 
         const solicitud = await getSolicitudById(id);
         if (!solicitud) return res.status(404).json({ message: "Solicitud no encontrada" });
+
+        const esAdminDeSuBarberia = await isUserAdminOfBarberia(req.user.id, solicitud.barberiaId.toString());
+        if (!esAdminDeSuBarberia) {
+            return res.status(403).json({ message: "Acceso denegado: solicitud no vinculada a tu barbería" });
+        }
+
+        // Responder dos veces duplicaría vacaciones o días libres
+        if (solicitud.estado !== "pendiente") {
+            return res.status(409).json({ message: "La solicitud ya fue respondida" });
+        }
 
         // Update estado
         await updateSolicitudEstado(id, estado, respuestaAdmin);
@@ -142,7 +196,7 @@ export const responderSolicitud = async (req, res) => {
         res.json({ message: "Solicitud respondida exitosamente" });
     } catch (error) {
         console.error("Error al responder solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
@@ -164,6 +218,6 @@ export const eliminarSolicitud = async (req, res) => {
         res.json({ message: "Solicitud eliminada exitosamente" });
     } catch (error) {
         console.error("Error al eliminar solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor", error: error.message });
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };

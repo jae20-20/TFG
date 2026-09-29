@@ -1,4 +1,5 @@
 import express from "express";
+import { validarObjectIdParam } from "../middleware/validateMiddleware.js";
 import { 
     createBarberSolicitud, 
     getMisSolicitudes, 
@@ -9,6 +10,8 @@ import {
 import { verifyToken, isBarbero, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+router.param("id", validarObjectIdParam);
+
 
 // Rutas para Barbero
 router.post("/", verifyToken, isBarbero, createBarberSolicitud);

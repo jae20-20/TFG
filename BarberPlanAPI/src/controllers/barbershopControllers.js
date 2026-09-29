@@ -1,6 +1,7 @@
 //manejar http request - Barberías
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { MENSAJE_PW_CORTA, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
 import { ObjectId } from "mongodb";
 
 import {
@@ -78,8 +79,6 @@ export const getMyBarberia = async (req, res) => {
             const user = await getUserById(userId);
             if (user && user.barberiaId) {
                 barberia = await getBarbershopById(user.barberiaId.toString());
-            } else if (req.user.barberiaId) {
-                barberia = await getBarbershopById(req.user.barberiaId.toString());
             }
         }
 
@@ -109,14 +108,20 @@ export const registerBarberia = async (req, res) => {
             // Datos del admin
             nombre,
             apellido,
-            correo,
             pw,
             usuario
         } = req.body;
 
-        // Validar campos obligatorios
-        if (!nombreBarberia || !direccion || !nombre || !apellido || !correo || !pw || !usuario) {
+        // Validar campos obligatorios (solo texto: evita operadores Mongo en las consultas)
+        const obligatorios = [nombreBarberia, direccion, nombre, apellido, req.body.correo, pw, usuario];
+        if (!obligatorios.every((valor) => typeof valor === "string" && valor.trim())) {
             return res.status(400).json({ error: "Todos los campos obligatorios deben completarse" });
+        }
+
+        const correo = req.body.correo.trim();
+
+        if (pw.length < PW_MIN_LENGTH) {
+            return res.status(400).json({ error: MENSAJE_PW_CORTA });
         }
 
         // Verificar si el correo ya existe
@@ -273,8 +278,6 @@ export const getMyHorario = async (req, res) => {
             const user = await getUserById(userId);
             if (user && user.barberiaId) {
                 barberia = await getBarbershopById(user.barberiaId.toString());
-            } else if (req.user.barberiaId) {
-                barberia = await getBarbershopById(req.user.barberiaId.toString());
             }
         }
 
@@ -331,6 +334,23 @@ export const updateMyHorario = async (req, res) => {
 
 // **-*-*-*-*-*-*- SERVICIOS (SOLO ADMIN) -*-*-*-*-*-*
 
+// Devuelve los datos normalizados del servicio o null si no son válidos
+const validarServicio = ({ nombre, descripcion, precio, duracion }) => {
+    const precioNum = Number(precio);
+    const duracionNum = Number(duracion);
+    if (typeof nombre !== "string" || !nombre.trim()) return null;
+    if (!Number.isFinite(precioNum) || precioNum < 0) return null;
+    if (!Number.isInteger(duracionNum) || duracionNum < 1 || duracionNum > 600) return null;
+    if (descripcion !== undefined && descripcion !== null && typeof descripcion !== "string") return null;
+
+    return {
+        nombre: nombre.trim(),
+        descripcion: descripcion || "",
+        precio: precioNum,
+        duracion: duracionNum // duración en minutos
+    };
+};
+
 // Obtener servicios de una barbería (público)
 export const getServicios = async (req, res) => {
     try {
@@ -366,18 +386,12 @@ export const addServicio = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para añadir servicios" });
         }
 
-        const { nombre, descripcion, precio, duracion } = req.body;
-
-        if (!nombre || !precio || !duracion) {
-            return res.status(400).json({ error: "Nombre, precio y duración son obligatorios" });
+        const datos = validarServicio(req.body);
+        if (!datos) {
+            return res.status(400).json({ error: "Nombre, precio (≥ 0) y duración (1-600 min) son obligatorios" });
         }
 
-        const servicio = await addServicioToBarberia(id, {
-            nombre,
-            descripcion: descripcion || "",
-            precio: parseFloat(precio),
-            duracion: parseInt(duracion) // duración en minutos
-        });
+        const servicio = await addServicioToBarberia(id, datos);
 
         res.status(201).json({ message: "Servicio añadido correctamente", servicio });
 
@@ -398,14 +412,15 @@ export const editServicio = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para editar servicios" });
         }
 
-        const { nombre, descripcion, precio, duracion } = req.body;
+        const datos = validarServicio(req.body);
+        if (!datos) {
+            return res.status(400).json({ error: "Nombre, precio (≥ 0) y duración (1-600 min) son obligatorios" });
+        }
 
-        await updateServicioInBarberia(id, servicioId, {
-            nombre,
-            descripcion,
-            precio: parseFloat(precio),
-            duracion: parseInt(duracion)
-        });
+        const result = await updateServicioInBarberia(id, servicioId, datos);
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: "Servicio no encontrado" });
+        }
 
         const servicioActualizado = await getServicioById(id, servicioId);
         res.json({ message: "Servicio actualizado correctamente", servicio: servicioActualizado });
@@ -438,12 +453,24 @@ export const deleteServicio = async (req, res) => {
 
 // -*-**-*-*-*-*-*-*BARBEROS (SOLO ADMIN) -*-*-*-*-*-*-*-*-*-*-*--*-*--
 
-// Obtener barberos de la barbería
+// Datos de un barbero visibles para cualquiera (pantallas de reserva del cliente)
+const CAMPOS_PUBLICOS_BARBERO = ["_id", "nombre", "apellido", "usuario", "avatar", "cargo", "rol", "serviciosBloqueados"];
+
+// Obtener barberos de la barbería (público; el admin de la barbería recibe todos los datos)
 export const getBarberos = async (req, res) => {
     try {
         const { id } = req.params;
         const barberos = await getBarberosByBarberiaId(id);
-        res.json(barberos);
+
+        const esAdminDeLaBarberia = req.user?.rol === "admin" && await isUserAdminOfBarberia(req.user.id, id);
+        if (esAdminDeLaBarberia) {
+            return res.json(barberos);
+        }
+
+        const barberosPublicos = barberos.map((barbero) =>
+            Object.fromEntries(CAMPOS_PUBLICOS_BARBERO.filter((campo) => campo in barbero).map((campo) => [campo, barbero[campo]]))
+        );
+        res.json(barberosPublicos);
     } catch (error) {
         console.error("Error al obtener barberos:", error);
         res.status(500).json({ error: "Error al obtener barberos" });
@@ -459,6 +486,15 @@ export const removeBarbero = async (req, res) => {
         const isAdmin = await isUserAdminOfBarberia(adminId, id);
         if (!isAdmin) {
             return res.status(403).json({ error: "No tienes permiso para eliminar barberos" });
+        }
+
+        const barbero = await getUserById(barberoId);
+        if (!barbero) {
+            return res.status(404).json({ error: "Barbero no encontrado" });
+        }
+
+        if (barbero.barberiaId?.toString() !== id) {
+            return res.status(403).json({ error: "Acceso denegado: el barbero no pertenece a tu barbería" });
         }
 
         await removeBarberoFromBarberia(id, barberoId);

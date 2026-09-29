@@ -19,6 +19,20 @@ export const verifyToken = (req, res, next) => {
         }
 };
 
+// Para rutas públicas que devuelven más datos a usuarios autorizados: si hay
+// un token válido rellena req.user; si no lo hay (o es inválido) sigue como anónimo.
+export const optionalAuth = (req, res, next) => {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (token) {
+                try {
+                        req.user = jwt.verify(token, process.env.JWT_SECRET);
+                } catch {
+                        req.user = undefined;
+                }
+        }
+        next();
+};
+
 // ======= VERIFICAR ROLES
 
 // Middleware para verificar que el usuario tiene uno de los roles permitidos

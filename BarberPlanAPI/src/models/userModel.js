@@ -46,6 +46,13 @@ export const getUsersByRole = async (rol) => {
     return await db.collection("Usuarios").find({ rol }).project({ pw: 0 }).toArray();
 };
 
+// Obtener todos los usuarios vinculados a una barbería (sin contraseña)
+export const getUsersByBarberiaId = async (barberiaId) => {
+    return await db.collection("Usuarios").find({
+        barberiaId: new ObjectId(barberiaId)
+    }).project({ pw: 0 }).toArray();
+};
+
 // Obtener barberos de una barbería específica
 export const getBarberosByBarberia = async (barberiaId) => {
     return await db.collection("Usuarios").find({

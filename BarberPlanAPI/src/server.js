@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { connectDB } from "./db/connection.js";
+import { mongoSanitize } from "./middleware/sanitizeMiddleware.js";
 
 // Importar rutas
 import barbershopRoutes from "./routes/barbershopRoutes.js";
@@ -18,11 +19,26 @@ dotenv.config(); // Cargar variables de entorno
 const PORT = process.env.PORT || 5050;
 const app = express();
 
+// Orígenes permitidos: navegador en desarrollo (ng serve / ionic serve) y
+// WebViews de Capacitor (Android: http://localhost, iOS: capacitor://localhost).
+// En producción se definen en .env con CORS_ORIGINS separados por comas.
+const DEFAULT_CORS_ORIGINS = [
+  "http://localhost:4200",
+  "http://localhost:8100",
+  "http://localhost",
+  "capacitor://localhost",
+  "ionic://localhost"
+];
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : DEFAULT_CORS_ORIGINS;
+
 // Middleware
-app.use(cors());
+app.use(helmet());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
-app.use(helmet());
+app.use(mongoSanitize);
 
 //linite solictudes por IP
 const globalLimiter = rateLimit({

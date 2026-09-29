@@ -1,5 +1,6 @@
 //definicion endpoints - Citas
 import express from "express";
+import { validarObjectIdParam } from "../middleware/validateMiddleware.js";
 import {
     cancelarCita,
     completarCita,
@@ -24,6 +25,10 @@ import {
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+router.param("id", validarObjectIdParam);
+router.param("barberoId", validarObjectIdParam);
+router.param("barberiaId", validarObjectIdParam);
+
 
 // ==================== RUTAS PÚBLICAS ====================
 router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);  

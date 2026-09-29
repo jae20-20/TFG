@@ -1,8 +1,14 @@
 //manejar http request - Usuarios
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { MENSAJE_PW_CORTA, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
 
-import { addBarberoToBarberia } from "../models/barbershopModel.js";
+import {
+    addBarberoToBarberia,
+    getBarberiaByAdminId,
+    isUserAdminOfBarberia,
+    removeBarberoFromBarberia
+} from "../models/barbershopModel.js";
 import {
     consumeInvitacion,
     getInvitacionPendienteByHash,
@@ -12,38 +18,64 @@ import {
 import {
     createUser,
     deleteUser,
-    getAllUsers,
     getUserByEmail,
     getUserById,
     getUserByUsername,
+    getUsersByBarberiaId,
     updateUserPassword,
     updateUserProfile,
     updateUser
 } from "../models/userModel.js";
 
+// Roles que se pueden elegir en el registro público. Los admin solo se crean
+// junto a su barbería en POST /barberia/register.
+const ROLES_REGISTRO = ["cliente", "barbero"];
+
+// Campos del barbero que gestiona el admin; el barbero los pide mediante solicitudes
+const CAMPOS_SOLO_ADMIN = ["horarioPersonal", "diasLibres", "vacaciones", "serviciosBloqueados", "cargo"];
+
+const esTextoNoVacio = (valor) => typeof valor === "string" && valor.trim().length > 0;
+
+// Admin de la barbería a la que pertenece el usuario objetivo (comprobado en BD, no en el JWT)
+const esAdminDeLaBarberiaDe = async (reqUser, usuarioObjetivo) => {
+    if (reqUser.rol !== "admin" || !usuarioObjetivo.barberiaId) return false;
+    return await isUserAdminOfBarberia(reqUser.id, usuarioObjetivo.barberiaId.toString());
+};
+
 //****OBTENER USUARIOS *****
 
+// Listar los usuarios de la barbería del admin autenticado
 export const getUsers = async (req, res) => {
     try {
-        const users = await getAllUsers();
-        // Excluir contraseñas de la respuesta
-        const usersWithoutPw = users.map(({ pw, ...user }) => user);
-        res.json(usersWithoutPw);
+        const barberia = await getBarberiaByAdminId(req.user.id);
+        if (!barberia) {
+            return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
+        }
+
+        const users = await getUsersByBarberiaId(barberia._id);
+        res.json(users);
     } catch (error) {
         res.status(500).json({ error: "Error al obtener usuarios" });
     }
 };
 
-// Obtener usuario por ID
+// Obtener usuario por ID (el propio usuario o el admin de su barbería)
 export const getUser = async (req, res) => {
     try {
         const { id } = req.params;
         const user = await getUserById(id);
-        
+
         if (!user) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
-        
+
+        const esDuenio = user._id.toString() === req.user.id;
+        const esAdminDeSuBarberia = await esAdminDeLaBarberiaDe(req.user, user);
+
+        if (!esDuenio && !esAdminDeSuBarberia) {
+            return res.status(403).json({ error: "No tienes permiso para ver este usuario" });
+        }
+
         const { pw, ...userWithoutPw } = user;
         res.json(userWithoutPw);
     } catch (error) {
@@ -71,14 +103,24 @@ export const getProfile = async (req, res) => {
 
 export const addUser = async (req, res) => {
     try {
-        const { nombre, correo, pw, apellido, usuario, rol, code, ciudad } = req.body;
+        const { nombre, pw, apellido, usuario, rol, code, ciudad } = req.body;
 
-        if (!nombre || !correo || !pw || !apellido || !usuario || !rol) {
+        if (![nombre, req.body.correo, pw, apellido, usuario].every(esTextoNoVacio)) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
 
-        if (rol === "cliente" && !ciudad) {
+        if (!ROLES_REGISTRO.includes(rol)) {
+            return res.status(400).json({ error: "Rol no válido" });
+        }
+
+        if (rol === "cliente" && !esTextoNoVacio(ciudad)) {
             return res.status(400).json({ error: "La ciudad es obligatoria para el registro de clientes" });
+        }
+
+        const correo = req.body.correo.trim();
+
+        if (pw.length < PW_MIN_LENGTH) {
+            return res.status(400).json({ error: MENSAJE_PW_CORTA });
         }
 
         // Verificar si el correo ya existe
@@ -157,20 +199,20 @@ export const addUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     try {
-        const { correo, pw } = req.body;
+        // Solo se aceptan strings: un objeto como {"$regex": "^a"} nunca llega a la consulta
+        const correo = typeof req.body.correo === "string" ? req.body.correo.trim() : "";
+        const pw = typeof req.body.pw === "string" ? req.body.pw : "";
 
         if (!correo || !pw) {
-            return res.status(400).json({ error: "Todos los campos son obligatorios" });
+            return res.status(400).json({ error: "Formato de credenciales inválido" });
         }
 
         const user = await getUserByEmail(correo);
-        if (!user) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
+        const isPasswordValid = user ? await bcrypt.compare(pw, user.pw) : false;
 
-        const isPasswordValid = await bcrypt.compare(pw, user.pw);
+        // Mismo mensaje en ambos casos para no revelar qué correos están registrados
         if (!isPasswordValid) {
-            return res.status(401).json({ error: "Contraseña incorrecta" });
+            return res.status(401).json({ error: "Correo o contraseña incorrectos" });
         }
 
         // Generar el token JWT
@@ -213,6 +255,10 @@ export const editProfile = async (req, res) => {
         const userId = req.user.id;
         const { nombre, apellido, usuario, telefono, avatar, ciudad } = req.body;
 
+        if (usuario !== undefined && typeof usuario !== "string") {
+            return res.status(400).json({ error: "Nombre de usuario no válido" });
+        }
+
         // Verificar si el nuevo nombre de usuario ya existe
         if (usuario) {
             const existingUser = await getUserByUsername(usuario);
@@ -240,13 +286,17 @@ export const changePassword = async (req, res) => {
         const userId = req.user.id;
         const { currentPassword, newPassword } = req.body;
 
-        if (!currentPassword || !newPassword) {
+        if (!esTextoNoVacio(currentPassword) || !esTextoNoVacio(newPassword)) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
 
         const user = await getUserById(userId);
         if (!user) {
             return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        if (newPassword.length < PW_MIN_LENGTH) {
+            return res.status(400).json({ error: MENSAJE_PW_CORTA });
         }
 
         const isPasswordValid = await bcrypt.compare(currentPassword, user.pw);
@@ -271,18 +321,30 @@ export const changePassword = async (req, res) => {
 export const deleteUserAccount = async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // Solo el admin o el propio usuario pueden eliminar
-        if (req.user.rol !== "admin" && req.user.id !== id) {
-            return res.status(403).json({ error: "No tienes permiso para eliminar este usuario" });
-        }
+        const user = await getUserById(id);
 
-        const result = await deleteUser(id);
-        
-        if (result.deletedCount === 0) {
+        if (!user) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
+        // El propio usuario, o el admin de su barbería (nunca sobre otro admin)
+        const esDuenio = user._id.toString() === req.user.id;
+        const esAdminDeSuBarberia = user.rol !== "admin" && await esAdminDeLaBarberiaDe(req.user, user);
+
+        if (!esDuenio && !esAdminDeSuBarberia) {
+            return res.status(403).json({ error: "No tienes permiso para eliminar este usuario" });
+        }
+
+        // Borrar al admin dejaría su barbería sin nadie que pueda gestionarla
+        if (user.rol === "admin" && await getBarberiaByAdminId(id)) {
+            return res.status(409).json({ error: "No puedes eliminar la cuenta mientras administres una barbería" });
+        }
+
+        if (user.rol === "barbero" && user.barberiaId) {
+            await removeBarberoFromBarberia(user.barberiaId, user._id);
+        }
+
+        await deleteUser(id);
         res.json({ message: "Usuario eliminado correctamente" });
     } catch (error) {
         console.error("Error al eliminar usuario:", error);
@@ -296,14 +358,23 @@ export const updateBarberoHorario = async (req, res) => {
         const { id } = req.params;
         const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados, cargo } = req.body;
 
-        // Verificar permisos
-        if (req.user.rol !== "admin" && req.user.id !== id) {
-            return res.status(403).json({ error: "No tienes permiso para actualizar este barbero" });
-        }
-
         const barbero = await getUserById(id);
         if (!barbero) {
             return res.status(404).json({ error: "Barbero no encontrado" });
+        }
+
+        // El propio barbero, o el admin de la barbería a la que pertenece
+        const esDuenio = barbero._id.toString() === req.user.id;
+        const esAdminDeSuBarberia = await esAdminDeLaBarberiaDe(req.user, barbero);
+
+        if (!esDuenio && !esAdminDeSuBarberia) {
+            return res.status(403).json({ error: "No tienes permiso para actualizar este barbero" });
+        }
+
+        // Horario, ausencias, servicios y cargo los decide el admin: el barbero
+        // los pide mediante solicitudes, no puede aprobárselos a sí mismo.
+        if (!esAdminDeSuBarberia && CAMPOS_SOLO_ADMIN.some((campo) => req.body[campo] !== undefined)) {
+            return res.status(403).json({ error: "Solo el administrador puede modificar el horario, ausencias, servicios o cargo" });
         }
 
         const updatedData = {};
@@ -315,8 +386,7 @@ export const updateBarberoHorario = async (req, res) => {
         if (telefono !== undefined) updatedData.telefono = telefono;
         if (avatar !== undefined) updatedData.avatar = avatar;
         if (serviciosBloqueados !== undefined) updatedData.serviciosBloqueados = serviciosBloqueados;
-        // El cargo solo lo puede cambiar el admin, igual que en el alta por invitación.
-        if (cargo !== undefined && req.user.rol === "admin") updatedData.cargo = cargo;
+        if (cargo !== undefined) updatedData.cargo = cargo;
         updatedData.updatedAt = new Date();
 
         await updateUser(id, updatedData);

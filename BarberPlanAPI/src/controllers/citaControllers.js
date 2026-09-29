@@ -3,18 +3,147 @@ import {
     checkBarberoDisponibilidad,
     createCita,
     getCitaById,
+    getCitasBarberiaEnRango,
     getCitasByBarberiaId,
     getCitasByBarberoAndFecha,
     getCitasByBarberoId,
     getCitasByClienteId,
+    getClientesConCitasAnteriores,
     getResenasByBarberiaId,
     setResenaCita,
     updateCitaEstado,
     updateCitaPago
 } from "../models/citaModel.js";
 
-import { getBarberiaByAdminId, getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
+import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { getUserById } from "../models/userModel.js";
+import { esObjectIdValido } from "../middleware/validateMiddleware.js";
+
+const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
+const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Estados desde los que se puede llegar a cada estado (una cita cancelada no
+// se completa y una completada no se cancela)
+const ESTADOS_ORIGEN = {
+    confirmada: ["pendiente", "confirmada"],
+    completada: ["pendiente", "confirmada", "completada"],
+    cancelada: ["pendiente", "confirmada", "cancelada"]
+};
+
+// Hora de fin "HH:MM"; null si la cita terminaría pasada la medianoche
+const calcularHoraFin = (horaInicio, duracion) => {
+    const [horas, minutos] = horaInicio.split(":").map(Number);
+    const totalMinutos = horas * 60 + minutos + duracion;
+    if (totalMinutos >= 24 * 60) return null;
+    return `${String(Math.floor(totalMinutos / 60)).padStart(2, "0")}:${String(totalMinutos % 60).padStart(2, "0")}`;
+};
+
+// Huecos de inicio libres de un barbero en una fecha, combinando el horario de
+// la barbería, el horario/ausencias del barbero y las citas ya ocupadas
+const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas) => {
+    const schedule = barberia.schedule || {
+        timezone: "Europe/Madrid",
+        weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+        exceptions: []
+    };
+
+    const dateObj = new Date(fecha);
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const dayKey = days[dateObj.getDay()];
+
+    let slotsForDay = [];
+    let isBarberiaClosed = false;
+    let isBarberoClosed = false;
+
+    // 1. Horario base de la barbería
+    const exception = schedule.exceptions?.find(e => e.date === fecha);
+    if (exception) {
+        if (exception.type === 'closed') {
+            isBarberiaClosed = true;
+        } else {
+            slotsForDay = exception.slots || [];
+        }
+    } else {
+        slotsForDay = schedule.weeklyTemplate?.[dayKey] || [];
+        if (slotsForDay.length === 0) {
+            isBarberiaClosed = true;
+        }
+    }
+
+    // 2. Aplicar excepciones y horario del BARBERO
+    const barberExceptions = (barbero.horarioPersonal?.exceptions || []).filter(ex => ex.date === fecha);
+    const customOpeningSlots = barberExceptions.filter(ex => !ex.isAbsence && ex.type !== 'closed' && ex.start && ex.end);
+    const absenceSlots = barberExceptions.filter(ex => ex.isAbsence === true && ex.start && ex.end);
+    const hasClosedException = barberExceptions.some(ex => ex.type === 'closed' || (ex.isAbsence === true && !ex.start));
+
+    if (customOpeningSlots.length > 0) {
+        // Si el barbero tiene franjas específicas abiertas para este día (ej: abiertas por el admin)
+        slotsForDay = customOpeningSlots.map(s => ({ start: s.start, end: s.end }));
+        isBarberiaClosed = false;
+        isBarberoClosed = false;
+    } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha))) {
+        // Si no tiene franjas abiertas explícitas y el día está en días libres o cerrado
+        isBarberoClosed = true;
+    } else if (barbero.horarioPersonal?.enabled && barbero.horarioPersonal?.weeklyTemplate?.[dayKey]) {
+        // Si el barbero tiene plantilla semanal propia
+        slotsForDay = barbero.horarioPersonal.weeklyTemplate[dayKey];
+        if (slotsForDay.length === 0) {
+            isBarberoClosed = true;
+        }
+    }
+
+    if (isBarberiaClosed) {
+        return { estado: "cerrado", horariosDisponibles: [] };
+    }
+
+    if (isBarberoClosed || slotsForDay.length === 0) {
+        return { estado: "ausente", horariosDisponibles: [] };
+    }
+
+    let horariosDisponibles = [];
+    const intervalo = 30; // minutos
+
+    for (const slot of slotsForDay) {
+        if (!slot.start || !slot.end) continue;
+        let current = new Date(`1970-01-01T${slot.start}:00`);
+        const end = new Date(`1970-01-01T${slot.end}:00`);
+
+        while (current < end) {
+            const horaStr = `${String(current.getHours()).padStart(2, "0")}:${String(current.getMinutes()).padStart(2, "0")}`;
+
+            // Verificar si este horario está ocupado por una cita
+            const ocupado = citasOcupadas.some(cita => {
+                return horaStr >= cita.horaInicio && horaStr < cita.horaFin;
+            });
+
+            // Verificar si cae en una ausencia parcial del barbero (cierre parcial)
+            const enAusencia = absenceSlots.some(abs => {
+                return horaStr >= abs.start && horaStr < abs.end;
+            });
+
+            if (!ocupado && !enAusencia) {
+                horariosDisponibles.push(horaStr);
+            }
+
+            current.setMinutes(current.getMinutes() + intervalo);
+        }
+    }
+
+    // Si la fecha es hoy, filtrar slots que ya han pasado
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: schedule.timezone || 'Europe/Madrid' });
+    if (fecha === hoy) {
+        const ahora = new Date().toLocaleTimeString('en-GB', {
+            timeZone: schedule.timezone || 'Europe/Madrid',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        horariosDisponibles = horariosDisponibles.filter(hora => hora > ahora);
+    }
+
+    return {
+        estado: horariosDisponibles.length === 0 ? "completo" : "abierto",
+        horariosDisponibles
+    };
+};
 
 //CREAR CITA (CLIENTE)
 
@@ -26,6 +155,14 @@ export const crearCita = async (req, res) => {
         // Validar campos obligatorios
         if (!barberiaId || !barberoId || !servicioId || !fecha || !horaInicio) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
+        }
+
+        if (![barberiaId, barberoId, servicioId].every(esObjectIdValido)) {
+            return res.status(400).json({ error: "Identificador no válido" });
+        }
+
+        if (!RE_FECHA.test(fecha) || !RE_HORA.test(horaInicio)) {
+            return res.status(400).json({ error: "Formato de fecha u hora no válido" });
         }
 
         const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, 300) : "";
@@ -66,14 +203,19 @@ export const crearCita = async (req, res) => {
             }
         }
 
-        // Calcular hora de fin basada en la duración del servicio
-        const [horas, minutos] = horaInicio.split(":").map(Number);
-        const fechaInicio = new Date();
-        fechaInicio.setHours(horas, minutos, 0, 0);
-        fechaInicio.setMinutes(fechaInicio.getMinutes() + servicio.duracion);
-        const horaFin = `${String(fechaInicio.getHours()).padStart(2, "0")}:${String(fechaInicio.getMinutes()).padStart(2, "0")}`;
+        const horaFin = calcularHoraFin(horaInicio, servicio.duracion);
+        if (!horaFin) {
+            return res.status(400).json({ error: "El servicio no cabe en ese día" });
+        }
 
-        // Verificar disponibilidad del barbero
+        // La hora debe ser uno de los huecos que se ofrecen (horario abierto, sin ausencias)
+        const citasDelDia = await getCitasByBarberoAndFecha(barberoId, fecha);
+        const { horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasDelDia);
+        if (!horariosDisponibles.includes(horaInicio)) {
+            return res.status(409).json({ error: "El barbero no está disponible en ese horario" });
+        }
+
+        // Verificar que la duración completa no se solapa con otra cita
         const disponible = await checkBarberoDisponibilidad(barberoId, fecha, horaInicio, horaFin);
         if (!disponible) {
             return res.status(409).json({ error: "El barbero no está disponible en ese horario" });
@@ -123,6 +265,14 @@ export const crearCitaManual = async (req, res) => {
             return res.status(400).json({ error: "Barbero, servicio, fecha y hora son obligatorios" });
         }
 
+        if (![barberoId, servicioId].every(esObjectIdValido)) {
+            return res.status(400).json({ error: "Identificador no válido" });
+        }
+
+        if (!RE_FECHA.test(fecha) || !RE_HORA.test(horaInicio)) {
+            return res.status(400).json({ error: "Formato de fecha u hora no válido" });
+        }
+
         const barbero = await getUserById(barberoId);
         if (!barbero || !barbero.barberiaId) {
             return res.status(404).json({ error: "Barbero no encontrado o no asociado a una barbería" });
@@ -136,7 +286,7 @@ export const crearCitaManual = async (req, res) => {
 
         if (userRol === "admin") {
             const isAdmin = await isUserAdminOfBarberia(userId, barberiaId);
-            if (!isAdmin && req.user.barberiaId !== barberiaId) {
+            if (!isAdmin) {
                 return res.status(403).json({ error: "No tienes permiso para gestionar citas en esta barbería" });
             }
         }
@@ -160,11 +310,10 @@ export const crearCitaManual = async (req, res) => {
             }
         }
 
-        const [horas, minutos] = horaInicio.split(":").map(Number);
-        const fechaInicio = new Date();
-        fechaInicio.setHours(horas, minutos, 0, 0);
-        fechaInicio.setMinutes(fechaInicio.getMinutes() + (servicio.duracion || 30));
-        const horaFin = `${String(fechaInicio.getHours()).padStart(2, "0")}:${String(fechaInicio.getMinutes()).padStart(2, "0")}`;
+        const horaFin = calcularHoraFin(horaInicio, servicio.duracion || 30);
+        if (!horaFin) {
+            return res.status(400).json({ error: "El servicio no cabe en ese día" });
+        }
 
         const disponible = await checkBarberoDisponibilidad(barberoId, fecha, horaInicio, horaFin);
         if (!disponible) {
@@ -238,7 +387,7 @@ export const getCitasBarberia = async (req, res) => {
 
         // Verificar que es admin de la barbería
         const isAdmin = await isUserAdminOfBarberia(adminId, barberiaId);
-        if (!isAdmin && req.user.rol !== "admin") {
+        if (!isAdmin) {
             return res.status(403).json({ error: "No tienes permiso para ver estas citas" });
         }
 
@@ -262,7 +411,7 @@ export const getCita = async (req, res) => {
 
         // Verificar que el usuario tiene acceso a esta cita
         const userId = req.user.id;
-        const isCliente = cita.clienteId.toString() === userId;
+        const isCliente = cita.clienteId?.toString() === userId;
         const isBarbero = cita.barberoId.toString() === userId;
         const isAdmin = await isUserAdminOfBarberia(userId, cita.barberiaId.toString());
 
@@ -298,21 +447,13 @@ export const confirmarCita = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para confirmar esta cita" });
         }
 
+        if (!ESTADOS_ORIGEN.confirmada.includes(cita.estado)) {
+            return res.status(409).json({ error: `No se puede confirmar una cita ${cita.estado}` });
+        }
+
         await updateCitaEstado(id, "confirmada");
         const citaActualizada = await getCitaById(id);
-        console.log(`[DEBUG] Cita ${id} confirmada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: confirmada`);
-        res.json({
-            message: "Cita confirmada correctamente",
-            debug: {
-                action: "confirmarCita",
-                citaId: id,
-                previousEstado: cita.estado,
-                newEstado: "confirmada",
-                modifiedBy: userId,
-                timestamp: new Date().toISOString()
-            },
-            cita: citaActualizada
-        });
+        res.json({ message: "Cita confirmada correctamente", cita: citaActualizada });
 
     } catch (error) {
         console.error("Error al confirmar cita:", error);
@@ -338,21 +479,13 @@ export const completarCita = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para completar esta cita" });
         }
 
+        if (!ESTADOS_ORIGEN.completada.includes(cita.estado)) {
+            return res.status(409).json({ error: `No se puede completar una cita ${cita.estado}` });
+        }
+
         await updateCitaEstado(id, "completada");
         const citaActualizada = await getCitaById(id);
-        console.log(`[DEBUG] Cita ${id} completada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: completada`);
-        res.json({
-            message: "Cita completada correctamente",
-            debug: {
-                action: "completarCita",
-                citaId: id,
-                previousEstado: cita.estado,
-                newEstado: "completada",
-                modifiedBy: userId,
-                timestamp: new Date().toISOString()
-            },
-            cita: citaActualizada
-        });
+        res.json({ message: "Cita completada correctamente", cita: citaActualizada });
 
     } catch (error) {
         console.error("Error al completar cita:", error);
@@ -379,21 +512,13 @@ export const cancelarCita = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para cancelar esta cita" });
         }
 
+        if (!ESTADOS_ORIGEN.cancelada.includes(cita.estado)) {
+            return res.status(409).json({ error: `No se puede cancelar una cita ${cita.estado}` });
+        }
+
         await updateCitaEstado(id, "cancelada");
         const citaActualizada = await getCitaById(id);
-        console.log(`[DEBUG] Cita ${id} cancelada por usuario ${userId}. Estado anterior: ${cita.estado} -> Nuevo: cancelada`);
-        res.json({
-            message: "Cita cancelada correctamente",
-            debug: {
-                action: "cancelarCita",
-                citaId: id,
-                previousEstado: cita.estado,
-                newEstado: "cancelada",
-                modifiedBy: userId,
-                timestamp: new Date().toISOString()
-            },
-            cita: citaActualizada
-        });
+        res.json({ message: "Cita cancelada correctamente", cita: citaActualizada });
 
     } catch (error) {
         console.error("Error al cancelar cita:", error);
@@ -502,8 +627,12 @@ export const getDisponibilidad = async (req, res) => {
         const { barberoId, fecha } = req.params;
         const { barberiaId } = req.query;
 
-        if (!barberiaId) {
+        if (!esObjectIdValido(barberiaId)) {
             return res.status(400).json({ error: "Se requiere el ID de la barbería" });
+        }
+
+        if (!RE_FECHA.test(fecha)) {
+            return res.status(400).json({ error: "Formato de fecha no válido" });
         }
 
         // Obtener barbería para conocer horario base
@@ -514,122 +643,13 @@ export const getDisponibilidad = async (req, res) => {
 
         // Obtener barbero para conocer su horario personal, excepciones y días libres
         const barbero = await getUserById(barberoId);
-        if (!barbero) {
-            return res.status(404).json({ error: "Barbero no encontrado" });
+        if (!barbero || barbero.barberiaId?.toString() !== barberiaId) {
+            return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
         // Obtener citas del barbero en esa fecha
         const citasOcupadas = await getCitasByBarberoAndFecha(barberoId, fecha);
-
-        const schedule = barberia.schedule || {
-            timezone: "Europe/Madrid",
-            weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
-            exceptions: []
-        };
-
-        const dateObj = new Date(fecha);
-        const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-        const dayKey = days[dateObj.getDay()];
-
-        let slotsForDay = [];
-        let isBarberiaClosed = false;
-        let isBarberoClosed = false;
-
-        // 1. Horario base de la barbería
-        const exception = schedule.exceptions?.find(e => e.date === fecha);
-        if (exception) {
-            if (exception.type === 'closed') {
-                isBarberiaClosed = true;
-            } else {
-                slotsForDay = exception.slots || [];
-            }
-        } else {
-            slotsForDay = schedule.weeklyTemplate?.[dayKey] || [];
-            if (slotsForDay.length === 0) {
-                isBarberiaClosed = true;
-            }
-        }
-
-        // 2. Aplicar excepciones y horario del BARBERO
-        const barberExceptions = (barbero.horarioPersonal?.exceptions || []).filter(ex => ex.date === fecha);
-        const customOpeningSlots = barberExceptions.filter(ex => !ex.isAbsence && ex.type !== 'closed' && ex.start && ex.end);
-        const absenceSlots = barberExceptions.filter(ex => ex.isAbsence === true && ex.start && ex.end);
-        const hasClosedException = barberExceptions.some(ex => ex.type === 'closed' || (ex.isAbsence === true && !ex.start));
-
-        if (customOpeningSlots.length > 0) {
-            // Si el barbero tiene franjas específicas abiertas para este día (ej: abiertas por el admin)
-            slotsForDay = customOpeningSlots.map(s => ({ start: s.start, end: s.end }));
-            isBarberiaClosed = false;
-            isBarberoClosed = false;
-        } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha))) {
-            // Si no tiene franjas abiertas explícitas y el día está en días libres o cerrado
-            isBarberoClosed = true;
-        } else if (barbero.horarioPersonal?.enabled && barbero.horarioPersonal?.weeklyTemplate?.[dayKey]) {
-            // Si el barbero tiene plantilla semanal propia
-            slotsForDay = barbero.horarioPersonal.weeklyTemplate[dayKey];
-            if (slotsForDay.length === 0) {
-                isBarberoClosed = true;
-            }
-        }
-
-        if (isBarberiaClosed) {
-            return res.json({
-                fecha,
-                barberoId,
-                estado: "cerrado",
-                horariosDisponibles: []
-            });
-        }
-
-        if (isBarberoClosed || slotsForDay.length === 0) {
-            return res.json({
-                fecha,
-                barberoId,
-                estado: "ausente",
-                horariosDisponibles: []
-            });
-        }
-
-        let horariosDisponibles = [];
-        const intervalo = 30; // minutos
-
-        for (const slot of slotsForDay) {
-            if (!slot.start || !slot.end) continue;
-            let current = new Date(`1970-01-01T${slot.start}:00`);
-            const end = new Date(`1970-01-01T${slot.end}:00`);
-
-            while (current < end) {
-                const horaStr = `${String(current.getHours()).padStart(2, "0")}:${String(current.getMinutes()).padStart(2, "0")}`;
-
-                // Verificar si este horario está ocupado por una cita
-                const ocupado = citasOcupadas.some(cita => {
-                    return horaStr >= cita.horaInicio && horaStr < cita.horaFin;
-                });
-
-                // Verificar si cae en una ausencia parcial del barbero (cierre parcial)
-                const enAusencia = absenceSlots.some(abs => {
-                    return horaStr >= abs.start && horaStr < abs.end;
-                });
-
-                if (!ocupado && !enAusencia) {
-                    horariosDisponibles.push(horaStr);
-                }
-                
-                current.setMinutes(current.getMinutes() + intervalo);
-            }
-        }
-
-        // Si la fecha es hoy, filtrar slots que ya han pasado
-        const hoy = new Date().toLocaleDateString('en-CA', { timeZone: schedule.timezone || 'Europe/Madrid' });
-        if (fecha === hoy) {
-            const ahora = new Date().toLocaleTimeString('en-GB', { 
-                timeZone: schedule.timezone || 'Europe/Madrid', 
-                hour: '2-digit', minute: '2-digit', hour12: false 
-            });
-            horariosDisponibles = horariosDisponibles.filter(hora => hora > ahora);
-        }
-
-        let estado = horariosDisponibles.length === 0 ? "completo" : "abierto";
+        const { estado, horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasOcupadas);
 
         res.json({
             fecha,
@@ -664,24 +684,16 @@ export const actualizarPagoCita = async (req, res) => {
         }
 
         const nuevoImporte = importePagado !== undefined ? Number(importePagado) : (cita.importePagado !== undefined ? cita.importePagado : cita.servicioPrecio);
+        if (!Number.isFinite(nuevoImporte) || nuevoImporte < 0) {
+            return res.status(400).json({ error: "El importe debe ser un número mayor o igual que 0" });
+        }
 
         await updateCitaPago(id, Boolean(pagado), nuevoImporte);
         const citaActualizada = await getCitaById(id);
-        console.log(`[DEBUG] Cita ${id} pago actualizado por usuario ${userId}. Pagado: ${cita.pagado} -> ${Boolean(pagado)}, Importe: ${cita.importePagado} -> ${nuevoImporte}`);
         res.json({
             message: "Estado de pago actualizado correctamente",
             pagado: Boolean(pagado),
             importePagado: nuevoImporte,
-            debug: {
-                action: "actualizarPagoCita",
-                citaId: id,
-                previousPagado: cita.pagado,
-                newPagado: Boolean(pagado),
-                previousImporte: cita.importePagado,
-                newImporte: nuevoImporte,
-                modifiedBy: userId,
-                timestamp: new Date().toISOString()
-            },
             cita: citaActualizada
         });
 

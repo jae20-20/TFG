@@ -1,5 +1,6 @@
 //definicion endpoints - Barberías
 import express from "express";
+import { validarObjectIdParam } from "../middleware/validateMiddleware.js";
 import rateLimit from "express-rate-limit";
 import {
     addServicio,
@@ -23,15 +24,26 @@ import {
     updateMyHorario,
     validateInvitationCode
 } from "../controllers/barbershopControllers.js";
-import { isAdmin, verifyToken } from "../middleware/authMiddleware.js";
+import { isAdmin, optionalAuth, verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+router.param("id", validarObjectIdParam);
+router.param("servicioId", validarObjectIdParam);
+router.param("barberoId", validarObjectIdParam);
+router.param("invitacionId", validarObjectIdParam);
+
 
 // Limita los intentos de validar un código de invitación (evita fuerza bruta)
 const invitationCodeLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 15,
     message: "Demasiados intentos, inténtalo más tarde"
+});
+
+const registerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: "Demasiados intentos, intenta más tarde"
 });
 
 // GESTIÓN DE INVITACIONES DE EMPLEADOS (ADMIN)
@@ -45,7 +57,7 @@ router.put("/invitaciones/:invitacionId/revocar", verifyToken, isAdmin, revocarI
 router.delete("/invitaciones/:invitacionId", verifyToken, isAdmin, deleteInvitacionEmpleado);
 
 // REGISTRO DE BARBERÍA
-router.post("/register", registerBarberia);
+router.post("/register", registerLimiter, registerBarberia);
 
 //  RUTAS AUTENTICADAS (ADMIN O BARBERO)
 router.get("/my/barberia", verifyToken, getMyBarberia);
@@ -56,7 +68,7 @@ router.put("/my/horario", verifyToken, isAdmin, updateMyHorario);
 router.get("/", getBarberias);
 router.get("/:id", getBarberia);
 router.get("/:id/servicios", getServicios);
-router.get("/:id/barberos", getBarberos);
+router.get("/:id/barberos", optionalAuth, getBarberos);
 router.get("/:id/resenas", getResenasPublicas);
 router.put("/:id", verifyToken, isAdmin, editBarberia);
 
