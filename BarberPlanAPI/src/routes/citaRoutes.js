@@ -8,6 +8,7 @@ import {
     crearCita,
     crearCitaManual,
     crearResena,
+    getAnaliticasBarberia,
     getCita,
     getCitasBarberia,
     getCitasBarbero,
@@ -43,6 +44,7 @@ router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);
 
 // ==================== RUTAS DE ADMIN ====================
 router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);
+router.get("/barberia/:barberiaId/analiticas", verifyToken, isAdmin, getAnaliticasBarberia);
 
 // ==================== RUTAS DE RESEÑAS ====================
 router.get("/resenas/barberia", verifyToken, isAdminOrBarbero, getResenasBarberia);

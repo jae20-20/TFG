@@ -5,12 +5,6 @@ ion-content.barber-premium-content {
 	--background: var(--ion-background-color);
 }
 
-.view-mode-segment {
-	display: flex;
-	gap: 8px;
-	margin: 10px 0 14px;
-}
-
 ion-list ion-item {
 	--background: var(--custom-card-bg);
 	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.14);

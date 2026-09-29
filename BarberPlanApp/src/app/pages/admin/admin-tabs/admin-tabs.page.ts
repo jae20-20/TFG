@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline, cutOutline } from 'ionicons/icons';
+import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline, cutOutline, statsChartOutline } from 'ionicons/icons';
 
 addIcons({
   'arrow-back-outline': arrowBackOutline,
@@ -17,7 +17,8 @@ addIcons({
   'calendar-outline': calendarOutline,
   'settings-outline': settingsOutline,
   'person-outline': personOutline,
-  'cut-outline': cutOutline
+  'cut-outline': cutOutline,
+  'stats-chart-outline': statsChartOutline
 });
 
 @Component({
@@ -71,6 +72,7 @@ export class AdminTabsPage implements OnInit, OnDestroy {
     }
 
     if (url.includes('calendar')) this.pageName = 'Calendario';
+    else if (url.includes('analytics')) this.pageName = 'Estadísticas';
     else if (url.includes('barbershop-details')) this.pageName = 'Datos Barbería';
     else if (url.includes('schedule')) this.pageName = 'Horario';
     else if (url.includes('services')) this.pageName = 'Servicios';

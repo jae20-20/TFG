@@ -170,6 +170,16 @@ export class ApiService {
     );
   }
 
+  async getAnaliticasBarberia(barberiaId: string, periodo: 'dia' | 'semana' | 'mes', fecha: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/cita/barberia/${barberiaId}/analiticas`, {
+        headers,
+        params: { periodo, fecha }
+      })
+    );
+  }
+
   // Obtener citas del barbero autenticado
   async getCitasBarbero() {
     const headers = await this.getAuthHeaders();

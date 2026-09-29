@@ -15,9 +15,9 @@ import {
     updateCitaPago
 } from "../models/citaModel.js";
 
+import { esObjectIdValido } from "../middleware/validateMiddleware.js";
 import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { getUserById } from "../models/userModel.js";
-import { esObjectIdValido } from "../middleware/validateMiddleware.js";
 
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -700,5 +700,253 @@ export const actualizarPagoCita = async (req, res) => {
     } catch (error) {
         console.error("Error al actualizar pago de cita:", error);
         res.status(500).json({ error: "Error al actualizar pago de cita" });
+    }
+};
+
+// ANALÍTICAS 
+
+const PERIODOS_ANALITICA = ["dia", "semana", "mes"];
+const DIAS_SEMANA_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
+const MS_DIA = 24 * 60 * 60 * 1000;
+
+const redondear = (n) => Math.round(n * 100) / 100;
+const precioDe = (cita) => Number(cita.servicioPrecio) || 0;
+const cobradoDe = (cita) => (cita.pagado ? Number(cita.importePagado) || 0 : 0);
+
+const parsearFecha = (texto) => {
+    if (!RE_FECHA.test(texto)) return null;
+    const [y, m, d] = texto.split("-").map(Number);
+    const fecha = new Date(Date.UTC(y, m - 1, d));
+    const valida = fecha.getUTCFullYear() === y && fecha.getUTCMonth() === m - 1 && fecha.getUTCDate() === d;
+    return valida ? fecha : null;
+};
+const formatearFecha = (fecha) => fecha.toISOString().slice(0, 10);
+const sumarDias = (fecha, dias) => new Date(fecha.getTime() + dias * MS_DIA);
+
+const calcularRango = (periodo, base) => {
+    if (periodo === "dia") return { desde: base, hasta: base };
+    if (periodo === "semana") {
+        const desde = sumarDias(base, -((base.getUTCDay() + 6) % 7));
+        return { desde, hasta: sumarDias(desde, 6) };
+    }
+    return {
+        desde: new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1)),
+        hasta: new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0))
+    };
+};
+
+const calcularRangoAnterior = (periodo, desde) => {
+    if (periodo === "mes") return calcularRango(periodo, new Date(Date.UTC(desde.getUTCFullYear(), desde.getUTCMonth() - 1, 1)));
+    return calcularRango(periodo, sumarDias(desde, periodo === "dia" ? -1 : -7));
+};
+
+const resumirCitas = (citas) => {
+    const activas = citas.filter(c => c.estado !== "cancelada");
+    const pagadas = citas.filter(c => c.pagado);
+    const ingresosReales = pagadas.reduce((total, c) => total + cobradoDe(c), 0);
+    return {
+        citas: activas.length,
+        completadas: activas.filter(c => c.estado === "completada").length,
+        canceladas: citas.length - activas.length,
+        ingresosEsperados: redondear(activas.reduce((total, c) => total + precioDe(c), 0)),
+        ingresosReales: redondear(ingresosReales),
+        pendienteCobro: redondear(activas.filter(c => !c.pagado).reduce((total, c) => total + precioDe(c), 0)),
+        ticketMedio: pagadas.length > 0 ? redondear(ingresosReales / pagadas.length) : 0
+    };
+};
+
+const construirSerie = (periodo, desde, hasta, citas) => {
+    const puntos = new Map();
+    let claveDe;
+
+    if (periodo === "dia") {
+        const horas = citas.map(c => Number(c.horaInicio?.slice(0, 2))).filter(Number.isInteger);
+        if (horas.length === 0) return [];
+        for (let h = Math.min(...horas); h <= Math.max(...horas); h++) {
+            puntos.set(String(h).padStart(2, "0"), { etiqueta: `${h}h`, esperados: 0, reales: 0, citas: 0 });
+        }
+        claveDe = (c) => c.horaInicio?.slice(0, 2);
+    } else {
+        for (let d = desde; d <= hasta; d = sumarDias(d, 1)) {
+            const etiqueta = periodo === "semana" ? DIAS_SEMANA_CORTOS[(d.getUTCDay() + 6) % 7] : String(d.getUTCDate());
+            puntos.set(formatearFecha(d), { etiqueta, esperados: 0, reales: 0, citas: 0 });
+        }
+        claveDe = (c) => c.fecha;
+    }
+
+    for (const cita of citas) {
+        const punto = puntos.get(claveDe(cita));
+        if (!punto) continue;
+        if (cita.estado !== "cancelada") {
+            punto.esperados += precioDe(cita);
+            punto.citas++;
+        }
+        punto.reales += cobradoDe(cita);
+    }
+
+    return [...puntos.values()].map(p => ({ ...p, esperados: redondear(p.esperados), reales: redondear(p.reales) }));
+};
+
+const desglosarPorBarbero = (citas, barberos) => {
+    const filas = new Map(barberos.map(b => [b._id.toString(), {
+        id: b._id.toString(),
+        nombre: [b.nombre, b.apellido].filter(Boolean).join(" ") || b.usuario || "Barbero",
+        avatar: b.avatar || null,
+        citas: []
+    }]));
+
+    for (const cita of citas) {
+        const id = cita.barberoId?.toString();
+        if (!id) continue;
+        if (!filas.has(id)) filas.set(id, { id, nombre: "Antiguo empleado", avatar: null, citas: [] });
+        filas.get(id).citas.push(cita);
+    }
+
+    return [...filas.values()]
+        .map(({ citas: citasBarbero, ...barbero }) => {
+            const { citas: total, completadas, canceladas, ingresosEsperados, ingresosReales } = resumirCitas(citasBarbero);
+            return { ...barbero, citas: total, completadas, canceladas, ingresosEsperados, ingresosReales };
+        })
+        .sort((a, b) => b.ingresosReales - a.ingresosReales || b.ingresosEsperados - a.ingresosEsperados);
+};
+
+const analizarClientes = async (barberiaId, citas, desde) => {
+    const activas = citas.filter(c => c.estado !== "cancelada");
+    const porCliente = new Map();
+
+    for (const cita of activas) {
+        if (!cita.clienteId) continue;
+        const id = cita.clienteId.toString();
+        if (!porCliente.has(id)) {
+            const nombre = [cita.cliente?.nombre, cita.cliente?.apellido].filter(Boolean).join(" ") || cita.clienteNombre || "Cliente";
+            porCliente.set(id, { objectId: cita.clienteId, nombre, visitas: 0, gasto: 0 });
+        }
+        const cliente = porCliente.get(id);
+        cliente.visitas++;
+        cliente.gasto += precioDe(cita);
+    }
+
+    const recurrentes = await getClientesConCitasAnteriores(
+        barberiaId,
+        [...porCliente.values()].map(c => c.objectId),
+        desde
+    );
+
+    const top = [...porCliente.values()]
+        .sort((a, b) => b.visitas - a.visitas || b.gasto - a.gasto)
+        .slice(0, 5)
+        .map(({ nombre, visitas, gasto }) => ({ nombre, visitas, gasto: redondear(gasto) }));
+
+    return {
+        unicos: porCliente.size,
+        nuevos: porCliente.size - recurrentes.length,
+        recurrentes: recurrentes.length,
+        reservasManuales: activas.filter(c => !c.clienteId).length,
+        top
+    };
+};
+
+const calcularDeudas = (citas, porBarbero) => {
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+    const ahora = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+    const yaOcurrida = (c) => c.estado === "completada" || c.fecha < hoy || (c.fecha === hoy && c.horaInicio <= ahora);
+    const nombreBarbero = new Map(porBarbero.map(b => [b.id, b.nombre]));
+    const porCliente = new Map();
+
+    for (const cita of citas) {
+        if (cita.estado === "cancelada" || cita.pagado || !yaOcurrida(cita)) continue;
+        const nombre = [cita.cliente?.nombre, cita.cliente?.apellido].filter(Boolean).join(" ") || cita.clienteNombre || "Cliente";
+        const clave = cita.clienteId ? cita.clienteId.toString() : `manual:${nombre}`;
+        if (!porCliente.has(clave)) porCliente.set(clave, { clave, nombre, registrado: Boolean(cita.clienteId), total: 0, citas: [] });
+        const deudor = porCliente.get(clave);
+        deudor.total += precioDe(cita);
+        deudor.citas.push({
+            id: cita._id.toString(),
+            fecha: cita.fecha,
+            horaInicio: cita.horaInicio,
+            servicio: cita.servicioNombre || "Servicio",
+            barbero: nombreBarbero.get(cita.barberoId?.toString()) || "Antiguo empleado",
+            importe: redondear(precioDe(cita))
+        });
+    }
+
+    const clientes = [...porCliente.values()]
+        .map(d => ({ ...d, total: redondear(d.total), citas: d.citas.sort((a, b) => (a.fecha + a.horaInicio).localeCompare(b.fecha + b.horaInicio)) }))
+        .sort((a, b) => b.total - a.total);
+
+    return {
+        total: redondear(clientes.reduce((suma, d) => suma + d.total, 0)),
+        clientes
+    };
+};
+
+const calcularTopServicios = (citas) => {
+    const porServicio = new Map();
+    for (const cita of citas) {
+        if (cita.estado === "cancelada") continue;
+        const clave = cita.servicioId?.toString() || cita.servicioNombre;
+        if (!porServicio.has(clave)) porServicio.set(clave, { nombre: cita.servicioNombre || "Servicio", citas: 0, ingresos: 0 });
+        const servicio = porServicio.get(clave);
+        servicio.citas++;
+        servicio.ingresos += precioDe(cita);
+    }
+    return [...porServicio.values()]
+        .sort((a, b) => b.citas - a.citas || b.ingresos - a.ingresos)
+        .slice(0, 5)
+        .map(s => ({ ...s, ingresos: redondear(s.ingresos) }));
+};
+
+// Analíticas de ganancias y clientes de una barbería (solo su admin)
+export const getAnaliticasBarberia = async (req, res) => {
+    try {
+        const { barberiaId } = req.params;
+        const periodo = req.query.periodo ?? "mes";
+        const fechaTexto = req.query.fecha ?? new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Madrid' });
+
+        if (typeof periodo !== "string" || !PERIODOS_ANALITICA.includes(periodo)) {
+            return res.status(400).json({ error: "Periodo no válido. Usa dia, semana o mes" });
+        }
+        const base = typeof fechaTexto === "string" ? parsearFecha(fechaTexto) : null;
+        if (!base) {
+            return res.status(400).json({ error: "Fecha no válida. Usa el formato YYYY-MM-DD" });
+        }
+
+        const isAdmin = await isUserAdminOfBarberia(req.user.id, barberiaId);
+        if (!isAdmin) {
+            return res.status(403).json({ error: "No tienes permiso para ver las analíticas de esta barbería" });
+        }
+
+        const { desde, hasta } = calcularRango(periodo, base);
+        const anterior = calcularRangoAnterior(periodo, desde);
+        const desdeTexto = formatearFecha(desde);
+
+        const [citas, citasAnteriores, barberos] = await Promise.all([
+            getCitasBarberiaEnRango(barberiaId, desdeTexto, formatearFecha(hasta)),
+            getCitasBarberiaEnRango(barberiaId, formatearFecha(anterior.desde), formatearFecha(anterior.hasta)),
+            getBarberosByBarberiaId(barberiaId)
+        ]);
+
+        const resumenAnterior = resumirCitas(citasAnteriores);
+        const porBarbero = desglosarPorBarbero(citas, barberos);
+
+        res.json({
+            periodo,
+            desde: desdeTexto,
+            hasta: formatearFecha(hasta),
+            resumen: resumirCitas(citas),
+            anterior: {
+                citas: resumenAnterior.citas,
+                ingresosEsperados: resumenAnterior.ingresosEsperados,
+                ingresosReales: resumenAnterior.ingresosReales
+            },
+            serie: construirSerie(periodo, desde, hasta, citas),
+            porBarbero,
+            deudas: calcularDeudas(citas, porBarbero),
+            clientes: await analizarClientes(barberiaId, citas, desdeTexto),
+            topServicios: calcularTopServicios(citas)
+        });
+    } catch (error) {
+        console.error("Error al obtener analíticas de barbería:", error);
+        res.status(500).json({ error: "Error al obtener analíticas" });
     }
 };

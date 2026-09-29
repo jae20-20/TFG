@@ -232,6 +232,12 @@ textarea.bg-dark-700:focus,
   --color: var(--ion-color-primary) !important;
 }
 
+.view-mode-segment {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+
 .segment-chip {
   flex-shrink: 0;
   padding: 9px 16px;

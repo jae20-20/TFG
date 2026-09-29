@@ -260,11 +260,16 @@ export const getCitasBarberiaEnRango = async (barberiaId, desde, hasta) => {
 // De una lista de clientes, cuáles ya tenían alguna cita no cancelada en la barbería antes de una fecha
 export const getClientesConCitasAnteriores = async (barberiaId, clienteIds, antesDe) => {
     if (clienteIds.length === 0) return [];
-    const ids = await db.collection("Citas").distinct("clienteId", {
-        barberiaId: new ObjectId(barberiaId),
-        clienteId: { $in: clienteIds },
-        estado: { $ne: "cancelada" },
-        fecha: { $lt: antesDe }
-    });
-    return ids.map(id => id.toString());
+    const grupos = await db.collection("Citas").aggregate([
+        {
+            $match: {
+                barberiaId: new ObjectId(barberiaId),
+                clienteId: { $in: clienteIds },
+                estado: { $ne: "cancelada" },
+                fecha: { $lt: antesDe }
+            }
+        },
+        { $group: { _id: "$clienteId" } }
+    ]).toArray();
+    return grupos.map(g => g._id.toString());
 };

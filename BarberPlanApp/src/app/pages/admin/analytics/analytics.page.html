@@ -1,0 +1,320 @@
+<ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="calendar-card">
+    <div class="calendar-header">
+      <div>
+        <h2>{{ tituloPeriodo }}</h2>
+        <button type="button" class="analytics-today-link" *ngIf="!esPeriodoActual" (click)="irAHoy()">Volver a hoy</button>
+      </div>
+
+      <div class="calendar-nav">
+        <ion-button fill="clear" size="small" (click)="moverPeriodo(-1)" aria-label="Periodo anterior">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" size="small" (click)="moverPeriodo(1)" aria-label="Periodo siguiente">
+          <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="view-mode-segment">
+      <button type="button" class="segment-chip" [class.selected]="periodo === 'dia'" (click)="setPeriodo('dia')">Día</button>
+      <button type="button" class="segment-chip" [class.selected]="periodo === 'semana'" (click)="setPeriodo('semana')">Semana</button>
+      <button type="button" class="segment-chip" [class.selected]="periodo === 'mes'" (click)="setPeriodo('mes')">Mes</button>
+    </div>
+  </div>
+
+  <div class="view-mode-segment analytics-sections">
+    <button type="button" class="segment-chip" [class.selected]="seccion === 'ganancias'" (click)="setSeccion('ganancias')">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+      Ganancias
+    </button>
+    <button type="button" class="segment-chip" [class.selected]="seccion === 'clientes'" (click)="setSeccion('clientes')">
+      <ion-icon name="people-outline"></ion-icon>
+      Clientes
+    </button>
+  </div>
+
+  <div class="calendar-empty" *ngIf="loading && !datos">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <div class="calendar-empty" *ngIf="error">
+    <p>{{ error }}</p>
+    <ion-button fill="clear" size="small" (click)="cargar()">Reintentar</ion-button>
+  </div>
+
+  <div class="analytics-body" *ngIf="datos && !error" [class.is-refreshing]="loading">
+
+    <ng-container *ngIf="seccion === 'ganancias'">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-highlight">
+          <span class="kpi-label">Ingresos reales</span>
+          <strong class="kpi-value">{{ formatEuro(datos.resumen.ingresosReales) }}</strong>
+          <ng-container *ngTemplateOutlet="delta; context: { $implicit: variacion(datos.resumen.ingresosReales, datos.anterior.ingresosReales) }"></ng-container>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Ingresos esperados</span>
+          <strong class="kpi-value">{{ formatEuro(datos.resumen.ingresosEsperados) }}</strong>
+          <ng-container *ngTemplateOutlet="delta; context: { $implicit: variacion(datos.resumen.ingresosEsperados, datos.anterior.ingresosEsperados) }"></ng-container>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Pendiente de cobro</span>
+          <strong class="kpi-value">{{ formatEuro(datos.resumen.pendienteCobro) }}</strong>
+          <span class="kpi-sub">Citas aún sin pagar</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Ticket medio</span>
+          <strong class="kpi-value">{{ formatEuro(datos.resumen.ticketMedio) }}</strong>
+          <span class="kpi-sub">Por cita cobrada</span>
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Cobrado del esperado</h3>
+          <span class="analytics-card-value">{{ porcentajeCobrado }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="porcentajeCobrado"></div>
+        </div>
+        <p class="analytics-note">{{ formatEuro(datos.resumen.ingresosReales) }} de {{ formatEuro(datos.resumen.ingresosEsperados) }}</p>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Pagos pendientes</h3>
+          <span class="analytics-card-value is-danger" *ngIf="datos.deudas.total > 0">{{ formatEuro(datos.deudas.total) }}</span>
+        </div>
+
+        <div class="debt-item" *ngFor="let deudor of datos.deudas.clientes" [class.is-open]="deudorAbierto === deudor.clave">
+          <button type="button" class="analytics-row debt-toggle" (click)="toggleDeudor(deudor.clave)" [attr.aria-expanded]="deudorAbierto === deudor.clave">
+            <div class="avatar-wrap">
+              <div class="avatar-initials">{{ getInitials(deudor.nombre) }}</div>
+            </div>
+            <div class="analytics-row-body">
+              <div class="analytics-row-top">
+                <span class="analytics-row-name">{{ deudor.nombre }}</span>
+                <strong class="debt-amount">{{ formatEuro(deudor.total) }}</strong>
+              </div>
+              <div class="analytics-row-meta">
+                <span>{{ deudor.citas.length }} {{ deudor.citas.length === 1 ? 'cita sin pagar' : 'citas sin pagar' }}{{ deudor.registrado ? '' : ' · reserva manual' }}</span>
+                <ion-icon name="chevron-down-outline" class="debt-chevron"></ion-icon>
+              </div>
+            </div>
+          </button>
+
+          <div class="debt-detail" *ngIf="deudorAbierto === deudor.clave">
+            <div class="debt-cita" *ngFor="let cita of deudor.citas">
+              <div class="debt-cita-info">
+                <span class="debt-cita-title">{{ cita.servicio }} · {{ formatEuro(cita.importe) }}</span>
+                <span class="debt-cita-meta">{{ formatFechaCorta(cita.fecha) }}, {{ cita.horaInicio }} · {{ cita.barbero }}</span>
+              </div>
+              <ion-button size="small" fill="outline" (click)="confirmarCobro(deudor, cita)" [disabled]="cobrando === cita.id">
+                <ion-spinner *ngIf="cobrando === cita.id; else iconoCobro" name="crescent"></ion-spinner>
+                <ng-template #iconoCobro><ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>Cobrar</ng-template>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <p class="analytics-empty" *ngIf="!datos.deudas.clientes.length">
+          <ion-icon name="wallet-outline"></ion-icon>
+          Nadie debe nada en este periodo.
+        </p>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Evolución</h3>
+          <div class="chart-legend">
+            <span><i class="legend-dot is-expected"></i>Esperado</span>
+            <span><i class="legend-dot is-real"></i>Real</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="hayMovimientoSerie; else sinMovimiento">
+          <p class="chart-detail" *ngIf="puntoActivo as punto; else pistaGrafica">
+            <strong>{{ punto.etiqueta }}</strong> · {{ formatEuro(punto.reales) }} de {{ formatEuro(punto.esperados) }} · {{ punto.citas }} {{ punto.citas === 1 ? 'cita' : 'citas' }}
+          </p>
+          <ng-template #pistaGrafica>
+            <p class="chart-detail is-hint">Toca un punto para ver el detalle</p>
+          </ng-template>
+
+          <div class="line-chart" [class.is-dense]="periodo === 'mes'">
+            <svg [attr.viewBox]="'0 0 ' + graficaAncho + ' ' + graficaAlto" preserveAspectRatio="none" aria-hidden="true">
+              <line *ngFor="let y of grafica.guias" class="chart-guide" x1="0" [attr.x2]="graficaAncho" [attr.y1]="y" [attr.y2]="y"></line>
+              <line
+                *ngIf="puntoSeleccionado !== null"
+                class="chart-cursor"
+                [attr.x1]="grafica.puntos[puntoSeleccionado].x"
+                [attr.x2]="grafica.puntos[puntoSeleccionado].x"
+                y1="0"
+                [attr.y2]="graficaAlto"
+              ></line>
+              <polyline class="chart-line is-expected" [attr.points]="grafica.lineaEsperados"></polyline>
+              <polyline class="chart-line is-real" [attr.points]="grafica.lineaReales"></polyline>
+            </svg>
+
+            <div class="chart-dots">
+              <ng-container *ngFor="let p of grafica.puntos; let i = index">
+                <span class="chart-dot is-expected" [class.is-active]="i === puntoSeleccionado" [style.left.%]="(p.x / graficaAncho) * 100" [style.top.%]="(p.yEsperado / graficaAlto) * 100"></span>
+                <span class="chart-dot is-real" [class.is-active]="i === puntoSeleccionado" [style.left.%]="(p.x / graficaAncho) * 100" [style.top.%]="(p.yReal / graficaAlto) * 100"></span>
+              </ng-container>
+            </div>
+
+            <div class="chart-hits">
+              <button
+                type="button"
+                class="chart-hit"
+                *ngFor="let punto of datos.serie; let i = index"
+                [attr.aria-label]="punto.etiqueta + ': ' + formatEuro(punto.reales) + ' de ' + formatEuro(punto.esperados)"
+                (click)="seleccionarPunto(i)"
+              ></button>
+            </div>
+          </div>
+
+          <div class="chart-labels">
+            <span *ngFor="let punto of datos.serie; let i = index; let total = count" [class.is-active]="i === puntoSeleccionado">
+              {{ mostrarEtiquetaSerie(i, total) || i === puntoSeleccionado ? punto.etiqueta : '' }}
+            </span>
+          </div>
+        </ng-container>
+        <ng-template #sinMovimiento>
+          <p class="analytics-empty">Sin citas en este periodo.</p>
+        </ng-template>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Por empleado</h3>
+        </div>
+
+        <div class="analytics-row" *ngFor="let barbero of datos.porBarbero">
+          <div class="avatar-wrap">
+            <img *ngIf="barbero.avatar; else iniciales" [src]="barbero.avatar" alt="" />
+            <ng-template #iniciales>
+              <div class="avatar-initials">{{ getInitials(barbero.nombre) }}</div>
+            </ng-template>
+          </div>
+
+          <div class="analytics-row-body">
+            <div class="analytics-row-top">
+              <span class="analytics-row-name">{{ barbero.nombre }}</span>
+              <strong>{{ formatEuro(barbero.ingresosReales) }}</strong>
+            </div>
+            <div class="progress-track is-thin">
+              <div class="progress-fill" [style.width.%]="porcentaje(barbero.ingresosReales, barbero.ingresosEsperados)"></div>
+            </div>
+            <div class="analytics-row-meta">
+              <span>{{ barbero.citas }} {{ barbero.citas === 1 ? 'cita' : 'citas' }}<ng-container *ngIf="barbero.canceladas"> · {{ barbero.canceladas }} canc.</ng-container></span>
+              <span>de {{ formatEuro(barbero.ingresosEsperados) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="analytics-empty" *ngIf="!datos.porBarbero.length">Todavía no hay empleados.</p>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="seccion === 'clientes'">
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-highlight">
+          <span class="kpi-label">Citas</span>
+          <strong class="kpi-value">{{ datos.resumen.citas }}</strong>
+          <ng-container *ngTemplateOutlet="delta; context: { $implicit: variacion(datos.resumen.citas, datos.anterior.citas) }"></ng-container>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Clientes</span>
+          <strong class="kpi-value">{{ datos.clientes.unicos }}</strong>
+          <span class="kpi-sub">+ {{ datos.clientes.reservasManuales }} reservas manuales</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Nuevos</span>
+          <strong class="kpi-value">{{ datos.clientes.nuevos }}</strong>
+          <span class="kpi-sub">Primera visita</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-label">Recurrentes</span>
+          <strong class="kpi-value">{{ datos.clientes.recurrentes }}</strong>
+          <span class="kpi-sub">Ya habían venido</span>
+        </div>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Cancelaciones</h3>
+          <span class="analytics-card-value">{{ tasaCancelacion }}%</span>
+        </div>
+        <div class="progress-track is-danger">
+          <div class="progress-fill" [style.width.%]="tasaCancelacion"></div>
+        </div>
+        <p class="analytics-note">{{ datos.resumen.canceladas }} de {{ datos.resumen.citas + datos.resumen.canceladas }} citas canceladas</p>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Clientes más frecuentes</h3>
+        </div>
+
+        <div class="analytics-row" *ngFor="let cliente of datos.clientes.top; let i = index">
+          <span class="analytics-rank">{{ i + 1 }}</span>
+          <div class="analytics-row-body">
+            <div class="analytics-row-top">
+              <span class="analytics-row-name">{{ cliente.nombre }}</span>
+              <strong>{{ formatEuro(cliente.gasto) }}</strong>
+            </div>
+            <div class="analytics-row-meta">
+              <span>{{ cliente.visitas }} {{ cliente.visitas === 1 ? 'visita' : 'visitas' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="analytics-empty" *ngIf="!datos.clientes.top.length">Sin reservas de clientes registrados en este periodo.</p>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>Servicios más reservados</h3>
+        </div>
+
+        <div class="analytics-row" *ngFor="let servicio of datos.topServicios">
+          <div class="analytics-row-body">
+            <div class="analytics-row-top">
+              <span class="analytics-row-name">{{ servicio.nombre }}</span>
+              <strong>{{ servicio.citas }}</strong>
+            </div>
+            <div class="progress-track is-thin">
+              <div class="progress-fill" [style.width.%]="porcentaje(servicio.citas, maxServicio)"></div>
+            </div>
+            <div class="analytics-row-meta">
+              <span>{{ formatEuro(servicio.ingresos) }} esperados</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="analytics-empty" *ngIf="!datos.topServicios.length">Sin servicios reservados en este periodo.</p>
+      </div>
+    </ng-container>
+  </div>
+
+  <ng-template #delta let-valor>
+    <span class="kpi-delta" *ngIf="valor !== null; else sinComparacion" [class.is-up]="valor > 0" [class.is-down]="valor < 0">
+      <ion-icon [name]="valor < 0 ? 'trending-down-outline' : 'trending-up-outline'"></ion-icon>
+      {{ valor > 0 ? '+' : '' }}{{ valor }}% {{ textoComparacion }}
+    </span>
+    <ng-template #sinComparacion>
+      <span class="kpi-sub">Sin datos para comparar</span>
+    </ng-template>
+  </ng-template>
+</ion-content>
