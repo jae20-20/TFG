@@ -17,10 +17,16 @@ export class CardConfigurationPage implements OnInit {
   perfilVisualForm = {
     logoUrl: '',
     portadaUrl: '',
-    galeriaTrabajos: [] as string[]
+    galeriaTrabajos: [] as string[],
+    tags: [] as string[]
   };
   savingPerfilVisual = false;
   barberiaError = '';
+
+  nuevoTag = '';
+  tagError = '';
+  readonly maxTags = 8;
+  readonly maxTagLength = 24;
 
   constructor(
     private apiService: ApiService,
@@ -49,7 +55,8 @@ export class CardConfigurationPage implements OnInit {
       this.perfilVisualForm = {
         logoUrl: this.barberia.logoUrl || '',
         portadaUrl: this.barberia.portadaUrl || '',
-        galeriaTrabajos: this.barberia.galeriaTrabajos || []
+        galeriaTrabajos: this.barberia.galeriaTrabajos || [],
+        tags: this.barberia.tags || []
       };
     }
   }
@@ -94,6 +101,39 @@ export class CardConfigurationPage implements OnInit {
 
   removeGaleriaImage(index: number) {
     this.perfilVisualForm.galeriaTrabajos.splice(index, 1);
+  }
+
+  addTag() {
+    this.tagError = '';
+    const tag = this.nuevoTag.trim().replace(/\s+/g, ' ');
+
+    if (!tag) return;
+
+    if (tag.length > this.maxTagLength) {
+      this.tagError = `Cada etiqueta puede tener hasta ${this.maxTagLength} caracteres.`;
+      return;
+    }
+
+    if (this.perfilVisualForm.tags.length >= this.maxTags) {
+      this.tagError = `Puedes añadir hasta ${this.maxTags} etiquetas.`;
+      return;
+    }
+
+    const yaExiste = this.perfilVisualForm.tags.some(
+      (existente) => existente.toLowerCase() === tag.toLowerCase()
+    );
+    if (yaExiste) {
+      this.nuevoTag = '';
+      return;
+    }
+
+    this.perfilVisualForm.tags.push(tag);
+    this.nuevoTag = '';
+  }
+
+  removeTag(index: number) {
+    this.perfilVisualForm.tags.splice(index, 1);
+    this.tagError = '';
   }
 
   private processImage(file: File, maxSize: number): Promise<string> {

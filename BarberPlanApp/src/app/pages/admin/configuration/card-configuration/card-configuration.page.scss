@@ -1,1 +1,64 @@
 @use '../../shared-admin.scss';
+
+.preview-tags {
+  margin: 0 0 14px;
+}
+
+.tags-editor-section {
+  margin-bottom: 16px;
+}
+
+.tags-editor-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--bp-fs-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--custom-label);
+}
+
+.tags-editor-hint {
+  margin: 0 0 10px;
+  font-size: var(--bp-fs-secondary);
+  color: var(--custom-text-muted);
+}
+
+.add-tag-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+
+  .service-input-item {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+
+  ion-chip {
+    margin: 0;
+    font-weight: 600;
+
+    ion-icon {
+      cursor: pointer;
+      opacity: 0.75;
+      transition: opacity 0.15s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.tags-editor-empty {
+  margin: 10px 0 0;
+  font-size: var(--bp-fs-secondary);
+  color: var(--custom-text-muted);
+}

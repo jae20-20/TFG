@@ -208,6 +208,32 @@ export const registerBarberia = async (req, res) => {
     }
 };
 
+const MAX_TAGS = 8;
+const RE_TAG_VALIDA = /^[\p{L}\p{N} '-]{1,24}$/u;
+
+// Valida y normaliza la lista de etiquetas de estilo de una barbería.
+// Devuelve null si la entrada no es válida (para responder 400).
+const sanearTags = (tags) => {
+    if (!Array.isArray(tags) || tags.length > MAX_TAGS) return null;
+
+    const vistos = new Set();
+    const limpias = [];
+
+    for (const tag of tags) {
+        if (typeof tag !== "string") return null;
+        const limpia = tag.trim().replace(/\s+/g, " ");
+        if (!RE_TAG_VALIDA.test(limpia)) return null;
+
+        const clave = limpia.toLowerCase();
+        if (!vistos.has(clave)) {
+            vistos.add(clave);
+            limpias.push(limpia);
+        }
+    }
+
+    return limpias;
+};
+
 // ACTUALIZAR BARBERÍA (SOLO ADMIN)
 
 export const editBarberia = async (req, res) => {
@@ -232,8 +258,17 @@ export const editBarberia = async (req, res) => {
             imagen,
             logoUrl,
             portadaUrl,
-            galeriaTrabajos
+            galeriaTrabajos,
+            tags
         } = req.body;
+
+        let tagsSaneados;
+        if (tags !== undefined) {
+            tagsSaneados = sanearTags(tags);
+            if (tagsSaneados === null) {
+                return res.status(400).json({ error: "Las etiquetas deben ser una lista de hasta 8 palabras de 1 a 24 caracteres" });
+            }
+        }
 
         // Solo actualizar los campos presentes en la petición para no borrar datos existentes.
         const updateData = {
@@ -248,6 +283,7 @@ export const editBarberia = async (req, res) => {
             logoUrl,
             portadaUrl,
             galeriaTrabajos,
+            tags: tagsSaneados,
             updatedAt: new Date()
         };
 

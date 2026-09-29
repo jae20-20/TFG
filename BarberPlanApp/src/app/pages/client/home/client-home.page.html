@@ -53,7 +53,7 @@
   </div>
 
   <div class="active-chips" *ngIf="chipsActivos.length > 0">
-    <button type="button" class="active-chip" *ngFor="let chip of chipsActivos" (click)="quitarFiltro(chip.id)">
+    <button type="button" class="active-chip" *ngFor="let chip of chipsActivos" (click)="quitarFiltro(chip)">
       <span>{{ chip.label }}</span>
       <ion-icon name="close-outline"></ion-icon>
     </button>
@@ -102,6 +102,11 @@
         </div>
 
         <p class="barberia-location">{{ getUbicacion(barberia) }}</p>
+
+        <div class="tag-badge-row barberia-tags" *ngIf="barberia.tags && barberia.tags.length > 0">
+          <span class="tag-badge" *ngFor="let tag of barberia.tags">{{ tag }}</span>
+        </div>
+
         <p class="barberia-description">
           {{ barberia.descripcion || 'Barbería disponible en BarberPlan. Revisa sus servicios y agenda tu cita.' }}
         </p>
@@ -208,6 +213,21 @@
               (click)="seleccionarServicio(servicio)"
             >
               {{ servicio }}
+            </button>
+          </div>
+        </section>
+
+        <section class="filter-section" *ngIf="tagsDisponibles.length > 0">
+          <h3>Estilo</h3>
+          <div class="chip-row">
+            <button
+              type="button"
+              class="fs-chip"
+              *ngFor="let tag of tagsDisponibles"
+              [class.selected]="filtrosDraft.tags.includes(tag)"
+              (click)="toggleTagDraft(tag)"
+            >
+              {{ tag }}
             </button>
           </div>
         </section>

@@ -46,6 +46,10 @@
         <p>{{ barberia.direccion || 'Dirección no disponible' }}<span *ngIf="barberia.ciudad">, {{ barberia.ciudad }}</span></p>
         <p class="hero-description">{{ barberia.descripcion || 'Descubre sus servicios y reserva tu próxima cita.' }}</p>
 
+        <div class="tag-badge-row hero-tags" *ngIf="barberia.tags && barberia.tags.length > 0">
+          <span class="tag-badge" *ngFor="let tag of barberia.tags">{{ tag }}</span>
+        </div>
+
         <div class="hero-gallery" *ngIf="getGaleria().length > 0">
           <div class="hero-gallery-grid">
             <app-review-image *ngFor="let foto of getGaleriaVisible()" [src]="foto" [size]="76"></app-review-image>

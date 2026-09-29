@@ -431,3 +431,21 @@ ion-title.md.boutique-title {
     flex-shrink: 0;
   }
 }
+
+.tag-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-badge {
+  padding: 4px 10px;
+  border-radius: var(--bp-radius-pill);
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.28);
+  color: var(--custom-gold-light);
+  font-size: var(--bp-fs-overline);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}

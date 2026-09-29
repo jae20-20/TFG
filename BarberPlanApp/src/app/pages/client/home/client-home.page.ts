@@ -32,6 +32,7 @@ interface BarberiaPublica {
   logoUrl?: string;
   portadaUrl?: string;
   galeriaTrabajos?: string[];
+  tags?: string[];
   servicios?: ServicioBarberia[];
   barberos?: string[];
   schedule?: {
@@ -45,6 +46,7 @@ type OrdenBarberia = 'nombre' | 'precio' | 'servicios';
 interface FiltrosBarberia {
   ciudad: string;
   servicio: string;
+  tags: string[];
   precioMax: number | null;
   soloAbiertasHoy: boolean;
   orden: OrdenBarberia;
@@ -53,6 +55,7 @@ interface FiltrosBarberia {
 interface ChipFiltro {
   id: keyof FiltrosBarberia;
   label: string;
+  valor?: string;
 }
 
 const CIUDAD_TODAS = 'Todas';
@@ -100,6 +103,7 @@ export class ClientHomePage implements OnInit {
   // Facetas derivadas del catálogo real de barberías
   ciudadesDisponibles: string[] = [];
   serviciosDisponibles: string[] = [];
+  tagsDisponibles: string[] = [];
   precioTecho = 0;
 
   isFilterModalOpen = false;
@@ -181,6 +185,7 @@ export class ClientHomePage implements OnInit {
     return {
       ciudad: CIUDAD_TODAS,
       servicio: SERVICIO_TODOS,
+      tags: [],
       precioMax: null,
       soloAbiertasHoy: false,
       orden: 'nombre'
@@ -190,12 +195,20 @@ export class ClientHomePage implements OnInit {
   private calcularFacetas() {
     const ciudades = new Set<string>();
     const servicios = new Map<string, string>();
+    const tags = new Map<string, string>();
     let precioMaximo = 0;
 
     for (const barberia of this.barberias) {
       const ciudad = (barberia.ciudad || '').trim();
       if (ciudad) {
         ciudades.add(ciudad);
+      }
+
+      for (const tag of barberia.tags || []) {
+        const nombre = (tag || '').trim();
+        if (nombre && !tags.has(this.normalizar(nombre))) {
+          tags.set(this.normalizar(nombre), nombre);
+        }
       }
 
       for (const servicio of barberia.servicios || []) {
@@ -213,6 +226,7 @@ export class ClientHomePage implements OnInit {
 
     this.ciudadesDisponibles = [...ciudades].sort((a, b) => a.localeCompare(b, 'es'));
     this.serviciosDisponibles = [...servicios.values()].sort((a, b) => a.localeCompare(b, 'es'));
+    this.tagsDisponibles = [...tags.values()].sort((a, b) => a.localeCompare(b, 'es'));
     this.precioTecho = precioMaximo > 0 ? Math.ceil(precioMaximo / 5) * 5 : 0;
   }
 
@@ -258,6 +272,14 @@ export class ClientHomePage implements OnInit {
           (servicio) => this.normalizar(servicio?.nombre || '') === servicioBuscado
         );
         if (!ofrece) {
+          return false;
+        }
+      }
+
+      if (filtros.tags.length > 0) {
+        const tagsBarberia = (barberia.tags || []).map((tag) => this.normalizar(tag));
+        const coincide = filtros.tags.some((tag) => tagsBarberia.includes(this.normalizar(tag)));
+        if (!coincide) {
           return false;
         }
       }
@@ -329,6 +351,10 @@ export class ClientHomePage implements OnInit {
       chips.push({ id: 'servicio', label: this.filtros.servicio });
     }
 
+    for (const tag of this.filtros.tags) {
+      chips.push({ id: 'tags', label: tag, valor: tag });
+    }
+
     if (this.filtros.precioMax !== null) {
       chips.push({ id: 'precioMax', label: `Hasta ${this.filtros.precioMax} €` });
     }
@@ -354,9 +380,15 @@ export class ClientHomePage implements OnInit {
     return 'Nombre (A-Z)';
   }
 
-  quitarFiltro(id: keyof FiltrosBarberia) {
+  quitarFiltro(chip: ChipFiltro) {
+    if (chip.id === 'tags' && chip.valor !== undefined) {
+      this.filtros.tags = this.filtros.tags.filter((tag) => tag !== chip.valor);
+      this.recalcularResultados();
+      return;
+    }
+
     const defecto = ClientHomePage.filtrosPorDefecto();
-    (this.filtros as any)[id] = defecto[id];
+    (this.filtros as any)[chip.id] = defecto[chip.id];
     this.recalcularResultados();
   }
 
@@ -389,6 +421,14 @@ export class ClientHomePage implements OnInit {
 
   seleccionarServicio(servicio: string) {
     this.filtrosDraft.servicio = servicio;
+    this.actualizarPrevisualizacion();
+  }
+
+  toggleTagDraft(tag: string) {
+    const yaSeleccionado = this.filtrosDraft.tags.includes(tag);
+    this.filtrosDraft.tags = yaSeleccionado
+      ? this.filtrosDraft.tags.filter((t) => t !== tag)
+      : [...this.filtrosDraft.tags, tag];
     this.actualizarPrevisualizacion();
   }
 

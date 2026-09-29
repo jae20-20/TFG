@@ -36,6 +36,10 @@
         <h2>{{ barberia?.nombre || 'Nombre de la barbería' }}</h2>
         <p>{{ barberia?.direccion || 'Dirección' }}<span *ngIf="barberia?.ciudad">, {{ barberia.ciudad }}</span></p>
 
+        <div class="tag-badge-row preview-tags" *ngIf="perfilVisualForm.tags.length > 0">
+          <span class="tag-badge" *ngFor="let tag of perfilVisualForm.tags">{{ tag }}</span>
+        </div>
+
         <div class="preview-gallery-row" *ngIf="perfilVisualForm.galeriaTrabajos.length > 0">
           <div
             class="preview-gallery-item"
@@ -60,6 +64,37 @@
             <ion-icon name="images-outline"></ion-icon>
             <span>Añadir fotos</span>
           </label>
+        </div>
+
+        <div class="tags-editor-section">
+          <label class="tags-editor-label">Estilo de la barbería</label>
+          <p class="tags-editor-hint">Palabras que describan tu barbería (urbana, clásica, vintage...). Los clientes podrán verlas y buscar por ellas.</p>
+
+          <div class="add-tag-row">
+            <ion-item lines="none" class="service-input-item">
+              <ion-input
+                type="text"
+                placeholder="Ej. urbana"
+                [(ngModel)]="nuevoTag"
+                [maxlength]="maxTagLength"
+                (keyup.enter)="addTag()"
+              ></ion-input>
+            </ion-item>
+            <ion-button class="add-service-button" (click)="addTag()" [disabled]="!nuevoTag.trim() || perfilVisualForm.tags.length >= maxTags">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Añadir
+            </ion-button>
+          </div>
+
+          <p class="field-note-danger" *ngIf="tagError">{{ tagError }}</p>
+
+          <div class="tags-list" *ngIf="perfilVisualForm.tags.length > 0">
+            <ion-chip *ngFor="let tag of perfilVisualForm.tags; let i = index" color="primary">
+              <ion-label>{{ tag }}</ion-label>
+              <ion-icon name="close-circle" (click)="removeTag(i)"></ion-icon>
+            </ion-chip>
+          </div>
+          <p class="tags-editor-empty" *ngIf="perfilVisualForm.tags.length === 0">Todavía no has añadido ninguna etiqueta.</p>
         </div>
 
         <ion-button
