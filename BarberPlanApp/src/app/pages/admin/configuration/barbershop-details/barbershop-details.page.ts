@@ -21,6 +21,7 @@ export class BarbershopDetailsPage implements OnInit {
   savingPerfil = false;
   barberiaError = '';
   loadingBarberia = false;
+  guardandoModo = false;
   ciudades = ['Madrid', 'Valencia', 'Sevilla'];
 
   constructor(
@@ -57,6 +58,45 @@ export class BarbershopDetailsPage implements OnInit {
         telefono: this.barberia.telefono,
         descripcion: this.barberia.descripcion
       };
+    }
+  }
+
+  get confirmacionManual() {
+    return this.barberia?.modoConfirmacion === 'manual';
+  }
+
+  async cambiarModoConfirmacion(event: any) {
+    const manual = Boolean(event?.detail?.checked);
+    if (!this.barberia?._id || manual === this.confirmacionManual) return;
+
+    this.guardandoModo = true;
+    try {
+      const modoConfirmacion = manual ? 'manual' : 'automatico';
+      await this.apiService.updateBarberia(this.barberia._id, { modoConfirmacion });
+      this.barberia.modoConfirmacion = modoConfirmacion;
+      const toast = await this.toastCtrl.create({
+        message: manual
+          ? 'Confirmación manual activada.'
+          : 'Confirmación automática activada. Las reservas que ya estaban pendientes se siguen respondiendo desde el calendario.',
+        duration: manual ? 2000 : 3500,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error al cambiar el modo de confirmación:', error);
+      if (event?.target) {
+        event.target.checked = this.confirmacionManual;
+      }
+      const toast = await this.toastCtrl.create({
+        message: 'No se ha podido cambiar el modo de confirmación.',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.guardandoModo = false;
     }
   }
 

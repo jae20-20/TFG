@@ -1,0 +1,29 @@
+<div class="cita-acciones" *ngIf="esPendiente(cita)">
+  <p class="cita-acciones-nota" *ngIf="mostrarLimite && limiteRespuesta(cita) as limite">
+    Se cancelará sola si no respondes antes del {{ limite | date:'dd/MM HH:mm' }}
+  </p>
+  <div class="cita-acciones-botones">
+    <ion-button class="accion-positiva" (click)="emitir('confirmar', $event)">
+      <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+      Aceptar
+    </ion-button>
+    <ion-button class="accion-negativa" (click)="emitir('rechazar', $event)">
+      <ion-icon slot="start" name="close-outline"></ion-icon>
+      Rechazar
+    </ion-button>
+  </div>
+</div>
+
+<div class="cita-acciones" *ngIf="admiteAsistencia(cita)">
+  <p class="cita-acciones-nota">¿Vino el cliente?</p>
+  <div class="cita-acciones-botones">
+    <ion-button class="accion-positiva" (click)="emitir('completar', $event)">
+      <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+      Completada
+    </ion-button>
+    <ion-button class="accion-negativa" (click)="emitir('no-presentada', $event)">
+      <ion-icon slot="start" name="person-remove-outline"></ion-icon>
+      No se presentó
+    </ion-button>
+  </div>
+</div>

@@ -1,8 +1,6 @@
 //consultas a la bdd - Barberías
 import { ObjectId } from "mongodb";
-import { client } from "../db/connection.js";
-
-const db = client.db("BarberPlan");
+import { db } from "../db/connection.js";
 
 export const getDefaultBarberiaSchedule = () => ({
     timezone: "Europe/Madrid",

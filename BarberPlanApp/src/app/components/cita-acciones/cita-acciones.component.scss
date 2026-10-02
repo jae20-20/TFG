@@ -1,0 +1,48 @@
+.cita-acciones {
+  margin-top: 10px;
+}
+
+.cita-acciones-nota {
+  margin: 0 0 8px;
+  font-size: var(--bp-fs-caption);
+  color: var(--custom-text-muted);
+}
+
+.cita-acciones-botones {
+  display: flex;
+  gap: 8px;
+
+  ion-button {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 38px;
+    margin: 0;
+    font-size: var(--bp-fs-secondary);
+    font-weight: 700;
+    text-transform: none;
+    --border-radius: var(--bp-radius-sm);
+    --border-width: 1px;
+    --border-style: solid;
+    --box-shadow: none;
+    --padding-start: 10px;
+    --padding-end: 10px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .accion-positiva {
+    --background: var(--custom-success-bg);
+    --background-hover: rgba(var(--ion-color-success-rgb), 0.2);
+    --color: var(--custom-success-light);
+    --border-color: rgba(var(--ion-color-success-rgb), 0.35);
+  }
+
+  .accion-negativa {
+    --background: var(--custom-danger-bg);
+    --background-hover: rgba(var(--ion-color-danger-rgb), 0.2);
+    --color: var(--custom-danger-light);
+    --border-color: rgba(var(--ion-color-danger-rgb), 0.35);
+  }
+}

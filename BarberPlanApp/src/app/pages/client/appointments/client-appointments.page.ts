@@ -11,7 +11,8 @@ import { StarRatingComponent } from '../../../components/star-rating/star-rating
 import { ReviewImageComponent } from '../../../components/review-image/review-image.component';
 
 import { addIcons } from 'ionicons';
-import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline } from 'ionicons/icons';
+import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline, hourglassOutline, informationCircleOutline } from 'ionicons/icons';
+import { esPendiente, etiquetaEstadoCita, limiteRespuesta } from '../../../services/cita-estado.util';
 
 type FiltroCitas = 'proximas' | 'anteriores' | 'canceladas' | 'todas';
 
@@ -62,7 +63,9 @@ export class ClientAppointmentsPage implements OnInit {
       'star-outline': starOutline,
       'image-outline': imageOutline,
       'trash-outline': trashOutline,
-      'chatbubble-ellipses-outline': chatbubbleEllipsesOutline
+      'chatbubble-ellipses-outline': chatbubbleEllipsesOutline,
+      'hourglass-outline': hourglassOutline,
+      'information-circle-outline': informationCircleOutline
     });
 
     this.router.events.subscribe((event) => {
@@ -187,26 +190,40 @@ export class ClientAppointmentsPage implements OnInit {
     return cita?.estado === 'cancelada';
   }
 
+  readonly etiquetaEstado = etiquetaEstadoCita;
+  readonly esPendiente = esPendiente;
+  readonly limiteRespuesta = limiteRespuesta;
+
+  // Explicación para el cliente de por qué la cita acabó así
+  notaCancelacion(cita: any): string | null {
+    if (cita?.estado === 'no_presentada') return 'La barbería registró que no acudiste a esta cita.';
+    if (!this.estaCancelada(cita)) return null;
+    switch (cita.motivoCancelacion) {
+      case 'rechazada': return 'La barbería no ha podido aceptar esta reserva.';
+      case 'expirada': return 'La barbería no respondió a tiempo y la reserva se canceló.';
+      case 'barberia': return 'La barbería canceló esta cita.';
+      default: return null;
+    }
+  }
+
   puedeCancelar(cita: any) {
-    if (this.estaCancelada(cita)) {
+    if (cita?.estado !== 'pendiente' && cita?.estado !== 'confirmada') {
       return false;
     }
     const fechaHora = this.getCitaDateTime(cita);
-    return fechaHora !== null && fechaHora.getTime() >= Date.now();
+    return fechaHora !== null && fechaHora.getTime() > Date.now();
   }
 
   puedeResenar(cita: any) {
-    if (this.estaCancelada(cita) || cita?.resena) {
-      return false;
-    }
-    const fechaHora = this.getCitaDateTime(cita);
-    return fechaHora !== null && fechaHora.getTime() < Date.now();
+    return cita?.estado === 'completada' && !cita?.resena;
   }
 
   async confirmarCancelarCita(cita: any) {
     const alert = await this.alertCtrl.create({
       header: 'Cancelar Cita',
-      message: `¿Estás seguro de que deseas cancelar tu cita del ${this.getCitaDateLabel(cita)} a las ${cita?.horaInicio || ''}?`,
+      message: this.esPendiente(cita)
+        ? `¿Quieres retirar tu solicitud de reserva del ${this.getCitaDateLabel(cita)} a las ${cita?.horaInicio || ''}?`
+        : `¿Estás seguro de que deseas cancelar tu cita del ${this.getCitaDateLabel(cita)} a las ${cita?.horaInicio || ''}?`,
       cssClass: 'premium-alert',
       buttons: [
         { text: 'Volver', role: 'cancel' },

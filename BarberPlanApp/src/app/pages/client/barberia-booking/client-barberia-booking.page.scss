@@ -412,6 +412,26 @@ ion-content.booking-premium-content {
   }
 }
 
+.manual-confirmation-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--bp-radius-sm);
+  background: var(--custom-warning-bg);
+  border: 1px solid var(--custom-warning-border);
+  color: var(--custom-warning-light);
+  font-size: var(--bp-fs-secondary);
+  line-height: 1.4;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 16px;
+  }
+}
+
 .comment-field {
   margin-top: 16px;
 

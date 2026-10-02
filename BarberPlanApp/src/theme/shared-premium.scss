@@ -438,6 +438,48 @@ ion-title.md.boutique-title {
   gap: 6px;
 }
 
+.appointment-status {
+  padding: 4px 10px;
+  border-radius: var(--bp-radius-pill);
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  color: var(--custom-gold-light);
+  font-size: var(--bp-fs-overline);
+  font-weight: 800;
+  white-space: nowrap;
+
+  &.pendiente {
+    background: var(--custom-warning-bg);
+    color: var(--custom-warning-light);
+  }
+
+  &.completada {
+    background: var(--custom-success-bg);
+    color: var(--custom-success-light);
+  }
+
+  &.no_presentada,
+  &.cancelada {
+    background: var(--custom-danger-bg);
+    color: var(--custom-danger-light);
+  }
+}
+
+ion-list .compact-cita-card {
+  .appointment-status {
+    margin-left: 8px;
+    align-self: center;
+  }
+
+  &.estado-pendiente {
+    border: 1px dashed var(--custom-warning-border);
+    background: var(--custom-warning-bg);
+  }
+
+  &.estado-no_presentada {
+    opacity: 0.6;
+  }
+}
+
 .tag-badge {
   padding: 4px 10px;
   border-radius: var(--bp-radius-pill);

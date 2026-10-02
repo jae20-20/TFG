@@ -1,9 +1,7 @@
 //consultas a la bdd - Invitaciones de empleados
 import crypto from "crypto";
 import { ObjectId } from "mongodb";
-import { client } from "../db/connection.js";
-
-const db = client.db("BarberPlan");
+import { db } from "../db/connection.js";
 
 // Días que una invitación permanece válida sin usarse
 export const INVITACION_DIAS_VALIDEZ = 7;

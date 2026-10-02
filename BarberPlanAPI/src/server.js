@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { connectDB } from "./db/connection.js";
+import { iniciarTareasCitas } from "./jobs/citaJobs.js";
 import { mongoSanitize } from "./middleware/sanitizeMiddleware.js";
 
 // Importar rutas
@@ -73,6 +74,10 @@ connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`¡Éxito!, Servidor corriendo en http://localhost:${PORT}`);
   });
+  // TAREAS_CITAS=off arranca sin tareas periódicas (pruebas que no deben escribir en la BD)
+  if (process.env.TAREAS_CITAS !== "off") {
+    iniciarTareasCitas();
+  }
 }).catch(err => {
   console.error("GG, Error al iniciar el servidor:", err);
 });

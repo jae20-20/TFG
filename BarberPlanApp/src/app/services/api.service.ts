@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
 import { firstValueFrom } from 'rxjs';
+import { AccionEstadoCita } from './cita-estado.util';
 
 @Injectable({
   providedIn: 'root',
@@ -117,11 +118,11 @@ export class ApiService {
   }
 
   // Obtener disponibilidad pública de un barbero en fecha
-  async getDisponibilidadBarbero(barberoId: string, fecha: string, barberiaId: string) {
+  // incluirEnCurso: el personal puede registrar a quien llega sin cita en el hueco que ya empezó
+  async getDisponibilidadBarbero(barberoId: string, fecha: string, barberiaId: string, incluirEnCurso = false) {
+    const params: Record<string, string> = incluirEnCurso ? { barberiaId, incluirEnCurso: 'true' } : { barberiaId };
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/${fecha}`, {
-        params: { barberiaId }
-      })
+      this.http.get<any>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/${fecha}`, { params })
     );
   }
 
@@ -193,6 +194,14 @@ export class ApiService {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
       this.http.put<any>(`${this.apiUrl}/cita/${id}/pago`, { pagado, importePagado }, { headers })
+    );
+  }
+
+  // Aceptar o rechazar una reserva pendiente, o registrar la asistencia a una cita
+  async cambiarEstadoCita(id: string, accion: AccionEstadoCita) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/cita/${id}/${accion}`, {}, { headers })
     );
   }
 

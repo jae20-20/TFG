@@ -4,6 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
+import { CitaAccionesService } from '../../../services/cita-acciones.service';
+import {
+  AccionEstadoCita,
+  admiteCancelacionPersonal,
+  admitePago,
+  esPendienteVigente,
+  etiquetaEstadoCita
+} from '../../../services/cita-estado.util';
+import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
+import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
 import { resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
 import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
 import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
@@ -15,11 +25,12 @@ const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
   templateUrl: './calendar.page.html',
   styleUrls: ['./calendar.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent]
+  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent]
 })
 export class CalendarPage implements OnInit {
   user: any = null;
   citas: any[] = [];
+  pendientes: any[] = [];
   loadingCitas = false;
   calendarError = '';
   calendarDays: CalendarDay[] = [];
@@ -70,8 +81,13 @@ export class CalendarPage implements OnInit {
     private apiService: ApiService,
     private storage: Storage,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private citaAcciones: CitaAccionesService
   ) { }
+
+  readonly etiquetaEstado = etiquetaEstadoCita;
+  readonly admitePago = admitePago;
+  readonly admiteCancelacionPersonal = admiteCancelacionPersonal;
 
   async ngOnInit() {
     await this.storage.create();
@@ -128,6 +144,7 @@ export class CalendarPage implements OnInit {
       // Cargar citas
       const citas = await this.apiService.getCitasBarberia(this.user.barberiaId);
       this.citas = Array.isArray(citas) ? citas : [];
+      this.pendientes = this.citas.filter(esPendienteVigente);
       
       // Cargar horario
       try {
@@ -640,7 +657,7 @@ export class CalendarPage implements OnInit {
     if (!this.selectedBarberId || !this.selectedDateKey || !this.user?.barberiaId) return;
     this.loadingHoras = true;
     try {
-      const res = await this.apiService.getDisponibilidadBarbero(this.selectedBarberId, this.selectedDateKey, this.user.barberiaId);
+      const res = await this.apiService.getDisponibilidadBarbero(this.selectedBarberId, this.selectedDateKey, this.user.barberiaId, true);
       this.horasDisponibles = res?.horariosDisponibles || [];
     } catch (e) {
       console.error('Error al cargar horas disponibles:', e);
@@ -805,6 +822,11 @@ export class CalendarPage implements OnInit {
       return [];
     }
     return this.selectedDayAppointments.filter(cita => cita.barbero?._id === this.selectedBarberId);
+  }
+
+  // getTimelineItems() crea objetos nuevos en cada ciclo; sin trackBy el ngFor recrea la lista sin fin
+  trackTimelineItem(_index: number, item: any) {
+    return item.type === 'appointment' ? item.cita._id : `limite-${item.time}`;
   }
 
   getTimelineItems() {
@@ -1049,8 +1071,9 @@ export class CalendarPage implements OnInit {
     const nuevoPagado = !cita.pagado;
     const importe = cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0);
     try {
-      await this.apiService.updateCitaPago(cita._id || cita.id, nuevoPagado, importe);
+      const respuesta = await this.apiService.updateCitaPago(cita._id || cita.id, nuevoPagado, importe);
       cita.pagado = nuevoPagado;
+      cita.estado = respuesta?.cita?.estado ?? cita.estado;
       if (nuevoPagado) {
         const toast = await this.toastCtrl.create({ message: 'Cita marcada como pagada.', duration: 1500, color: 'success' });
         toast.present();
@@ -1138,6 +1161,32 @@ export class CalendarPage implements OnInit {
   toggleCitaDetalle(cita: any) {
     const citaId = cita._id || cita.id;
     this.expandedCitaId = this.expandedCitaId === citaId ? null : citaId;
+  }
+
+  async onCambiarEstado(cita: any, accion: AccionEstadoCita) {
+    if (await this.citaAcciones.ejecutar(cita, accion)) {
+      await this.recargarCitas();
+    }
+  }
+
+  // Lleva el calendario al día y barbero de la cita y despliega su detalle
+  irACita(cita: any) {
+    if (this.teamBarbers.some(b => b._id === cita.barbero?._id)) {
+      this.selectedBarberId = cita.barbero._id;
+    }
+    this.expandedCitaId = cita._id || cita.id;
+    this.selectWeekDay(this.toDateKey(cita.fecha));
+  }
+
+  private async recargarCitas() {
+    try {
+      const citas = await this.apiService.getCitasBarberia(this.user.barberiaId);
+      this.citas = Array.isArray(citas) ? citas : [];
+      this.pendientes = this.citas.filter(esPendienteVigente);
+      this.updateSelectedDayAppointments();
+    } catch (error) {
+      console.error('Error al recargar las citas:', error);
+    }
   }
 
   async confirmarCancelarCita(cita: any, event?: any) {

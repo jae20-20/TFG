@@ -68,6 +68,7 @@
           <span class="kpi-label">Pendiente de cobro</span>
           <strong class="kpi-value">{{ formatEuro(datos.resumen.pendienteCobro) }}</strong>
           <span class="kpi-sub">Citas aún sin pagar</span>
+          <span class="kpi-sub" *ngIf="datos.resumen.importeNoPresentadas > 0">{{ formatEuro(datos.resumen.importeNoPresentadas) }} perdidos por no-show</span>
         </div>
 
         <div class="kpi-card">
@@ -214,7 +215,7 @@
               <div class="progress-fill" [style.width.%]="porcentaje(barbero.ingresosReales, barbero.ingresosEsperados)"></div>
             </div>
             <div class="analytics-row-meta">
-              <span>{{ barbero.citas }} {{ barbero.citas === 1 ? 'cita' : 'citas' }}<ng-container *ngIf="barbero.canceladas"> · {{ barbero.canceladas }} canc.</ng-container></span>
+              <span>{{ barbero.citas }} {{ barbero.citas === 1 ? 'cita' : 'citas' }}<ng-container *ngIf="barbero.canceladas"> · {{ barbero.canceladas }} canc.</ng-container><ng-container *ngIf="barbero.noPresentadas"> · {{ barbero.noPresentadas }} no pres.</ng-container></span>
               <span>de {{ formatEuro(barbero.ingresosEsperados) }}</span>
             </div>
           </div>
@@ -230,6 +231,7 @@
           <span class="kpi-label">Citas</span>
           <strong class="kpi-value">{{ datos.resumen.citas }}</strong>
           <ng-container *ngTemplateOutlet="delta; context: { $implicit: variacion(datos.resumen.citas, datos.anterior.citas) }"></ng-container>
+          <span class="kpi-sub" *ngIf="datos.resumen.pendientesAprobacion">+ {{ datos.resumen.pendientesAprobacion }} {{ datos.resumen.pendientesAprobacion === 1 ? 'pendiente' : 'pendientes' }} de aprobación</span>
         </div>
 
         <div class="kpi-card">
@@ -260,6 +262,29 @@
           <div class="progress-fill" [style.width.%]="tasaCancelacion"></div>
         </div>
         <p class="analytics-note">{{ datos.resumen.canceladas }} de {{ datos.resumen.citas + datos.resumen.canceladas }} citas canceladas</p>
+      </div>
+
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <h3>No presentados</h3>
+          <span class="analytics-card-value">{{ datos.resumen.tasaNoPresentadas }}%</span>
+        </div>
+        <div class="progress-track is-danger">
+          <div class="progress-fill" [style.width.%]="datos.resumen.tasaNoPresentadas"></div>
+        </div>
+        <p class="analytics-note">
+          {{ datos.resumen.noPresentadas }} de {{ datos.resumen.completadas + datos.resumen.noPresentadas }} citas con asistencia registrada
+          <ng-container *ngIf="datos.resumen.importeNoPresentadas > 0"> · {{ formatEuro(datos.resumen.importeNoPresentadas) }} sin ingresar</ng-container>
+        </p>
+
+        <div class="analytics-row" *ngFor="let cliente of datos.clientes.masNoPresentados">
+          <div class="analytics-row-body">
+            <div class="analytics-row-top">
+              <span class="analytics-row-name">{{ cliente.nombre }}</span>
+              <strong>{{ cliente.noPresentadas }} {{ cliente.noPresentadas === 1 ? 'vez' : 'veces' }}</strong>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="analytics-card">

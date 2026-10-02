@@ -1,0 +1,23 @@
+<section class="pendientes-card" *ngIf="ordenadas.length > 0">
+  <button type="button" class="pendientes-head" (click)="abierto = !abierto">
+    <ion-icon name="hourglass-outline" class="pendientes-icono"></ion-icon>
+    <span class="pendientes-titulo">
+      {{ ordenadas.length }} {{ ordenadas.length === 1 ? 'reserva pendiente' : 'reservas pendientes' }} de aprobación
+    </span>
+    <ion-icon class="pendientes-chevron" [name]="abierto ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+  </button>
+
+  <div class="pendientes-lista" *ngIf="abierto">
+    <article class="pendiente-item" *ngFor="let cita of ordenadas">
+      <button type="button" class="pendiente-info" (click)="verCita.emit(cita)" title="Ver en el calendario">
+        <strong>{{ fechaCorta(cita) }} · {{ cita.horaInicio }}</strong>
+        <span>
+          {{ nombreCliente(cita) }} · {{ cita.servicioNombre || 'Servicio' }}
+          <ng-container *ngIf="mostrarBarbero && nombreBarbero(cita)"> · con {{ nombreBarbero(cita) }}</ng-container>
+        </span>
+        <small *ngIf="limiteRespuesta(cita) as limite">Responde antes del {{ limite | date:'dd/MM HH:mm' }}</small>
+      </button>
+      <app-cita-acciones [cita]="cita" [mostrarLimite]="false" (accion)="accion.emit({ cita, accion: $event })"></app-cita-acciones>
+    </article>
+  </div>
+</section>

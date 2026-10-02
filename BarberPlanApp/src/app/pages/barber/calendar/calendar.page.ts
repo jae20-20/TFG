@@ -4,6 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
+import { CitaAccionesService } from '../../../services/cita-acciones.service';
+import {
+  AccionEstadoCita,
+  admiteCancelacionPersonal,
+  admitePago,
+  esPendienteVigente,
+  etiquetaEstadoCita
+} from '../../../services/cita-estado.util';
+import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
+import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
 import { resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
 import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
 import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
@@ -15,11 +25,12 @@ const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
   templateUrl: './calendar.page.html',
   styleUrls: ['./calendar.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent]
+  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent]
 })
 export class BarberCalendarPage implements OnInit {
   user: any = null;
   citas: any[] = [];
+  pendientes: any[] = [];
   loadingCitas = false;
   calendarError = '';
   calendarDays: CalendarDay[] = [];
@@ -59,8 +70,13 @@ export class BarberCalendarPage implements OnInit {
     private storage: Storage,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private citaAcciones: CitaAccionesService
   ) { }
+
+  readonly etiquetaEstado = etiquetaEstadoCita;
+  readonly admitePago = admitePago;
+  readonly admiteCancelacionPersonal = admiteCancelacionPersonal;
 
   async ngOnInit() {
     await this.storage.create();
@@ -95,6 +111,7 @@ export class BarberCalendarPage implements OnInit {
     try {
       const citas = await this.apiService.getCitasBarbero();
       this.citas = Array.isArray(citas) ? citas : [];
+      this.pendientes = this.citas.filter(esPendienteVigente);
 
       try {
         const profile = await this.apiService.getMyProfile();
@@ -419,7 +436,7 @@ export class BarberCalendarPage implements OnInit {
     if (!userId || !this.selectedDateKey || !barberiaId) return;
     this.loadingHoras = true;
     try {
-      const res = await this.apiService.getDisponibilidadBarbero(userId, this.selectedDateKey, barberiaId);
+      const res = await this.apiService.getDisponibilidadBarbero(userId, this.selectedDateKey, barberiaId, true);
       this.horasDisponibles = res?.horariosDisponibles || [];
     } catch (e) {
       console.error('Error al cargar horas disponibles:', e);
@@ -482,8 +499,9 @@ export class BarberCalendarPage implements OnInit {
     const nuevoPagado = !cita.pagado;
     const importe = cita.importePagado !== undefined ? cita.importePagado : (cita.servicioPrecio || 0);
     try {
-      await this.apiService.updateCitaPago(cita._id || cita.id, nuevoPagado, importe);
+      const respuesta = await this.apiService.updateCitaPago(cita._id || cita.id, nuevoPagado, importe);
       cita.pagado = nuevoPagado;
+      cita.estado = respuesta?.cita?.estado ?? cita.estado;
       if (nuevoPagado) {
         const toast = await this.toastCtrl.create({ message: 'Cita marcada como pagada.', duration: 1500, color: 'success' });
         toast.present();
@@ -571,6 +589,29 @@ export class BarberCalendarPage implements OnInit {
   toggleCitaDetalle(cita: any) {
     const citaId = cita._id || cita.id;
     this.expandedCitaId = this.expandedCitaId === citaId ? null : citaId;
+  }
+
+  async onCambiarEstado(cita: any, accion: AccionEstadoCita) {
+    if (await this.citaAcciones.ejecutar(cita, accion)) {
+      await this.recargarCitas();
+    }
+  }
+
+  // Lleva el calendario al día de la cita y despliega su detalle
+  irACita(cita: any) {
+    this.expandedCitaId = cita._id || cita.id;
+    this.selectWeekDay(this.toDateKey(cita.fecha));
+  }
+
+  private async recargarCitas() {
+    try {
+      const citas = await this.apiService.getCitasBarbero();
+      this.citas = Array.isArray(citas) ? citas : [];
+      this.pendientes = this.citas.filter(esPendienteVigente);
+      this.updateSelectedDayAppointments();
+    } catch (error) {
+      console.error('Error al recargar las citas:', error);
+    }
   }
 
   async confirmarCancelarCita(cita: any, event?: any) {

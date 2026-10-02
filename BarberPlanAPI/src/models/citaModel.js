@@ -1,12 +1,14 @@
 //consultas a la bdd - Citas
 import { ObjectId } from "mongodb";
-import { client } from "../db/connection.js";
+import { client, db } from "../db/connection.js";
 
-const db = client.db("BarberPlan");
+// Estados que mantienen el hueco del barbero ocupado
+export const ESTADOS_OCUPAN_HUECO = ["pendiente", "confirmada"];
 
 // ==================== FUNCIONES BÁSICAS ====================
 
-// Crear una nueva cita
+// Crea la cita solo si el barbero no tiene otra pendiente o confirmada que se solape.
+// Devuelve la cita insertada o null si el hueco ya estaba ocupado.
 export const createCita = async (citaData) => {
     const cita = {
         ...citaData,
@@ -14,13 +16,42 @@ export const createCita = async (citaData) => {
         barberoId: new ObjectId(citaData.barberoId),
         barberiaId: new ObjectId(citaData.barberiaId),
         servicioId: new ObjectId(citaData.servicioId),
-        estado: citaData.estado || "pendiente", // pendiente, confirmada, completada, cancelada
         pagado: citaData.pagado !== undefined ? Boolean(citaData.pagado) : false,
         importePagado: citaData.importePagado !== undefined ? Number(citaData.importePagado) : (Number(citaData.servicioPrecio) || 0),
         createdAt: new Date(),
         updatedAt: new Date()
     };
-    return await db.collection("Citas").insertOne(cita);
+
+    // Dos reservas simultáneas escriben el mismo bloqueo (barbero + día): MongoDB aborta una y withTransaction la reintenta viendo ya la otra
+    const agenda = db.collection("AgendaBloqueos");
+    const bloqueoId = `${cita.barberoId}:${cita.fecha}`;
+    try {
+        await agenda.updateOne({ _id: bloqueoId }, { $setOnInsert: { version: 0 } }, { upsert: true });
+    } catch (error) {
+        if (error.code !== 11000) throw error;
+    }
+
+    const session = client.startSession();
+    try {
+        let insertada = null;
+        await session.withTransaction(async () => {
+            insertada = null;
+            await agenda.updateOne({ _id: bloqueoId }, { $inc: { version: 1 } }, { session });
+            const solape = await db.collection("Citas").findOne({
+                barberoId: cita.barberoId,
+                fecha: cita.fecha,
+                estado: { $in: ESTADOS_OCUPAN_HUECO },
+                horaInicio: { $lt: cita.horaFin },
+                horaFin: { $gt: cita.horaInicio }
+            }, { session, projection: { _id: 1 } });
+            if (solape) return;
+            const { insertedId } = await db.collection("Citas").insertOne({ ...cita }, { session });
+            insertada = { ...cita, _id: insertedId };
+        });
+        return insertada;
+    } finally {
+        await session.endSession();
+    }
 };
 
 // Obtener cita por ID
@@ -135,10 +166,10 @@ export const getCitasByBarberiaId = async (barberiaId) => {
 
 // ==================== FUNCIONES DE RESEÑAS ====================
 
-// Guardar la reseña de una cita (una única vez, por el cliente dueño)
+// Guardar la reseña de una cita completada; el filtro impide una segunda reseña aunque lleguen a la vez
 export const setResenaCita = async (id, resena) => {
     return await db.collection("Citas").updateOne(
-        { _id: new ObjectId(id) },
+        { _id: new ObjectId(id), estado: "completada", resena: { $exists: false } },
         { $set: { resena, updatedAt: new Date() } }
     );
 };
@@ -185,51 +216,73 @@ export const getResenasByBarberiaId = async (barberiaId) => {
 
 // ==================== FUNCIONES DE ESTADO ====================
 
-// Cambiar estado de una cita
-export const updateCitaEstado = async (id, estado) => {
-    const estadosValidos = ["pendiente", "confirmada", "completada", "cancelada"];
-    if (!estadosValidos.includes(estado)) {
-        throw new Error("Estado no válido");
-    }
-    return await db.collection("Citas").updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { estado, updatedAt: new Date() } }
+// Cambia el estado solo si la cita sigue en un estado de origen; null si otra petición se adelantó
+export const transicionarCita = async (id, estadosOrigen, estadoDestino, campos = {}) => {
+    return await db.collection("Citas").findOneAndUpdate(
+        { _id: new ObjectId(id), estado: { $in: estadosOrigen } },
+        { $set: { ...campos, estado: estadoDestino, updatedAt: new Date() } },
+        { returnDocument: "after" }
     );
 };
 
-// Cambiar estado de pago e importe de una cita
-export const updateCitaPago = async (id, pagado, importePagado) => {
-    return await db.collection("Citas").updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { pagado: Boolean(pagado), importePagado: Number(importePagado), updatedAt: new Date() } }
-    );
+// Cambiar estado de pago e importe de una cita (solo confirmadas o completadas).
+// completar: el cobro completa la cita y lo deja marcado; revertir: deshace solo esa completación
+export const updateCitaPago = async (id, pagado, importePagado, { completar = false, revertir = false } = {}) => {
+    const filtro = { _id: new ObjectId(id), estado: { $in: ["confirmada", "completada"] } };
+    const cambios = { $set: { pagado: Boolean(pagado), importePagado: Number(importePagado), updatedAt: new Date() } };
+    if (completar) {
+        filtro.estado = "confirmada";
+        Object.assign(cambios.$set, { estado: "completada", completadaPorPago: true });
+    }
+    if (revertir) {
+        Object.assign(filtro, { estado: "completada", completadaPorPago: true, resena: { $exists: false } });
+        cambios.$set.estado = "confirmada";
+        cambios.$unset = { completadaPorPago: "" };
+    }
+    return await db.collection("Citas").updateOne(filtro, cambios);
 };
 
 // ==================== FUNCIONES DE DISPONIBILIDAD ====================
-
-// Verificar disponibilidad de un barbero en una fecha/hora
-export const checkBarberoDisponibilidad = async (barberoId, fecha, horaInicio, horaFin) => {
-    const citasConflicto = await db.collection("Citas").find({
-        barberoId: new ObjectId(barberoId),
-        fecha: fecha,
-        estado: { $in: ["pendiente", "confirmada"] },
-        $or: [
-            { horaInicio: { $lt: horaFin, $gte: horaInicio } },
-            { horaFin: { $gt: horaInicio, $lte: horaFin } },
-            { horaInicio: { $lte: horaInicio }, horaFin: { $gte: horaFin } }
-        ]
-    }).toArray();
-    
-    return citasConflicto.length === 0; // true si está disponible
-};
 
 // Obtener citas de un barbero en una fecha específica
 export const getCitasByBarberoAndFecha = async (barberoId, fecha) => {
     return await db.collection("Citas").find({
         barberoId: new ObjectId(barberoId),
         fecha: fecha,
-        estado: { $in: ["pendiente", "confirmada"] }
+        estado: { $in: ESTADOS_OCUPAN_HUECO }
     }).sort({ horaInicio: 1 }).toArray();
+};
+
+// ==================== TAREAS PROGRAMADAS ====================
+
+// Caduca las pendientes con plazo vencido u hora ya llegada; sin expiraEn son "pendiente" antiguas y no caducan
+export const cancelarPendientesVencidas = async (ahora, fechaActual, horaActual) => {
+    return await db.collection("Citas").updateMany(
+        {
+            estado: "pendiente",
+            expiraEn: { $exists: true },
+            $or: [
+                { expiraEn: { $lte: ahora } },
+                { fecha: { $lt: fechaActual } },
+                { fecha: fechaActual, horaInicio: { $lte: horaActual } }
+            ]
+        },
+        { $set: { estado: "cancelada", motivoCancelacion: "expirada", updatedAt: ahora } }
+    );
+};
+
+// Da por completadas las citas confirmadas que terminaron antes del límite sin que nadie registrara la asistencia
+export const completarAsistenciasSinRegistrar = async (fechaLimite, horaLimite) => {
+    return await db.collection("Citas").updateMany(
+        {
+            estado: "confirmada",
+            $or: [
+                { fecha: { $lt: fechaLimite } },
+                { fecha: fechaLimite, horaFin: { $lte: horaLimite } }
+            ]
+        },
+        { $set: { estado: "completada", asistenciaAutomatica: true, updatedAt: new Date() } }
+    );
 };
 
 // ==================== ANALÍTICAS ====================
@@ -265,7 +318,7 @@ export const getClientesConCitasAnteriores = async (barberiaId, clienteIds, ante
             $match: {
                 barberiaId: new ObjectId(barberiaId),
                 clienteId: { $in: clienteIds },
-                estado: { $ne: "cancelada" },
+                estado: { $in: ["confirmada", "completada"] },
                 fecha: { $lt: antesDe }
             }
         },

@@ -8,7 +8,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Storage } from '@ionic/storage-angular';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { addIcons } from 'ionicons';
-import { logOutOutline, arrowBackOutline, businessOutline } from 'ionicons/icons';
+import { logOutOutline, arrowBackOutline, businessOutline, hourglassOutline } from 'ionicons/icons';
 
 interface ReservaForm {
   servicioId: string;
@@ -59,7 +59,7 @@ export class ClientBarberiaBookingPage implements OnInit {
     private authService: AuthService,
     private storage: Storage
   ) {
-    addIcons({ logOutOutline, arrowBackOutline, businessOutline });
+    addIcons({ logOutOutline, arrowBackOutline, businessOutline, hourglassOutline });
   }
 
   async ngOnInit() {
@@ -108,6 +108,10 @@ export class ClientBarberiaBookingPage implements OnInit {
 
   getLogoImage() {
     return this.barberia?.logoUrl || '';
+  }
+
+  requiereAprobacion() {
+    return this.barberia?.modoConfirmacion === 'manual';
   }
 
   getBarberoNombre(barbero: any) {
@@ -282,7 +286,7 @@ export class ClientBarberiaBookingPage implements OnInit {
     this.reservando = true;
 
     try {
-      await this.apiService.crearCita({
+      const respuesta = await this.apiService.crearCita({
         barberiaId: this.barberiaId,
         barberoId: this.reservaForm.barberoId,
         servicioId: this.reservaForm.servicioId,
@@ -291,15 +295,18 @@ export class ClientBarberiaBookingPage implements OnInit {
         comentario: this.reservaForm.comentario.trim()
       });
 
+      const pendiente = respuesta?.cita?.estado === 'pendiente';
       const toast = await this.toastCtrl.create({
-        message: 'Cita reservada correctamente.',
-        duration: 2200,
+        message: pendiente
+          ? 'Solicitud enviada. Verás la respuesta de la barbería en Mis citas.'
+          : 'Cita reservada correctamente.',
+        duration: pendiente ? 3200 : 2200,
         position: 'bottom',
         color: 'success'
       });
       await toast.present();
 
-      this.router.navigateByUrl('/client-home', { replaceUrl: true });
+      this.router.navigateByUrl(pendiente ? '/client-appointments' : '/client-home', { replaceUrl: true });
     } catch (error: any) {
       console.error('Error al crear cita:', error);
       const message = error?.error?.error || 'No se pudo reservar la cita.';

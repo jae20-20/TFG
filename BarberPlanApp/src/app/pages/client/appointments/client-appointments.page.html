@@ -81,7 +81,7 @@
           <p class="appointment-eyebrow">{{ getCitaDateLabel(cita) }}</p>
           <h2>{{ getCitaTitle(cita) }}</h2>
         </div>
-        <span class="appointment-status cancelada" *ngIf="estaCancelada(cita)">Cancelada</span>
+        <span class="appointment-status" [ngClass]="cita.estado">{{ etiquetaEstado(cita) }}</span>
       </div>
 
       <div class="appointment-meta">
@@ -104,10 +104,23 @@
         <p><strong>Petición:</strong> {{ cita.comentario }}</p>
       </div>
 
+      <div class="appointment-request appointment-state-note pending" *ngIf="esPendiente(cita)">
+        <ion-icon name="hourglass-outline"></ion-icon>
+        <p>
+          Esperando la confirmación de la barbería.
+          <ng-container *ngIf="limiteRespuesta(cita) as limite">Si no responde antes del {{ limite | date:'dd/MM HH:mm' }}, la reserva se cancelará.</ng-container>
+        </p>
+      </div>
+
+      <div class="appointment-request appointment-state-note" *ngIf="notaCancelacion(cita) as nota">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>{{ nota }}</p>
+      </div>
+
       <div class="appointment-actions" *ngIf="puedeCancelar(cita) || puedeResenar(cita)">
         <button type="button" class="action-btn cancel-btn" *ngIf="puedeCancelar(cita)" (click)="confirmarCancelarCita(cita)">
           <ion-icon name="close-outline"></ion-icon>
-          Cancelar cita
+          {{ esPendiente(cita) ? 'Retirar solicitud' : 'Cancelar cita' }}
         </button>
         <button type="button" class="action-btn review-btn" *ngIf="puedeResenar(cita)" (click)="abrirModalResena(cita)">
           <ion-icon name="star-outline"></ion-icon>

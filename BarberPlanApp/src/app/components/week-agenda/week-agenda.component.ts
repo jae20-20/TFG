@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { ScheduleSlot, toHHMM, toMinutes } from '../../services/schedule.util';
+import { AccionEstadoCita, admiteCancelacionPersonal, admitePago, etiquetaEstadoCita } from '../../services/cita-estado.util';
+import { CitaAccionesComponent } from '../cita-acciones/cita-acciones.component';
 
 export interface WeekAgendaDay {
   key: string;
@@ -40,7 +42,7 @@ const DEFAULT_END_MIN = 21 * 60;
 @Component({
   selector: 'app-week-agenda',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, CitaAccionesComponent],
   templateUrl: './week-agenda.component.html',
   styleUrls: ['./week-agenda.component.scss']
 })
@@ -54,6 +56,11 @@ export class WeekAgendaComponent implements OnChanges, OnDestroy {
   @Output() togglePago = new EventEmitter<{ cita: any; event: any }>();
   @Output() editImporte = new EventEmitter<any>();
   @Output() cancelCita = new EventEmitter<any>();
+  @Output() cambiarEstado = new EventEmitter<{ cita: any; accion: AccionEstadoCita }>();
+
+  readonly etiquetaEstado = etiquetaEstadoCita;
+  readonly admitePago = admitePago;
+  readonly admiteCancelacionPersonal = admiteCancelacionPersonal;
 
   gridStart = DEFAULT_START_MIN;
   gridEnd = DEFAULT_END_MIN;
@@ -117,6 +124,13 @@ export class WeekAgendaComponent implements OnChanges, OnDestroy {
     const cita = this.selectedCita;
     this.closeDetail();
     this.cancelCita.emit(cita);
+  }
+
+  onAccionEstado(accion: AccionEstadoCita) {
+    if (!this.selectedCita) return;
+    const cita = this.selectedCita;
+    this.closeDetail();
+    this.cambiarEstado.emit({ cita, accion });
   }
 
   getClienteNombre(cita: any): string {

@@ -106,20 +106,6 @@ ion-content.client-premium-content {
 	font-weight: 700;
 }
 
-.appointment-status {
-	padding: 5px 10px;
-	border-radius: 999px;
-	font-size: 11px;
-	font-weight: 800;
-	text-transform: capitalize;
-	white-space: nowrap;
-
-	&.cancelada {
-		background: rgba(248, 113, 113, 0.14);
-		color: var(--custom-danger-light);
-	}
-}
-
 .appointment-meta {
 	margin-top: 10px;
 	display: flex;
@@ -144,6 +130,10 @@ ion-content.client-premium-content {
 	color: var(--custom-text-secondary);
 	font-size: 12px;
 	line-height: 1.4;
+}
+
+.appointment-state-note.pending ion-icon {
+	color: var(--custom-warning-light);
 }
 
 .appointment-request {

@@ -1,15 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, NavigationEnd } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { AlertController, IonicModule, NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
-import { AuthService } from '../../../services/auth.service';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, calendarOutline, cutOutline, logOutOutline, personOutline, settingsOutline, statsChartOutline } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
-import { addIcons } from 'ionicons';
-import { arrowBackOutline, logOutOutline, calendarOutline, settingsOutline, personOutline, cutOutline, statsChartOutline } from 'ionicons/icons';
+import { AuthService } from '../../../services/auth.service';
 
 addIcons({
   'arrow-back-outline': arrowBackOutline,
@@ -73,7 +73,7 @@ export class AdminTabsPage implements OnInit, OnDestroy {
 
     if (url.includes('calendar')) this.pageName = 'Calendario';
     else if (url.includes('analytics')) this.pageName = 'Estadísticas';
-    else if (url.includes('barbershop-details')) this.pageName = 'Datos Barbería';
+    else if (url.includes('barbershop-details')) this.pageName = 'Configuración general barbería';
     else if (url.includes('schedule')) this.pageName = 'Horario';
     else if (url.includes('services')) this.pageName = 'Servicios';
     else if (url.includes('card-configuration')) this.pageName = 'Personalizar';

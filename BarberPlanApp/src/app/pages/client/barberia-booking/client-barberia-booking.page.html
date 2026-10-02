@@ -184,10 +184,15 @@
           <span class="comment-counter">{{ reservaForm.comentario.length }}/{{ comentarioMaxLength }}</span>
         </div>
 
+        <p class="manual-confirmation-note" *ngIf="requiereAprobacion()">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          Esta barbería confirma las reservas a mano: tu cita quedará pendiente hasta que la acepten.
+        </p>
+
         <div class="booking-step-actions">
           <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
           <ion-button color="primary" class="booking-step-btn primary" (click)="reservarCita()" [disabled]="reservando || !reservaForm.horaInicio">
-            {{ reservando ? 'Reservando...' : 'Reservar cita' }}
+            {{ reservando ? 'Enviando...' : (requiereAprobacion() ? 'Solicitar reserva' : 'Reservar cita') }}
           </ion-button>
         </div>
       </div>

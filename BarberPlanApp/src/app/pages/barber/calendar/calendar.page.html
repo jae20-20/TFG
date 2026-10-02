@@ -3,6 +3,12 @@
 <ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
   
 
+  <app-pendientes-aprobacion
+    [citas]="pendientes"
+    (accion)="onCambiarEstado($event.cita, $event.accion)"
+    (verCita)="irACita($event)"
+  ></app-pendientes-aprobacion>
+
   <div class="calendar-card">
     <div class="calendar-header">
         <div>
@@ -61,6 +67,7 @@
               class="compact-cita-card"
               *ngFor="let cita of selectedDayAppointments"
               [class.expanded]="isCitaExpanded(cita)"
+              [ngClass]="'estado-' + cita.estado"
               (click)="toggleCitaDetalle(cita)"
             >
               <div class="cita-main-row">
@@ -71,6 +78,7 @@
                       <img *ngIf="cita.cliente?.avatar" [src]="cita.cliente.avatar" class="cita-client-avatar" alt="Avatar" />
                       {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}
                     </span>
+                    <span class="appointment-status" [ngClass]="cita.estado" *ngIf="cita.estado !== 'confirmada'">{{ etiquetaEstado(cita) }}</span>
                   </div>
                   <div class="cita-body">
                     <span class="cita-service">{{ cita.servicioNombre || cita.servicio?.nombre || 'Corte' }}</span>
@@ -85,7 +93,7 @@
 
                 <div class="cita-actions-col">
                   <ion-icon name="chevron-down-outline" class="cita-expand-chevron"></ion-icon>
-                  <div class="pago-toggle-wrapper" (click)="$event.stopPropagation()">
+                  <div class="pago-toggle-wrapper" *ngIf="admitePago(cita)" (click)="$event.stopPropagation()">
                     <ion-toggle [checked]="cita.pagado" (ionChange)="onTogglePago(cita, $event)" color="success"></ion-toggle>
                     <span class="pago-label" [class.paid]="cita.pagado">{{ cita.pagado ? 'Pagado' : 'Pendiente' }}</span>
                   </div>
@@ -115,7 +123,9 @@
                 </div>
                 <p class="detalle-empty" *ngIf="!cita.comentario">El cliente no dejó ninguna petición.</p>
 
-                <div class="detalle-actions">
+                <app-cita-acciones [cita]="cita" (accion)="onCambiarEstado(cita, $event)"></app-cita-acciones>
+
+                <div class="detalle-actions" *ngIf="admiteCancelacionPersonal(cita)">
                   <ion-button fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(cita, $event)">
                     <ion-icon slot="start" name="close-outline"></ion-icon>
                     Cancelar cita
@@ -147,6 +157,7 @@
           (togglePago)="onWeekTogglePago($event)"
           (editImporte)="onWeekEditImporte($event)"
           (cancelCita)="onWeekCancelCita($event)"
+          (cambiarEstado)="onCambiarEstado($event.cita, $event.accion)"
         ></app-week-agenda>
       </ng-container>
       </div>

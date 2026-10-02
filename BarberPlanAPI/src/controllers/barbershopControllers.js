@@ -208,6 +208,7 @@ export const registerBarberia = async (req, res) => {
     }
 };
 
+const MODOS_CONFIRMACION = ["automatico", "manual"];
 const MAX_TAGS = 8;
 const RE_TAG_VALIDA = /^[\p{L}\p{N} '-]{1,24}$/u;
 
@@ -259,8 +260,13 @@ export const editBarberia = async (req, res) => {
             logoUrl,
             portadaUrl,
             galeriaTrabajos,
-            tags
+            tags,
+            modoConfirmacion
         } = req.body;
+
+        if (modoConfirmacion !== undefined && !MODOS_CONFIRMACION.includes(modoConfirmacion)) {
+            return res.status(400).json({ error: "Modo de confirmación no válido. Usa automatico o manual" });
+        }
 
         let tagsSaneados;
         if (tags !== undefined) {
@@ -284,6 +290,7 @@ export const editBarberia = async (req, res) => {
             portadaUrl,
             galeriaTrabajos,
             tags: tagsSaneados,
+            modoConfirmacion,
             updatedAt: new Date()
         };
 

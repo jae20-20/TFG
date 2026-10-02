@@ -11,6 +11,9 @@ const client = new MongoClient(uri, {
   },
 });
 
+// DB_NAME permite apuntar los tests de integración a una base de datos desechable
+const db = client.db(process.env.DB_NAME || "BarberPlan");
+
 async function connectDB() {
   try {
     await client.connect();
@@ -18,4 +21,4 @@ async function connectDB() {
   } catch (error) {
     console.error("Error al conectar a MongoDB", error);
   }}
-export { client, connectDB };
+export { client, connectDB, db };

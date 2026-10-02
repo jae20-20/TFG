@@ -34,6 +34,7 @@
       class="week-cita-block"
       *ngFor="let item of positionedCitas"
       [class.paid]="item.cita.pagado"
+      [ngClass]="'estado-' + item.cita.estado"
       [style.top.px]="item.top"
       [style.height.px]="item.height"
       [style.left.%]="item.leftPct"
@@ -64,6 +65,10 @@
     </ion-header>
     <div class="compact-modal-body" *ngIf="selectedCita as cita">
       <div class="detalle-row">
+        <span>Estado</span>
+        <span class="appointment-status" [ngClass]="cita.estado">{{ etiquetaEstado(cita) }}</span>
+      </div>
+      <div class="detalle-row">
         <span>Cliente</span>
         <strong class="plain">{{ getClienteNombre(cita) }}</strong>
       </div>
@@ -88,7 +93,9 @@
         <p>{{ cita.comentario }}</p>
       </div>
 
-      <div class="detalle-pago-row">
+      <app-cita-acciones [cita]="cita" (accion)="onAccionEstado($event)"></app-cita-acciones>
+
+      <div class="detalle-pago-row" *ngIf="admitePago(cita)">
         <span class="detalle-pago-precio" [class.editable-price]="cita.pagado" (click)="cita.pagado ? onEditImporteClick() : null" [title]="cita.pagado ? 'Haz clic para modificar importe' : ''">
           PVP: {{ getPrecio(cita) }}€
           <ion-icon name="pencil-outline" *ngIf="cita.pagado"></ion-icon>
@@ -99,7 +106,7 @@
         </div>
       </div>
 
-      <div class="detalle-actions">
+      <div class="detalle-actions" *ngIf="admiteCancelacionPersonal(cita)">
         <ion-button fill="clear" class="cita-cancel-btn" (click)="onCancelClick()">
           <ion-icon slot="start" name="close-outline"></ion-icon>
           Cancelar cita

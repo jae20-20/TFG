@@ -181,6 +181,15 @@
     background: rgba(34, 197, 94, 0.16);
     border-left-color: var(--custom-success);
   }
+
+  &.estado-pendiente {
+    background: var(--custom-warning-bg);
+    border-left: 3px dashed var(--custom-warning);
+  }
+
+  &.estado-no_presentada {
+    opacity: 0.55;
+  }
 }
 
 .week-cita-time {
