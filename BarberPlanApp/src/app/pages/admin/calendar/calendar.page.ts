@@ -70,7 +70,7 @@ export class CalendarPage implements OnInit {
   // Modal para añadir cita manual
   isNewCitaModalOpen = false;
   serviciosBarberia: any[] = [];
-  selectedServicioId: string = '';
+  selectedServicioIds: string[] = [];
   selectedHoraInicio: string = '';
   horasDisponibles: string[] = [];
   loadingHoras = false;
@@ -637,7 +637,7 @@ export class CalendarPage implements OnInit {
       toast.present();
       return;
     }
-    this.selectedServicioId = '';
+    this.selectedServicioIds = [];
     this.selectedHoraInicio = '';
     this.clienteNombreManual = '';
     this.horasDisponibles = [];
@@ -657,7 +657,7 @@ export class CalendarPage implements OnInit {
     if (!this.selectedBarberId || !this.selectedDateKey || !this.user?.barberiaId) return;
     this.loadingHoras = true;
     try {
-      const res = await this.apiService.getDisponibilidadBarbero(this.selectedBarberId, this.selectedDateKey, this.user.barberiaId, true);
+      const res = await this.apiService.getDisponibilidadBarbero(this.selectedBarberId, this.selectedDateKey, this.user.barberiaId, true, this.duracionManual());
       this.horasDisponibles = res?.horariosDisponibles || [];
     } catch (e) {
       console.error('Error al cargar horas disponibles:', e);
@@ -667,8 +667,29 @@ export class CalendarPage implements OnInit {
     }
   }
 
+  // Duración total de los servicios elegidos en la cita manual (por defecto, un hueco)
+  duracionManual(): number | undefined {
+    const total = this.serviciosBarberia
+      .filter(s => this.selectedServicioIds.includes(s._id))
+      .reduce((suma, s) => suma + (Number(s.duracion) || 0), 0);
+    return total || undefined;
+  }
+
+  precioManual(): number {
+    return this.serviciosBarberia
+      .filter(s => this.selectedServicioIds.includes(s._id))
+      .reduce((suma, s) => suma + (Number(s.precio) || 0), 0);
+  }
+
+  async onServiciosManualChange() {
+    await this.loadHorasDisponibles();
+    if (!this.horasDisponibles.includes(this.selectedHoraInicio)) {
+      this.selectedHoraInicio = '';
+    }
+  }
+
   async confirmarCitaManual() {
-    if (!this.selectedServicioId || !this.selectedHoraInicio) {
+    if (this.selectedServicioIds.length === 0 || !this.selectedHoraInicio) {
       const toast = await this.toastCtrl.create({ message: 'Por favor, selecciona un servicio y una hora.', duration: 2000, color: 'warning' });
       toast.present();
       return;
@@ -678,7 +699,7 @@ export class CalendarPage implements OnInit {
     try {
       await this.apiService.crearCitaManual({
         barberoId: this.selectedBarberId,
-        servicioId: this.selectedServicioId,
+        servicioIds: this.selectedServicioIds,
         fecha: this.selectedDateKey,
         horaInicio: this.selectedHoraInicio,
         clienteNombre: this.clienteNombreManual?.trim() || undefined

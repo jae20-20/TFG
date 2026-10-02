@@ -2,7 +2,7 @@
   <div class="services-section" *ngIf="!loading">
     <div class="services-info-banner">
       <h3>Catálogo de Servicios</h3>
-      <p>Estos son los servicios ofrecidos por tu barbería. Si no realizas alguno en particular, puedes pulsar en <strong>Prohibido</strong> para solicitar su bloqueo al administrador.</p>
+      <p>Estos son los servicios ofrecidos por tu barbería. Si no realizas alguno en particular, puedes pulsar en <strong>Prohibido</strong> para solicitar su bloqueo al administrador. Si cambias de idea, puedes <strong>desbloquearlo</strong> tú mismo en cualquier momento.</p>
     </div>
 
     <div class="services-list" *ngIf="servicios.length > 0; else noServices">
@@ -20,7 +20,25 @@
             </ion-badge>
 
             <ion-button
-              *ngIf="!isBlocked(servicio)"
+              *ngIf="isBlocked(servicio)"
+              fill="outline"
+              size="small"
+              class="unblock-service-button"
+              [disabled]="desbloqueando === (servicio._id || servicio.id)"
+              (click)="confirmarDesbloqueo(servicio)"
+              title="Volver a ofrecer este servicio"
+            >
+              <ion-icon slot="start" name="lock-open-outline"></ion-icon>
+              Desbloquear
+            </ion-button>
+
+            <ion-badge color="warning" *ngIf="!isBlocked(servicio) && tieneBloqueoSolicitado(servicio)" class="blocked-badge">
+              <ion-icon name="hourglass-outline"></ion-icon>
+              Bloqueo solicitado
+            </ion-badge>
+
+            <ion-button
+              *ngIf="!isBlocked(servicio) && !tieneBloqueoSolicitado(servicio)"
               fill="clear"
               size="small"
               color="danger"

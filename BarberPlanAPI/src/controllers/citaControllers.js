@@ -15,7 +15,7 @@ import {
 } from "../models/citaModel.js";
 
 import { esObjectIdValido } from "../middleware/validateMiddleware.js";
-import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, getServicioById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
+import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { getUserById } from "../models/userModel.js";
 
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -26,6 +26,11 @@ const PLAZO_RESPUESTA_MS = 24 * 60 * 60 * 1000;
 
 // Duración de cada hueco de la agenda; también es cuánto puede llevar empezada una cita manual (cliente que llega sin reserva)
 const INTERVALO_HUECOS_MIN = 30;
+
+// Servicios que se pueden combinar en una misma cita (p. ej. corte + mechas + lavado)
+const MAX_SERVICIOS_CITA = 4;
+// Duración máxima que se acepta al consultar la disponibilidad
+const MAX_DURACION_CITA_MIN = 12 * 60;
 
 // Estado destino -> estados de origen permitidos; cancelada, completada y no_presentada son finales
 const TRANSICIONES = {
@@ -78,6 +83,52 @@ const calcularHoraFin = (horaInicio, duracion) => {
     return `${String(Math.floor(totalMinutos / 60)).padStart(2, "0")}:${String(totalMinutos % 60).padStart(2, "0")}`;
 };
 
+const aMinutos = (hora) => {
+    const [h, m] = hora.split(":").map(Number);
+    return h * 60 + m;
+};
+
+// Servicios de la cita en el orden elegido (el primero es el principal), sacados de la BD de la barbería.
+// Acepta servicioIds (lista) o el antiguo servicioId. Devuelve la lista y los campos de resumen
+// (nombre combinado, precio y duración sumados) que usan calendario, reseñas y estadísticas
+const resolverServicios = (barberia, { servicioIds, servicioId }) => {
+    const ids = servicioIds !== undefined ? servicioIds : (servicioId !== undefined ? [servicioId] : []);
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return { error: "Elige al menos un servicio" };
+    }
+    if (ids.length > MAX_SERVICIOS_CITA) {
+        return { error: `Puedes elegir como máximo ${MAX_SERVICIOS_CITA} servicios por cita` };
+    }
+    if (!ids.every(esObjectIdValido)) {
+        return { error: "Identificador no válido" };
+    }
+    const normalizados = ids.map((id) => id.toLowerCase());
+    if (new Set(normalizados).size !== normalizados.length) {
+        return { error: "No repitas un servicio en la misma cita" };
+    }
+
+    const encontrados = normalizados.map((id) => (barberia.servicios || []).find((s) => s._id?.toString() === id));
+    if (encontrados.some((s) => !s)) {
+        return { error: "Servicio no encontrado", status: 404 };
+    }
+
+    const servicios = encontrados.map((s) => ({
+        _id: s._id,
+        nombre: s.nombre,
+        precio: Number(s.precio) || 0,
+        duracion: Number(s.duracion) || INTERVALO_HUECOS_MIN
+    }));
+    return {
+        servicios,
+        resumen: {
+            servicioId: servicios[0]._id.toString(),
+            servicioNombre: servicios.map((s) => s.nombre).join(" + "),
+            servicioPrecio: Math.round(servicios.reduce((total, s) => total + s.precio, 0) * 100) / 100,
+            servicioDuracion: servicios.reduce((total, s) => total + s.duracion, 0)
+        }
+    };
+};
+
 // "HH:MM" menos unos minutos, sin bajar de "00:00"
 const restarMinutos = (hora, minutos) => {
     const [h, m] = hora.split(":").map(Number);
@@ -85,10 +136,9 @@ const restarMinutos = (hora, minutos) => {
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 };
 
-// Huecos de inicio libres de un barbero en una fecha, combinando el horario de
-// la barbería, el horario/ausencias del barbero y las citas ya ocupadas.
-// incluirEnCurso añade el hueco que ya empezó (para citas manuales del personal)
-const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, incluirEnCurso = false) => {
+// Horas de inicio en las que cabe una cita de "duracion" minutos: dentro de una franja abierta y sin
+// pisar otras citas ni ausencias del barbero. incluirEnCurso añade el hueco que ya empezó (citas manuales)
+const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, { incluirEnCurso = false, duracion = INTERVALO_HUECOS_MIN } = {}) => {
     const schedule = barberia.schedule || {
         timezone: "Europe/Madrid",
         weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
@@ -150,29 +200,19 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, incluir
 
     let horariosDisponibles = [];
 
+    const pisa = (inicio, fin, desde, hasta) => inicio < aMinutos(hasta) && fin > aMinutos(desde);
+
     for (const slot of slotsForDay) {
         if (!slot.start || !slot.end) continue;
-        let current = new Date(`1970-01-01T${slot.start}:00`);
-        const end = new Date(`1970-01-01T${slot.end}:00`);
+        const finFranja = aMinutos(slot.end);
 
-        while (current < end) {
-            const horaStr = `${String(current.getHours()).padStart(2, "0")}:${String(current.getMinutes()).padStart(2, "0")}`;
-
-            // Verificar si este horario está ocupado por una cita
-            const ocupado = citasOcupadas.some(cita => {
-                return horaStr >= cita.horaInicio && horaStr < cita.horaFin;
-            });
-
-            // Verificar si cae en una ausencia parcial del barbero (cierre parcial)
-            const enAusencia = absenceSlots.some(abs => {
-                return horaStr >= abs.start && horaStr < abs.end;
-            });
-
+        for (let inicio = aMinutos(slot.start); inicio + duracion <= finFranja; inicio += INTERVALO_HUECOS_MIN) {
+            const fin = inicio + duracion;
+            const ocupado = citasOcupadas.some((cita) => pisa(inicio, fin, cita.horaInicio, cita.horaFin));
+            const enAusencia = absenceSlots.some((abs) => pisa(inicio, fin, abs.start, abs.end));
             if (!ocupado && !enAusencia) {
-                horariosDisponibles.push(horaStr);
+                horariosDisponibles.push(`${String(Math.floor(inicio / 60)).padStart(2, "0")}:${String(inicio % 60).padStart(2, "0")}`);
             }
-
-            current.setMinutes(current.getMinutes() + INTERVALO_HUECOS_MIN);
         }
     }
 
@@ -198,14 +238,14 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, incluir
 export const crearCita = async (req, res) => {
     try {
         const clienteId = req.user.id;
-        const { barberiaId, barberoId, servicioId, fecha, horaInicio, comentario } = req.body;
+        const { barberiaId, barberoId, fecha, horaInicio, comentario } = req.body;
 
-        // Validar campos obligatorios
-        if (!barberiaId || !barberoId || !servicioId || !fecha || !horaInicio) {
+        // Validar campos obligatorios (los servicios se validan en resolverServicios)
+        if (!barberiaId || !barberoId || !fecha || !horaInicio) {
             return res.status(400).json({ error: "Todos los campos son obligatorios" });
         }
 
-        if (![barberiaId, barberoId, servicioId].every(esObjectIdValido)) {
+        if (![barberiaId, barberoId].every(esObjectIdValido)) {
             return res.status(400).json({ error: "Identificador no válido" });
         }
 
@@ -221,10 +261,9 @@ export const crearCita = async (req, res) => {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
 
-        // Verificar que el servicio existe
-        const servicio = await getServicioById(barberiaId, servicioId);
-        if (!servicio) {
-            return res.status(404).json({ error: "Servicio no encontrado" });
+        const { servicios, resumen, error: errorServicios, status: statusServicios } = resolverServicios(barberia, req.body);
+        if (errorServicios) {
+            return res.status(statusServicios || 400).json({ error: errorServicios });
         }
 
         // Verificar que el barbero existe y pertenece a la barbería
@@ -233,8 +272,9 @@ export const crearCita = async (req, res) => {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
-        if (barbero.serviciosBloqueados && barbero.serviciosBloqueados.includes(servicioId.toString())) {
-            return res.status(400).json({ error: "Este barbero no realiza el servicio seleccionado" });
+        const bloqueado = servicios.find((s) => (barbero.serviciosBloqueados || []).includes(s._id.toString()));
+        if (bloqueado) {
+            return res.status(400).json({ error: `Este barbero no realiza el servicio ${bloqueado.nombre}` });
         }
 
         // Validar que no se reserve en el pasado
@@ -246,14 +286,14 @@ export const crearCita = async (req, res) => {
             return res.status(400).json({ error: "No se pueden crear citas en horarios que ya han pasado" });
         }
 
-        const horaFin = calcularHoraFin(horaInicio, servicio.duracion);
+        const horaFin = calcularHoraFin(horaInicio, resumen.servicioDuracion);
         if (!horaFin) {
-            return res.status(400).json({ error: "El servicio no cabe en ese día" });
+            return res.status(400).json({ error: "Los servicios elegidos no caben en ese día" });
         }
 
-        // La hora debe ser uno de los huecos que se ofrecen (horario abierto, sin ausencias)
+        // La hora debe ser uno de los huecos que se ofrecen para la duración total (horario abierto, sin ausencias ni otras citas)
         const citasDelDia = await getCitasByBarberoAndFecha(barberoId, fecha);
-        const { horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasDelDia);
+        const { horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasDelDia, { duracion: resumen.servicioDuracion });
         if (!horariosDisponibles.includes(horaInicio)) {
             return res.status(409).json({ error: "El barbero no está disponible en ese horario" });
         }
@@ -264,13 +304,11 @@ export const crearCita = async (req, res) => {
             clienteId,
             barberoId,
             barberiaId,
-            servicioId,
             fecha,
             horaInicio,
             horaFin,
-            servicioNombre: servicio.nombre,
-            servicioPrecio: servicio.precio,
-            servicioDuracion: servicio.duracion,
+            ...resumen,
+            servicios,
             comentario: comentarioLimpio,
             estado: requiereAprobacion ? "pendiente" : "confirmada",
             ...(requiereAprobacion && { expiraEn: new Date(Date.now() + PLAZO_RESPUESTA_MS) })
@@ -289,7 +327,8 @@ export const crearCita = async (req, res) => {
                 fecha,
                 horaInicio,
                 horaFin,
-                servicio: servicio.nombre,
+                servicio: resumen.servicioNombre,
+                precio: resumen.servicioPrecio,
                 barberia: barberia.nombre,
                 estado: nuevaCita.estado,
                 expiraEn: nuevaCita.expiraEn ?? null
@@ -307,13 +346,13 @@ export const crearCitaManual = async (req, res) => {
     try {
         const userId = req.user.id;
         const userRol = req.user.rol;
-        const { barberoId, servicioId, fecha, horaInicio, clienteNombre } = req.body;
+        const { barberoId, fecha, horaInicio, clienteNombre } = req.body;
 
-        if (!barberoId || !servicioId || !fecha || !horaInicio) {
+        if (!barberoId || !fecha || !horaInicio) {
             return res.status(400).json({ error: "Barbero, servicio, fecha y hora son obligatorios" });
         }
 
-        if (![barberoId, servicioId].every(esObjectIdValido)) {
+        if (!esObjectIdValido(barberoId)) {
             return res.status(400).json({ error: "Identificador no válido" });
         }
 
@@ -339,9 +378,10 @@ export const crearCitaManual = async (req, res) => {
             }
         }
 
-        const servicio = await getServicioById(barberiaId, servicioId);
-        if (!servicio) {
-            return res.status(404).json({ error: "Servicio no encontrado en esta barbería" });
+        const barberia = await getBarbershopById(barberiaId);
+        const { servicios, resumen, error: errorServicios, status: statusServicios } = resolverServicios(barberia || {}, req.body);
+        if (errorServicios) {
+            return res.status(statusServicios || 400).json({ error: errorServicios });
         }
 
         // Validar que no se reserve en el pasado
@@ -353,9 +393,9 @@ export const crearCitaManual = async (req, res) => {
             return res.status(400).json({ error: `Solo se pueden registrar citas que empezaron hace menos de ${INTERVALO_HUECOS_MIN} minutos` });
         }
 
-        const horaFin = calcularHoraFin(horaInicio, servicio.duracion || 30);
+        const horaFin = calcularHoraFin(horaInicio, resumen.servicioDuracion);
         if (!horaFin) {
-            return res.status(400).json({ error: "El servicio no cabe en ese día" });
+            return res.status(400).json({ error: "Los servicios elegidos no caben en ese día" });
         }
 
         const nuevaCita = await createCita({
@@ -363,13 +403,11 @@ export const crearCitaManual = async (req, res) => {
             clienteNombre: clienteNombre?.trim() || "Reserva manual",
             barberoId,
             barberiaId,
-            servicioId,
             fecha,
             horaInicio,
             horaFin,
-            servicioNombre: servicio.nombre,
-            servicioPrecio: servicio.precio,
-            servicioDuracion: servicio.duracion || 30,
+            ...resumen,
+            servicios,
             estado: "confirmada"
         });
 
@@ -384,7 +422,8 @@ export const crearCitaManual = async (req, res) => {
                 fecha,
                 horaInicio,
                 horaFin,
-                servicio: servicio.nombre,
+                servicio: resumen.servicioNombre,
+                precio: resumen.servicioPrecio,
                 clienteNombre: clienteNombre?.trim() || "Reserva manual",
                 estado: "confirmada"
             }
@@ -675,6 +714,12 @@ export const getDisponibilidad = async (req, res) => {
         const { barberoId, fecha } = req.params;
         const { barberiaId } = req.query;
         const incluirEnCurso = req.query.incluirEnCurso === "true";
+        // Duración total de los servicios elegidos; solo orienta la búsqueda, la reserva la recalcula desde la BD
+        const duracion = req.query.duracion === undefined ? INTERVALO_HUECOS_MIN : Number(req.query.duracion);
+
+        if (!Number.isInteger(duracion) || duracion < 5 || duracion > MAX_DURACION_CITA_MIN) {
+            return res.status(400).json({ error: "Duración no válida" });
+        }
 
         if (!esObjectIdValido(barberiaId)) {
             return res.status(400).json({ error: "Se requiere el ID de la barbería" });
@@ -698,7 +743,7 @@ export const getDisponibilidad = async (req, res) => {
 
         // Obtener citas del barbero en esa fecha
         const citasOcupadas = await getCitasByBarberoAndFecha(barberoId, fecha);
-        const { estado, horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasOcupadas, incluirEnCurso);
+        const { estado, horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasOcupadas, { incluirEnCurso, duracion });
 
         res.json({
             fecha,
@@ -969,11 +1014,16 @@ const calcularTopServicios = (citas) => {
     const porServicio = new Map();
     for (const cita of citas) {
         if (!esAtendible(cita)) continue;
-        const clave = cita.servicioId?.toString() || cita.servicioNombre;
-        if (!porServicio.has(clave)) porServicio.set(clave, { nombre: cita.servicioNombre || "Servicio", citas: 0, ingresos: 0 });
-        const servicio = porServicio.get(clave);
-        servicio.citas++;
-        servicio.ingresos += precioDe(cita);
+        const servicios = cita.servicios?.length
+            ? cita.servicios
+            : [{ _id: cita.servicioId, nombre: cita.servicioNombre, precio: precioDe(cita) }];
+        for (const s of servicios) {
+            const clave = s._id?.toString() || s.nombre;
+            if (!porServicio.has(clave)) porServicio.set(clave, { nombre: s.nombre || "Servicio", citas: 0, ingresos: 0 });
+            const servicio = porServicio.get(clave);
+            servicio.citas++;
+            servicio.ingresos += Number(s.precio) || 0;
+        }
     }
     return [...porServicio.values()]
         .sort((a, b) => b.citas - a.citas || b.ingresos - a.ingresos)

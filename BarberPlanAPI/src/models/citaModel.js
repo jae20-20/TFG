@@ -304,7 +304,7 @@ export const getCitasBarberiaEnRango = async (barberiaId, desde, hasta) => {
         {
             $project: {
                 barberoId: 1, clienteId: 1, clienteNombre: 1, cliente: 1, estado: 1, fecha: 1, horaInicio: 1,
-                servicioId: 1, servicioNombre: 1, servicioPrecio: 1, pagado: 1, importePagado: 1
+                servicioId: 1, servicioNombre: 1, servicioPrecio: 1, servicios: 1, pagado: 1, importePagado: 1
             }
         }
     ]).toArray();

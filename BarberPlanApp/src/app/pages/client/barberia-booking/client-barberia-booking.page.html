@@ -54,9 +54,9 @@
         <p class="booking-progress-label">Paso {{ reservaPaso }} de 3: {{ getStepLabel(reservaPaso) }}</p>
       </div> -->
 
-      <div class="booking-summary-grid" *ngIf="reservaForm.servicioId || reservaForm.barberoId">
-        <div class="summary-box" *ngIf="reservaForm.servicioId">
-          <p>Servicio</p>
+      <div class="booking-summary-grid" *ngIf="reservaPaso >= 2">
+        <div class="summary-box" *ngIf="reservaForm.servicioIds.length">
+          <p>{{ reservaForm.servicioIds.length === 1 ? 'Servicio' : 'Servicios' }}</p>
           <strong>{{ getServicioNombre() }}</strong>
         </div>
         <div class="summary-box" *ngIf="reservaForm.barberoId && reservaPaso >= 2">
@@ -69,8 +69,8 @@
             <strong>{{ getBarberoNombre(bSel) }}</strong>
           </div>
         </div>
-        <div class="summary-box" *ngIf="reservaForm.servicioId">
-          <p>Duración</p>
+        <div class="summary-box" *ngIf="reservaForm.servicioIds.length">
+          <p>Total</p>
           <strong>{{ getDuracionSeleccionada() }}</strong>
         </div>
       </div>
@@ -78,7 +78,8 @@
       <div class="booking-step-card" *ngIf="reservaPaso === 1">
         <div class="booking-step-header">
           <p class="booking-step-eyebrow">Paso 1</p>
-          <h2>Elige el servicio</h2>
+          <h2>Elige los servicios</h2>
+          <p class="booking-step-hint">Puedes añadir más de uno (por ejemplo, corte y lavado). Se reservarán en una sola cita.</p>
         </div>
 
         <div class="booking-service-grid">
@@ -86,11 +87,15 @@
             type="button"
             class="booking-service-item"
             *ngFor="let servicio of servicios"
-            [class.selected]="reservaForm.servicioId === getEntityId(servicio)"
-            (click)="selectServicio(getEntityId(servicio))"
+            [class.selected]="getOrdenServicio(servicio) > 0"
+            [attr.aria-pressed]="getOrdenServicio(servicio) > 0"
+            (click)="toggleServicio(getEntityId(servicio))"
           >
             <div>
-              <h3>{{ servicio.nombre || 'Servicio' }}</h3>
+              <div class="booking-service-title">
+                <h3>{{ servicio.nombre || 'Servicio' }}</h3>
+                <ion-icon [name]="getOrdenServicio(servicio) > 0 ? 'checkmark-circle' : 'add-circle-outline'" class="booking-service-check"></ion-icon>
+              </div>
               <p>{{ servicio.descripcion || 'Selecciona este servicio para continuar.' }}</p>
             </div>
             <div class="booking-service-meta">
@@ -98,6 +103,14 @@
               <strong>{{ getServicioPrecio(servicio) }}</strong>
             </div>
           </button>
+        </div>
+
+        <div class="booking-services-total" *ngIf="reservaForm.servicioIds.length">
+          <div>
+            <strong>{{ reservaForm.servicioIds.length }} {{ reservaForm.servicioIds.length === 1 ? 'servicio' : 'servicios' }}</strong>
+            <span>{{ getDuracionTotal() }} min · {{ getPrecioTotal().toFixed(2) }} €</span>
+          </div>
+          <ion-button color="primary" class="booking-step-btn primary" (click)="confirmarServicios()">Continuar</ion-button>
         </div>
       </div>
 
@@ -130,6 +143,9 @@
               </div>
             </button>
           </div>
+          <p class="empty-text" *ngIf="getBarberosDisponibles().length === 0">
+            Ningún profesional realiza todos los servicios elegidos. Vuelve atrás y quita alguno.
+          </p>
         </div>
 
         <div class="booking-form-grid" style="margin-top: 22px;">

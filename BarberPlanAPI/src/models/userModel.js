@@ -32,6 +32,15 @@ export const updateUser = async (id, updatedData) => {
     );
 };
 
+// Vuelve a ofrecer un servicio que el barbero tenía bloqueado; devuelve el barbero actualizado o null si no lo tenía
+export const quitarServicioBloqueado = async (barberoId, servicioId) => {
+    return await db.collection("Usuarios").findOneAndUpdate(
+        { _id: new ObjectId(barberoId), serviciosBloqueados: servicioId },
+        { $pull: { serviciosBloqueados: servicioId }, $set: { updatedAt: new Date() } },
+        { returnDocument: "after", projection: { serviciosBloqueados: 1 } }
+    );
+};
+
 // Eliminar usuario
 export const deleteUser = async (id) => {
     return await db.collection("Usuarios").deleteOne({ _id: new ObjectId(id) });

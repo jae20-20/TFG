@@ -22,6 +22,7 @@ import {
     getUserById,
     getUserByUsername,
     getUsersByBarberiaId,
+    quitarServicioBloqueado,
     updateUserPassword,
     updateUserProfile,
     updateUser
@@ -395,5 +396,24 @@ export const updateBarberoHorario = async (req, res) => {
     } catch (error) {
         console.error("Error al actualizar horario del barbero:", error);
         res.status(500).json({ error: "Error al actualizar horario del barbero" });
+    }
+};
+
+// El barbero vuelve a ofrecer un servicio que tenía bloqueado. Bloquear sigue requiriendo solicitud al admin;
+// desbloquear no, porque solo amplía lo que el barbero ofrece
+export const desbloquearMiServicio = async (req, res) => {
+    try {
+        const { servicioId } = req.params;
+        const barbero = await quitarServicioBloqueado(req.user.id, servicioId);
+        if (!barbero) {
+            return res.status(409).json({ error: "Este servicio no estaba bloqueado" });
+        }
+        res.json({
+            message: "Servicio desbloqueado. Los clientes ya pueden reservarlo contigo",
+            serviciosBloqueados: barbero.serviciosBloqueados || []
+        });
+    } catch (error) {
+        console.error("Error al desbloquear servicio:", error);
+        res.status(500).json({ error: "Error al desbloquear el servicio" });
     }
 };

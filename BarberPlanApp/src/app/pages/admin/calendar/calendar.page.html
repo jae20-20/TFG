@@ -317,11 +317,12 @@
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
           <ion-label position="stacked">Servicio</ion-label>
-          <ion-select [(ngModel)]="selectedServicioId" placeholder="Selecciona un servicio" interface="alert" cancelText="Cancelar" okText="Guardar">
+          <ion-select [(ngModel)]="selectedServicioIds" [multiple]="true" (ionChange)="onServiciosManualChange()" placeholder="Selecciona uno o varios servicios" interface="alert" cancelText="Cancelar" okText="Guardar">
             <ion-select-option *ngFor="let s of serviciosBarberia" [value]="s._id">
               {{ s.nombre }} ({{ s.duracion }} min - {{ s.precio }}€)
             </ion-select-option>
           </ion-select>
+          <div class="field-note" *ngIf="selectedServicioIds.length > 1">Total: {{ duracionManual() }} min · {{ precioManual() }} €</div>
         </ion-item>
 
         <ion-item class="time-item ion-margin-bottom" lines="none">
@@ -344,7 +345,7 @@
       </div>
       <ion-footer>
         <ion-toolbar>
-          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="confirmarCitaManual()" [disabled]="creandoCita || !selectedServicioId || !selectedHoraInicio">
+          <ion-button expand="block" class="premium-modal-button-solid ion-margin" (click)="confirmarCitaManual()" [disabled]="creandoCita || selectedServicioIds.length === 0 || !selectedHoraInicio">
             <ion-spinner *ngIf="creandoCita" name="crescent"></ion-spinner>
             <span *ngIf="!creandoCita">Guardar Cita</span>
           </ion-button>

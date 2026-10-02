@@ -119,8 +119,11 @@ export class ApiService {
 
   // Obtener disponibilidad pública de un barbero en fecha
   // incluirEnCurso: el personal puede registrar a quien llega sin cita en el hueco que ya empezó
-  async getDisponibilidadBarbero(barberoId: string, fecha: string, barberiaId: string, incluirEnCurso = false) {
-    const params: Record<string, string> = incluirEnCurso ? { barberiaId, incluirEnCurso: 'true' } : { barberiaId };
+  // duracion: minutos totales de los servicios elegidos, para ofrecer solo las horas en las que caben
+  async getDisponibilidadBarbero(barberoId: string, fecha: string, barberiaId: string, incluirEnCurso = false, duracion?: number) {
+    const params: Record<string, string> = { barberiaId };
+    if (incluirEnCurso) params['incluirEnCurso'] = 'true';
+    if (duracion) params['duracion'] = String(duracion);
     return await firstValueFrom(
       this.http.get<any>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/${fecha}`, { params })
     );
@@ -138,7 +141,7 @@ export class ApiService {
   async crearCita(data: {
     barberiaId: string;
     barberoId: string;
-    servicioId: string;
+    servicioIds: string[];
     fecha: string;
     horaInicio: string;
     comentario?: string;
@@ -152,7 +155,7 @@ export class ApiService {
   // Crear cita manual (admin o barbero)
   async crearCitaManual(data: {
     barberoId: string;
-    servicioId: string;
+    servicioIds: string[];
     fecha: string;
     horaInicio: string;
     clienteNombre?: string;
@@ -298,6 +301,14 @@ export class ApiService {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
       this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios/${servicioId}`, { headers })
+    );
+  }
+
+  // El barbero vuelve a ofrecer un servicio que tenía bloqueado (no requiere solicitud)
+  async desbloquearMiServicio(servicioId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/barbero/me/servicios-bloqueados/${servicioId}`, { headers })
     );
   }
 

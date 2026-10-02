@@ -8,10 +8,13 @@ import { AuthService } from '../../../services/auth.service';
 import { Storage } from '@ionic/storage-angular';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { addIcons } from 'ionicons';
-import { logOutOutline, arrowBackOutline, businessOutline, hourglassOutline } from 'ionicons/icons';
+import { logOutOutline, arrowBackOutline, businessOutline, hourglassOutline, checkmarkCircle, addCircleOutline } from 'ionicons/icons';
+
+// Mismo límite que aplica el servidor
+const MAX_SERVICIOS_CITA = 4;
 
 interface ReservaForm {
-  servicioId: string;
+  servicioIds: string[];
   barberoId: string;
   fecha: string;
   horaInicio: string;
@@ -41,7 +44,7 @@ export class ClientBarberiaBookingPage implements OnInit {
   minFecha = new Date().toISOString().split('T')[0];
 
   reservaForm: ReservaForm = {
-    servicioId: '',
+    servicioIds: [],
     barberoId: '',
     fecha: this.minFecha,
     horaInicio: '',
@@ -49,6 +52,7 @@ export class ClientBarberiaBookingPage implements OnInit {
   };
 
   readonly comentarioMaxLength = 300;
+  readonly maxServicios = MAX_SERVICIOS_CITA;
 
   constructor(
     private route: ActivatedRoute,
@@ -59,7 +63,7 @@ export class ClientBarberiaBookingPage implements OnInit {
     private authService: AuthService,
     private storage: Storage
   ) {
-    addIcons({ logOutOutline, arrowBackOutline, businessOutline, hourglassOutline });
+    addIcons({ logOutOutline, arrowBackOutline, businessOutline, hourglassOutline, checkmarkCircle, addCircleOutline });
   }
 
   async ngOnInit() {
@@ -135,8 +139,27 @@ export class ClientBarberiaBookingPage implements OnInit {
     return `${precio.toFixed(2)} EUR`;
   }
 
+  // Servicios elegidos en el orden en que se marcaron (el primero es el principal)
+  getServiciosSeleccionados() {
+    return this.reservaForm.servicioIds
+      .map((id) => this.servicios.find((servicio) => this.getEntityId(servicio) === id))
+      .filter(Boolean);
+  }
+
   getServicioNombre() {
-    return this.servicios.find((servicio) => this.getEntityId(servicio) === this.reservaForm.servicioId)?.nombre || 'Servicio';
+    return this.getServiciosSeleccionados().map((s: any) => s.nombre).join(' + ') || 'Servicio';
+  }
+
+  getDuracionTotal() {
+    return this.getServiciosSeleccionados().reduce((total: number, s: any) => total + (Number(s.duracion) || 0), 0);
+  }
+
+  getPrecioTotal() {
+    return this.getServiciosSeleccionados().reduce((total: number, s: any) => total + (Number(s.precio) || 0), 0);
+  }
+
+  getOrdenServicio(servicio: any) {
+    return this.reservaForm.servicioIds.indexOf(this.getEntityId(servicio)) + 1;
   }
 
   getBarberoSeleccionado() {
@@ -144,9 +167,8 @@ export class ClientBarberiaBookingPage implements OnInit {
   }
 
   getDuracionSeleccionada() {
-    const servicio = this.servicios.find((item) => this.getEntityId(item) === this.reservaForm.servicioId);
-    const duracion = Number(servicio?.duracion);
-    return Number.isFinite(duracion) && duracion > 0 ? `${duracion} min` : 'Duración no disponible';
+    const duracion = this.getDuracionTotal();
+    return duracion > 0 ? `${duracion} min · ${this.getPrecioTotal().toFixed(2)} €` : 'Duración no disponible';
   }
 
   getStepLabel(step: 1 | 2 | 3) {
@@ -161,16 +183,40 @@ export class ClientBarberiaBookingPage implements OnInit {
     }
   }
 
+  // Solo los barberos que realizan todos los servicios elegidos
   getBarberosDisponibles() {
-    if (!this.reservaForm.servicioId) return this.barberos;
     return this.barberos.filter(b => {
       const bloqueados = b?.serviciosBloqueados || [];
-      return !bloqueados.includes(this.reservaForm.servicioId);
+      return !this.reservaForm.servicioIds.some((id) => bloqueados.includes(id));
     });
   }
 
-  selectServicio(servicioId: string) {
-    this.reservaForm.servicioId = servicioId;
+  async toggleServicio(servicioId: string) {
+    const ids = this.reservaForm.servicioIds;
+    if (ids.includes(servicioId)) {
+      this.reservaForm.servicioIds = ids.filter((id) => id !== servicioId);
+      return;
+    }
+    if (ids.length >= MAX_SERVICIOS_CITA) {
+      const toast = await this.toastCtrl.create({
+        message: `Puedes elegir como máximo ${MAX_SERVICIOS_CITA} servicios por cita.`,
+        duration: 2200,
+        position: 'bottom',
+        color: 'warning'
+      });
+      await toast.present();
+      return;
+    }
+    this.reservaForm.servicioIds = [...ids, servicioId];
+  }
+
+  // Al cambiar los servicios, el barbero elegido puede dejar de valer y la hora deja de ser segura
+  confirmarServicios() {
+    if (this.reservaForm.servicioIds.length === 0) return;
+    if (!this.getBarberosDisponibles().some((b) => this.getEntityId(b) === this.reservaForm.barberoId)) {
+      this.reservaForm.barberoId = '';
+    }
+    this.reservaForm.horaInicio = '';
     this.reservaPaso = 2;
   }
 
@@ -214,7 +260,9 @@ export class ClientBarberiaBookingPage implements OnInit {
       const response = await this.apiService.getDisponibilidadBarbero(
         this.reservaForm.barberoId,
         this.reservaForm.fecha,
-        this.barberiaId
+        this.barberiaId,
+        false,
+        this.getDuracionTotal() || undefined
       );
 
       this.horariosDisponibles = Array.isArray(response?.horariosDisponibles)
@@ -272,7 +320,7 @@ export class ClientBarberiaBookingPage implements OnInit {
   }
 
   async reservarCita() {
-    if (!this.reservaForm.servicioId || !this.reservaForm.barberoId || !this.reservaForm.fecha || !this.reservaForm.horaInicio) {
+    if (this.reservaForm.servicioIds.length === 0 || !this.reservaForm.barberoId || !this.reservaForm.fecha || !this.reservaForm.horaInicio) {
       const toast = await this.toastCtrl.create({
         message: 'Completa servicio, barbero, fecha y hora para reservar.',
         duration: 2200,
@@ -289,7 +337,7 @@ export class ClientBarberiaBookingPage implements OnInit {
       const respuesta = await this.apiService.crearCita({
         barberiaId: this.barberiaId,
         barberoId: this.reservaForm.barberoId,
-        servicioId: this.reservaForm.servicioId,
+        servicioIds: this.reservaForm.servicioIds,
         fecha: this.reservaForm.fecha,
         horaInicio: this.reservaForm.horaInicio,
         comentario: this.reservaForm.comentario.trim()
