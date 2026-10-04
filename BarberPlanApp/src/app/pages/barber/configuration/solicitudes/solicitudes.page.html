@@ -109,5 +109,15 @@
     <h2>Sin Solicitudes</h2>
     <p>No has enviado ninguna solicitud de momento.</p>
   </div>
+  <!-- Espacio para que el botón flotante no tape el último bloque -->
+  <div class="solicitudes-fab-spacer"></div>
+
+  <!-- FAB: Nueva Solicitud (toggle del formulario) -->
+  <div class="solicitudes-fab">
+    <ion-button class="nueva-solicitud-fab-btn" aria-label="Nueva solicitud" title="Nueva solicitud" (click)="toggleForm()">
+      <ion-icon slot="icon-only" [name]="showForm ? 'close-outline' : 'add-outline'"></ion-icon>
+    </ion-button>
+  </div>
+
 
 </ion-content>

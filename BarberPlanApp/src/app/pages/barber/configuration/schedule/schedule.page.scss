@@ -1,4 +1,5 @@
 @use '../../../shared/state-box' as sb;
+@use '../../../admin/shared-admin.scss';
 
 :host {
   --panel-bg: linear-gradient(180deg, var(--custom-card-bg) 0%, var(--ion-background-color) 100%);
@@ -61,7 +62,7 @@ ion-content.barber-premium-content {
 }
 
 .section-head {
-  margin: 18px 0 12px;
+  margin: 18px 0 12px 12px;
 
   &.spaced {
     margin-top: 24px;
@@ -213,28 +214,14 @@ ion-badge.status-badge {
   }
 }
 
-.schedule-actions-footer {
-  margin-top: 24px;
-  display: flex;
-  justify-content: flex-start;
+.schedule-fab {
+  @include shared-admin.fab-container;
+}
 
-  .nueva-solicitud-btn {
-    --background: var(--custom-gold);
-    --color: var(--ion-color-primary-contrast);
-    --border-radius: 12px;
-    --padding-start: 14px;
-    --padding-end: 18px;
-    font-weight: 700;
-    font-size: 13.5px;
-    height: 44px;
-    text-transform: none;
-    box-shadow: 0 4px 14px rgba(var(--ion-color-primary-rgb), 0.28);
-    transition: all 0.2s ease;
+.nueva-solicitud-fab-btn {
+  @include shared-admin.fab-button;
+}
 
-    ion-icon {
-      font-size: 20px;
-      font-weight: 900;
-      margin-right: 6px;
-    }
-  }
+.schedule-fab-spacer {
+  height: 72px;
 }

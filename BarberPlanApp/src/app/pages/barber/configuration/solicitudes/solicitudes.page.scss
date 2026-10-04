@@ -32,11 +32,18 @@
     margin-bottom: 16px;
   }
 
-  .input-item {
+  // Mismo ajuste que .service-input-item (shared-admin): sin altura mínima fija ni relleno propio
+  // del input, para que la etiqueta y el valor queden centrados dentro del recuadro
+  .input-item,
+  .time-item {
     --background: var(--custom-surface);
     --border-radius: 12px;
     --padding-start: 12px;
     --padding-end: 12px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --min-height: 0;
+    --inner-padding-end: 0;
     border: 1px solid var(--custom-border-subtle);
     border-radius: 12px;
 
@@ -48,6 +55,19 @@
 
     ion-input, ion-select {
       --color: var(--custom-text-primary);
+      --padding-top: 0;
+      --padding-bottom: 0;
+    }
+  }
+
+  .slot-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .time-item {
+      flex: 1;
+      min-width: 0;
     }
   }
 
@@ -80,3 +100,15 @@
   text-align: center;
 }
 
+
+.solicitudes-fab {
+  @include shared-admin.fab-container;
+}
+
+.nueva-solicitud-fab-btn {
+  @include shared-admin.fab-button;
+}
+
+.solicitudes-fab-spacer {
+  height: 72px;
+}

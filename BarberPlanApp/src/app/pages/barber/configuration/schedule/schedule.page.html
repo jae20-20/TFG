@@ -88,12 +88,14 @@
       </div>
     </div>
 
-    <!-- Botón Nueva Solicitud abajo del todo, pequeño y alineado a la izquierda -->
-    <div class="schedule-actions-footer">
-      <ion-button size="medium" class="nueva-solicitud-btn" routerLink="/barber/configuration/solicitudes" [queryParams]="{ new: 'true' }">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Nueva Solicitud
-      </ion-button>
-    </div>
+    <!-- Espacio para que el botón flotante no tape el último bloque -->
+    <div class="schedule-fab-spacer"></div>
+  </div>
+
+  <!-- FAB: Nueva Solicitud (abajo a la derecha, igual que Nuevo Servicio y Nuevo Empleado) -->
+  <div class="schedule-fab">
+    <ion-button class="nueva-solicitud-fab-btn" aria-label="Nueva solicitud" title="Nueva solicitud" routerLink="/barber/configuration/solicitudes" [queryParams]="{ new: 'true' }">
+      <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+    </ion-button>
   </div>
 </ion-content>
