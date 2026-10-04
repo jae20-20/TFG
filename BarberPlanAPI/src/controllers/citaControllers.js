@@ -5,6 +5,7 @@ import {
     getCitasBarberiaEnRango,
     getCitasByBarberiaId,
     getCitasByBarberoAndFecha,
+    getCitasByBarberoEnRango,
     getCitasByBarberoId,
     getCitasByClienteId,
     getClientesConCitasAnteriores,
@@ -21,6 +22,8 @@ import { getUserById } from "../models/userModel.js";
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const RE_MES = /^[0-9]{4}-(0[1-9]|1[0-2])$/;
+
 // Plazo para aceptar o rechazar una reserva cuando la barbería confirma manualmente
 const PLAZO_RESPUESTA_MS = 24 * 60 * 60 * 1000;
 
@@ -31,6 +34,21 @@ const INTERVALO_HUECOS_MIN = 30;
 const MAX_SERVICIOS_CITA = 4;
 // Duración máxima que se acepta al consultar la disponibilidad
 const MAX_DURACION_CITA_MIN = 12 * 60;
+// Hasta cuántos meses por delante se consultan los días con hueco
+const MAX_MESES_ADELANTE = 12;
+
+// Duración orientativa de la consulta (minutos); null si no es válida. Sin valor, un hueco
+const leerDuracion = (valor) => {
+    const duracion = valor === undefined ? INTERVALO_HUECOS_MIN : Number(valor);
+    return Number.isInteger(duracion) && duracion >= 5 && duracion <= MAX_DURACION_CITA_MIN ? duracion : null;
+};
+
+// "YYYY-MM" desplazado n meses
+const sumarMeses = (mes, n) => {
+    const [anio, numero] = mes.split("-").map(Number);
+    const fecha = new Date(Date.UTC(anio, numero - 1 + n, 1));
+    return `${fecha.getUTCFullYear()}-${String(fecha.getUTCMonth() + 1).padStart(2, "0")}`;
+};
 
 // Estado destino -> estados de origen permitidos; cancelada, completada y no_presentada son finales
 const TRANSICIONES = {
@@ -708,6 +726,61 @@ export const getResenasBarberia = async (req, res) => {
 
 // DISPONIBILIDAD
 
+// Días de un mes en los que un barbero tiene al menos un hueco para la duración indicada
+export const getDiasDisponibles = async (req, res) => {
+    try {
+        const { barberoId, mes } = req.params;
+        const { barberiaId } = req.query;
+
+        if (!esObjectIdValido(barberiaId)) {
+            return res.status(400).json({ error: "Se requiere el ID de la barbería" });
+        }
+        if (!RE_MES.test(mes)) {
+            return res.status(400).json({ error: "Formato de mes no válido" });
+        }
+        const duracion = leerDuracion(req.query.duracion);
+        if (duracion === null) {
+            return res.status(400).json({ error: "Duración no válida" });
+        }
+
+        const hoy = momentoActual().fecha;
+        const mesActual = hoy.slice(0, 7);
+        if (mes < mesActual || mes > sumarMeses(mesActual, MAX_MESES_ADELANTE)) {
+            return res.status(400).json({ error: "Mes fuera del rango de reservas" });
+        }
+
+        const barberia = await getBarbershopById(barberiaId);
+        if (!barberia) {
+            return res.status(404).json({ error: "Barbería no encontrada" });
+        }
+        const barbero = await getUserById(barberoId);
+        if (!barbero || barbero.barberiaId?.toString() !== barberiaId) {
+            return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
+        }
+
+        const [anio, numeroMes] = mes.split("-").map(Number);
+        const ultimoDia = new Date(Date.UTC(anio, numeroMes, 0)).getUTCDate();
+        const citasDelMes = await getCitasByBarberoEnRango(barberoId, `${mes}-01`, `${mes}-${String(ultimoDia).padStart(2, "0")}`);
+        const citasPorDia = new Map();
+        for (const cita of citasDelMes) {
+            citasPorDia.set(cita.fecha, [...(citasPorDia.get(cita.fecha) || []), cita]);
+        }
+
+        const dias = [];
+        for (let dia = 1; dia <= ultimoDia; dia++) {
+            const fecha = `${mes}-${String(dia).padStart(2, "0")}`;
+            if (fecha < hoy) continue;
+            const { horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasPorDia.get(fecha) || [], { duracion });
+            if (horariosDisponibles.length > 0) dias.push(fecha);
+        }
+
+        res.json({ mes, barberoId, dias });
+    } catch (error) {
+        console.error("Error al obtener días disponibles:", error);
+        res.status(500).json({ error: "Error al obtener días disponibles" });
+    }
+};
+
 // Obtener horarios disponibles de un barbero en una fecha
 export const getDisponibilidad = async (req, res) => {
     try {
@@ -715,9 +788,8 @@ export const getDisponibilidad = async (req, res) => {
         const { barberiaId } = req.query;
         const incluirEnCurso = req.query.incluirEnCurso === "true";
         // Duración total de los servicios elegidos; solo orienta la búsqueda, la reserva la recalcula desde la BD
-        const duracion = req.query.duracion === undefined ? INTERVALO_HUECOS_MIN : Number(req.query.duracion);
-
-        if (!Number.isInteger(duracion) || duracion < 5 || duracion > MAX_DURACION_CITA_MIN) {
+        const duracion = leerDuracion(req.query.duracion);
+        if (duracion === null) {
             return res.status(400).json({ error: "Duración no válida" });
         }
 

@@ -69,6 +69,10 @@
             <strong>{{ getBarberoNombre(bSel) }}</strong>
           </div>
         </div>
+        <div class="summary-box" *ngIf="reservaPaso === 4 && reservaForm.fecha">
+          <p>Fecha</p>
+          <strong>{{ getFechaLabel() }}</strong>
+        </div>
         <div class="summary-box" *ngIf="reservaForm.servicioIds.length">
           <p>Total</p>
           <strong>{{ getDuracionSeleccionada() }}</strong>
@@ -117,7 +121,7 @@
       <div class="booking-step-card" *ngIf="reservaPaso === 2">
         <div class="booking-step-header">
           <p class="booking-step-eyebrow">Paso 2</p>
-          <h2>Barbero y fecha</h2>
+          <h2>Elige tu barbero</h2>
         </div>
 
         <div class="booking-barbers-section">
@@ -148,17 +152,10 @@
           </p>
         </div>
 
-        <div class="booking-form-grid" style="margin-top: 22px;">
-          <div class="field-group">
-            <label>Elige una fecha</label>
-            <input type="date" [min]="minFecha" [(ngModel)]="reservaForm.fecha" (change)="selectFecha(reservaForm.fecha)" />
-          </div>
-        </div>
-
         <div class="booking-step-actions">
           <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
-          <ion-button color="primary" class="booking-step-btn primary" (click)="goToNextStep()" [disabled]="!reservaForm.barberoId || !reservaForm.fecha || loadingDisponibilidad">
-            {{ loadingDisponibilidad ? 'Cargando...' : 'Continuar' }}
+          <ion-button color="primary" class="booking-step-btn primary" (click)="goToNextStep()" [disabled]="!reservaForm.barberoId">
+            Continuar
           </ion-button>
         </div>
       </div>
@@ -166,7 +163,30 @@
       <div class="booking-step-card" *ngIf="reservaPaso === 3">
         <div class="booking-step-header">
           <p class="booking-step-eyebrow">Paso 3</p>
-          <h2>Horas disponibles</h2>
+          <h2>Elige el día</h2>
+          <p class="booking-step-hint">Solo se pueden elegir los días en los que {{ getBarberoNombre(getBarberoSeleccionado()) }} tiene hueco para {{ getDuracionTotal() }} min.</p>
+        </div>
+
+        <app-fecha-disponible
+          [mes]="mesVisible"
+          [minMes]="minMes"
+          [maxMes]="maxMes"
+          [diasDisponibles]="diasDisponibles"
+          [seleccionada]="reservaForm.fecha"
+          [cargando]="loadingDias || loadingDisponibilidad"
+          (mesChange)="cambiarMesVisible($event)"
+          (diaSeleccionado)="selectFecha($event)"
+        ></app-fecha-disponible>
+
+        <div class="booking-step-actions">
+          <ion-button fill="outline" class="booking-step-btn" (click)="goToPrevStep()">Atrás</ion-button>
+        </div>
+      </div>
+
+      <div class="booking-step-card" *ngIf="reservaPaso === 4">
+        <div class="booking-step-header">
+          <p class="booking-step-eyebrow">Paso 4</p>
+          <h2>Elige la hora</h2>
         </div>
 
         <div class="availability-head">

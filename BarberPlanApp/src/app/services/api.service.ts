@@ -129,6 +129,15 @@ export class ApiService {
     );
   }
 
+  // Días de un mes (YYYY-MM) en los que el barbero tiene hueco para la duración indicada
+  async getDiasDisponibles(barberoId: string, mes: string, barberiaId: string, duracion?: number) {
+    const params: Record<string, string> = { barberiaId };
+    if (duracion) params['duracion'] = String(duracion);
+    return await firstValueFrom(
+      this.http.get<{ mes: string; dias: string[] }>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/mes/${mes}`, { params })
+    );
+  }
+
   // Obtener mis citas (cliente autenticado)
   async getMisCitas() {
     const headers = await this.getAuthHeaders();

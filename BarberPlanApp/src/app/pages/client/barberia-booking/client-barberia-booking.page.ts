@@ -7,11 +7,24 @@ import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { Storage } from '@ionic/storage-angular';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
+import { FechaDisponibleComponent } from '../../../components/fecha-disponible/fecha-disponible.component';
 import { addIcons } from 'ionicons';
 import { logOutOutline, arrowBackOutline, businessOutline, hourglassOutline, checkmarkCircle, addCircleOutline } from 'ionicons/icons';
 
-// Mismo límite que aplica el servidor
+// Mismos límites que aplica el servidor
 const MAX_SERVICIOS_CITA = 4;
+const MAX_MESES_ADELANTE = 12;
+// Si el mes actual no tiene huecos, se buscan en los siguientes antes de dar el mes por vacío
+const MESES_A_EXPLORAR = 3;
+
+type PasoReserva = 1 | 2 | 3 | 4;
+
+const claveMes = (fecha: Date) => `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+
+const sumarMeses = (mes: string, n: number) => {
+  const [anio, numero] = mes.split('-').map(Number);
+  return claveMes(new Date(anio, numero - 1 + n, 1));
+};
 
 interface ReservaForm {
   servicioIds: string[];
@@ -26,7 +39,7 @@ interface ReservaForm {
   templateUrl: './client-barberia-booking.page.html',
   styleUrls: ['./client-barberia-booking.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, FechaDisponibleComponent]
 })
 export class ClientBarberiaBookingPage implements OnInit {
   barberiaId = '';
@@ -38,15 +51,22 @@ export class ClientBarberiaBookingPage implements OnInit {
   loadingDisponibilidad = false;
   reservando = false;
   error = '';
-  reservaPaso: 1 | 2 | 3 = 1;
+  reservaPaso: PasoReserva = 1;
 
   horariosDisponibles: string[] = [];
-  minFecha = new Date().toISOString().split('T')[0];
+
+  // Calendario del paso 3: solo los días con hueco para este barbero y esta duración
+  readonly minMes = claveMes(new Date());
+  readonly maxMes = sumarMeses(claveMes(new Date()), MAX_MESES_ADELANTE);
+  mesVisible = claveMes(new Date());
+  diasDisponibles: string[] = [];
+  loadingDias = false;
+  private cargaDias = 0;
 
   reservaForm: ReservaForm = {
     servicioIds: [],
     barberoId: '',
-    fecha: this.minFecha,
+    fecha: '',
     horaInicio: '',
     comentario: ''
   };
@@ -93,7 +113,6 @@ export class ClientBarberiaBookingPage implements OnInit {
       this.barberos = Array.isArray(barberos) ? barberos : [];
 
       this.reservaPaso = 1;
-      await this.loadDisponibilidad();
     } catch (error) {
       console.error('Error al cargar detalle de barbería:', error);
       this.error = 'No se pudo cargar el proceso de reserva.';
@@ -171,16 +190,27 @@ export class ClientBarberiaBookingPage implements OnInit {
     return duracion > 0 ? `${duracion} min · ${this.getPrecioTotal().toFixed(2)} €` : 'Duración no disponible';
   }
 
-  getStepLabel(step: 1 | 2 | 3) {
-    if (step === 1) return 'Servicio';
-    if (step === 2) return 'Barbero';
-    return 'Fecha y hora';
+  getFechaLabel() {
+    if (!this.reservaForm.fecha) return '';
+    const [anio, mes, dia] = this.reservaForm.fecha.split('-').map(Number);
+    const texto = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(anio, mes - 1, dia));
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
   }
 
   goToPrevStep() {
     if (this.reservaPaso > 1) {
-      this.reservaPaso = (this.reservaPaso - 1) as 1 | 2 | 3;
+      this.reservaPaso = (this.reservaPaso - 1) as PasoReserva;
     }
+  }
+
+  // Si cambian los servicios, el barbero o la duración, los días y la hora elegidos dejan de ser válidos
+  private reiniciarFecha() {
+    this.cargaDias++;
+    this.reservaForm.fecha = '';
+    this.reservaForm.horaInicio = '';
+    this.horariosDisponibles = [];
+    this.diasDisponibles = [];
+    this.mesVisible = this.minMes;
   }
 
   // Solo los barberos que realizan todos los servicios elegidos
@@ -216,39 +246,108 @@ export class ClientBarberiaBookingPage implements OnInit {
     if (!this.getBarberosDisponibles().some((b) => this.getEntityId(b) === this.reservaForm.barberoId)) {
       this.reservaForm.barberoId = '';
     }
-    this.reservaForm.horaInicio = '';
+    this.reiniciarFecha();
     this.reservaPaso = 2;
   }
 
   selectBarbero(barberoId: string) {
-    this.reservaForm.barberoId = barberoId;
-    this.reservaForm.horaInicio = '';
-    // void this.loadDisponibilidad(); - will load when moving to next step
-  }
-
-  selectFecha(fecha: string) {
-    this.reservaForm.fecha = fecha;
-    this.reservaForm.horaInicio = '';
-    void this.loadDisponibilidad(true);
+    if (this.reservaForm.barberoId !== barberoId) {
+      this.reservaForm.barberoId = barberoId;
+      this.reiniciarFecha();
+    }
   }
 
   async goToNextStep() {
     if (this.reservaPaso === 2) {
-      if (!this.reservaForm.barberoId || !this.reservaForm.fecha) {
-        return;
+      if (!this.reservaForm.barberoId) return;
+      this.reservaPaso = 3;
+      if (this.diasDisponibles.length === 0) {
+        await this.cargarPrimerMesConHuecos();
       }
-      await this.loadDisponibilidad(true);
-      if (this.horariosDisponibles.length === 0) {
-        return; // stay on step 2 if closed or fully booked
-      }
-    }
-    
-    if (this.reservaPaso < 3) {
-      this.reservaPaso = (this.reservaPaso + 1) as 1 | 2 | 3;
     }
   }
 
-  async loadDisponibilidad(showWarnings: boolean = false) {
+  // Carga los días libres del mes y, si no hay ninguno, prueba con los siguientes
+  private async cargarPrimerMesConHuecos() {
+    const carga = ++this.cargaDias;
+    this.loadingDias = true;
+    let mes = this.minMes;
+    try {
+      for (let intento = 0; intento < MESES_A_EXPLORAR && mes <= this.maxMes; intento++) {
+        const dias = await this.pedirDias(mes);
+        if (carga !== this.cargaDias) return;
+        this.mesVisible = mes;
+        this.diasDisponibles = dias;
+        if (dias.length > 0) return;
+        mes = sumarMeses(mes, 1);
+      }
+      this.mesVisible = this.minMes;
+    } catch (error) {
+      await this.avisarErrorDias(error, carga);
+    } finally {
+      if (carga === this.cargaDias) this.loadingDias = false;
+    }
+  }
+
+  async cambiarMesVisible(mes: string) {
+    const carga = ++this.cargaDias;
+    this.loadingDias = true;
+    try {
+      const dias = await this.pedirDias(mes);
+      if (carga !== this.cargaDias) return;
+      this.mesVisible = mes;
+      this.diasDisponibles = dias;
+    } catch (error) {
+      await this.avisarErrorDias(error, carga);
+    } finally {
+      if (carga === this.cargaDias) this.loadingDias = false;
+    }
+  }
+
+  private async pedirDias(mes: string) {
+    const respuesta = await this.apiService.getDiasDisponibles(
+      this.reservaForm.barberoId,
+      mes,
+      this.barberiaId,
+      this.getDuracionTotal() || undefined
+    );
+    return Array.isArray(respuesta?.dias) ? respuesta.dias : [];
+  }
+
+  private async avisarErrorDias(error: unknown, carga: number) {
+    if (carga !== this.cargaDias) return;
+    console.error('Error al cargar los días disponibles:', error);
+    this.diasDisponibles = [];
+    const toast = await this.toastCtrl.create({
+      message: 'No se pudo cargar la disponibilidad del barbero.',
+      duration: 2200,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
+  }
+
+  async selectFecha(fecha: string) {
+    this.reservaForm.fecha = fecha;
+    this.reservaForm.horaInicio = '';
+    await this.loadDisponibilidad();
+    if (this.horariosDisponibles.length === 0) {
+      // Otra reserva se llevó los últimos huecos mientras se elegía el día
+      const toast = await this.toastCtrl.create({
+        message: 'Ese día se acaba de llenar. Elige otro.',
+        duration: 2500,
+        position: 'bottom',
+        color: 'warning'
+      });
+      await toast.present();
+      this.reservaForm.fecha = '';
+      await this.cambiarMesVisible(this.mesVisible);
+      return;
+    }
+    this.reservaPaso = 4;
+  }
+
+  async loadDisponibilidad() {
     if (!this.reservaForm.barberoId || !this.reservaForm.fecha || !this.barberiaId) {
       this.horariosDisponibles = [];
       return;
@@ -268,38 +367,6 @@ export class ClientBarberiaBookingPage implements OnInit {
       this.horariosDisponibles = Array.isArray(response?.horariosDisponibles)
         ? response.horariosDisponibles
         : [];
-
-      if (response?.estado === 'cerrado') {
-        if (showWarnings) {
-          const alert = await this.alertCtrl.create({
-            header: 'Día Cerrado',
-            message: 'La barbería no abre en la fecha seleccionada. Por favor, elige otro día.',
-            cssClass: 'premium-alert',
-            buttons: ['Aceptar']
-          });
-          await alert.present();
-        }
-      } else if (response?.estado === 'ausente') {
-        if (showWarnings) {
-          const alert = await this.alertCtrl.create({
-            header: 'Barbero Ausente',
-            message: 'El barbero seleccionado no tiene disponibilidad en esta fecha. Por favor, elige otro profesional u otro día.',
-            cssClass: 'premium-alert',
-            buttons: ['Aceptar']
-          });
-          await alert.present();
-        }
-      } else if (response?.estado === 'completo') {
-        if (showWarnings) {
-          const toast = await this.toastCtrl.create({
-            message: 'No hay citas disponibles para este día.',
-            duration: 3000,
-            position: 'bottom',
-            color: 'warning'
-          });
-          await toast.present();
-        }
-      }
     } catch (error) {
       console.error('Error al cargar disponibilidad:', error);
       this.horariosDisponibles = [];

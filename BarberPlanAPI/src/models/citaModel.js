@@ -253,6 +253,15 @@ export const getCitasByBarberoAndFecha = async (barberoId, fecha) => {
     }).sort({ horaInicio: 1 }).toArray();
 };
 
+// Citas que ocupan hueco de un barbero entre dos fechas (YYYY-MM-DD, ambas incluidas)
+export const getCitasByBarberoEnRango = async (barberoId, desde, hasta) => {
+    return await db.collection("Citas").find({
+        barberoId: new ObjectId(barberoId),
+        fecha: { $gte: desde, $lte: hasta },
+        estado: { $in: ESTADOS_OCUPAN_HUECO }
+    }).project({ fecha: 1, horaInicio: 1, horaFin: 1 }).toArray();
+};
+
 // ==================== TAREAS PROGRAMADAS ====================
 
 // Caduca las pendientes con plazo vencido u hora ya llegada; sin expiraEn son "pendiente" antiguas y no caducan

@@ -1,0 +1,36 @@
+<div class="fecha-cabecera">
+  <ion-button fill="clear" class="fecha-nav" [disabled]="!puedeRetroceder || cargando" (click)="cambiarMes(-1)" aria-label="Mes anterior">
+    <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+  </ion-button>
+  <h3>{{ etiquetaMes }}</h3>
+  <ion-button fill="clear" class="fecha-nav" [disabled]="!puedeAvanzar || cargando" (click)="cambiarMes(1)" aria-label="Mes siguiente">
+    <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+  </ion-button>
+</div>
+
+<div class="fecha-semana">
+  <span *ngFor="let etiqueta of etiquetasSemana">{{ etiqueta }}</span>
+</div>
+
+<div class="fecha-grid" [class.cargando]="cargando">
+  <span class="fecha-hueco" *ngFor="let hueco of huecosInicio"></span>
+  <button
+    type="button"
+    class="fecha-dia"
+    *ngFor="let celda of celdas"
+    [class.disponible]="celda.disponible"
+    [class.hoy]="celda.esHoy"
+    [class.seleccionado]="celda.seleccionado"
+    [disabled]="!celda.disponible"
+    [attr.aria-label]="celda.disponible ? 'Elegir el día ' + celda.numero : 'Día ' + celda.numero + ' sin disponibilidad'"
+    (click)="elegir(celda)"
+  >
+    {{ celda.numero }}
+  </button>
+</div>
+
+<div class="fecha-estado">
+  <ion-spinner name="crescent" *ngIf="cargando"></ion-spinner>
+  <p *ngIf="sinDias">No hay días con disponibilidad este mes. Prueba con el siguiente.</p>
+  <p class="fecha-leyenda" *ngIf="!cargando && !sinDias"><span class="leyenda-punto"></span> Días con hueco disponible</p>
+</div>

@@ -129,7 +129,7 @@ ion-content.booking-premium-content {
 
 .booking-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
 
   .summary-box {
@@ -571,9 +571,13 @@ ion-content.booking-premium-content {
 }
 
 @media (max-width: 480px) {
-  .booking-summary-grid,
   .booking-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  // Hasta cuatro datos (servicios, barbero, fecha, total): en dos columnas ocupan la mitad de alto
+  .booking-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .booking-business-card {

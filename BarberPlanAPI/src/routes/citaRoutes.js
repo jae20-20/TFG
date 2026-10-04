@@ -12,6 +12,7 @@ import {
     getCita,
     getCitasBarberia,
     getCitasBarbero,
+    getDiasDisponibles,
     getDisponibilidad,
     getMisCitas,
     getResenasBarberia,
@@ -34,7 +35,8 @@ router.param("barberiaId", validarObjectIdParam);
 
 
 // ==================== RUTAS PÚBLICAS ====================
-router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);  
+router.get("/disponibilidad/:barberoId/mes/:mes", getDiasDisponibles);
+router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);
 
 // ==================== RUTAS DE CREACIÓN ====================
 router.post("/manual", verifyToken, isAdminOrBarbero, crearCitaManual);

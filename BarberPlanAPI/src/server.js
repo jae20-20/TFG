@@ -44,7 +44,8 @@ app.use(mongoSanitize);
 //linite solictudes por IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100
+  // RATE_LIMIT_MAX solo se sube en las pruebas de integración, que lanzan cientos de peticiones desde una IP
+  max: Number(process.env.RATE_LIMIT_MAX) || 100
 });
 
 app.use(globalLimiter);
