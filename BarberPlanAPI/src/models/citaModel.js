@@ -2,12 +2,13 @@
 import { ObjectId } from "mongodb";
 import { client, db } from "../db/connection.js";
 
-// Estados que mantienen el hueco del barbero ocupado
-export const ESTADOS_OCUPAN_HUECO = ["pendiente", "confirmada"];
+// Estados que mantienen el hueco del barbero ocupado. no_presentada queda fuera a propósito:
+// libera el hueco para registrar a otro cliente (p. ej. uno que llega sin reserva)
+export const ESTADOS_OCUPAN_HUECO = ["pendiente", "confirmada", "completada"];
 
 // ==================== FUNCIONES BÁSICAS ====================
 
-// Crea la cita solo si el barbero no tiene otra pendiente o confirmada que se solape.
+// Crea la cita solo si el barbero no tiene otra que ocupe hueco (ESTADOS_OCUPAN_HUECO) y se solape.
 // Devuelve la cita insertada o null si el hueco ya estaba ocupado.
 export const createCita = async (citaData) => {
     const cita = {
@@ -106,10 +107,10 @@ export const getCitasByClienteId = async (clienteId) => {
     ]).toArray();
 };
 
-// Obtener citas de un barbero
-export const getCitasByBarberoId = async (barberoId) => {
+// Obtener citas de un barbero en su barbería actual
+export const getCitasByBarberoId = async (barberoId, barberiaId) => {
     return await db.collection("Citas").aggregate([
-        { $match: { barberoId: new ObjectId(barberoId) } },
+        { $match: { barberoId: new ObjectId(barberoId), barberiaId: new ObjectId(barberiaId) } },
         {
             $lookup: {
                 from: "Usuarios",

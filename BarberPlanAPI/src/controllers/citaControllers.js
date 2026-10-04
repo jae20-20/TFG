@@ -171,14 +171,21 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, { inclu
     let isBarberiaClosed = false;
     let isBarberoClosed = false;
 
-    // 1. Horario base de la barbería
-    const exception = schedule.exceptions?.find(e => e.date === fecha);
-    if (exception) {
-        if (exception.type === 'closed') {
-            isBarberiaClosed = true;
-        } else {
-            slotsForDay = exception.slots || [];
-        }
+    // 1. Horario base de la barbería. Las excepciones se guardan planas, una por franja:
+    // closed (cierra el día), custom (franja abierta que sustituye a la plantilla) y block (horas bloqueadas)
+    const excepcionesDia = (schedule.exceptions || []).filter(e => e.date === fecha);
+    const franjasEspeciales = excepcionesDia
+        .filter(e => e.type === 'custom' && e.start && e.end)
+        .map(e => ({ start: e.start, end: e.end }))
+        .sort((a, b) => a.start.localeCompare(b.start));
+    const bloqueosBarberia = excepcionesDia
+        .filter(e => e.type === 'block' && e.start && e.end)
+        .map(e => ({ start: e.start, end: e.end }));
+
+    if (excepcionesDia.some(e => e.type === 'closed')) {
+        isBarberiaClosed = true;
+    } else if (franjasEspeciales.length > 0) {
+        slotsForDay = franjasEspeciales;
     } else {
         slotsForDay = schedule.weeklyTemplate?.[dayKey] || [];
         if (slotsForDay.length === 0) {
@@ -190,6 +197,7 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, { inclu
     const barberExceptions = (barbero.horarioPersonal?.exceptions || []).filter(ex => ex.date === fecha);
     const customOpeningSlots = barberExceptions.filter(ex => !ex.isAbsence && ex.type !== 'closed' && ex.start && ex.end);
     const absenceSlots = barberExceptions.filter(ex => ex.isAbsence === true && ex.start && ex.end);
+    const enVacaciones = (barbero.vacaciones || []).some(v => v?.fechaInicio && v?.fechaFin && fecha >= v.fechaInicio && fecha <= v.fechaFin);
     const hasClosedException = barberExceptions.some(ex => ex.type === 'closed' || (ex.isAbsence === true && !ex.start));
 
     if (customOpeningSlots.length > 0) {
@@ -197,8 +205,8 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, { inclu
         slotsForDay = customOpeningSlots.map(s => ({ start: s.start, end: s.end }));
         isBarberiaClosed = false;
         isBarberoClosed = false;
-    } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha))) {
-        // Si no tiene franjas abiertas explícitas y el día está en días libres o cerrado
+    } else if (hasClosedException || (barbero.diasLibres && barbero.diasLibres.includes(fecha)) || enVacaciones) {
+        // Si no tiene franjas abiertas explícitas y el día está en días libres, vacaciones o cerrado
         isBarberoClosed = true;
     } else if (barbero.horarioPersonal?.enabled && barbero.horarioPersonal?.weeklyTemplate?.[dayKey]) {
         // Si el barbero tiene plantilla semanal propia
@@ -227,7 +235,8 @@ const calcularDisponibilidad = (barberia, barbero, fecha, citasOcupadas, { inclu
         for (let inicio = aMinutos(slot.start); inicio + duracion <= finFranja; inicio += INTERVALO_HUECOS_MIN) {
             const fin = inicio + duracion;
             const ocupado = citasOcupadas.some((cita) => pisa(inicio, fin, cita.horaInicio, cita.horaFin));
-            const enAusencia = absenceSlots.some((abs) => pisa(inicio, fin, abs.start, abs.end));
+            const enAusencia = absenceSlots.some((abs) => pisa(inicio, fin, abs.start, abs.end))
+                || bloqueosBarberia.some((blq) => pisa(inicio, fin, blq.start, blq.end));
             if (!ocupado && !enAusencia) {
                 horariosDisponibles.push(`${String(Math.floor(inicio / 60)).padStart(2, "0")}:${String(inicio % 60).padStart(2, "0")}`);
             }
@@ -470,7 +479,10 @@ export const getMisCitas = async (req, res) => {
 export const getCitasBarbero = async (req, res) => {
     try {
         const barberoId = req.user.id;
-        const citas = await getCitasByBarberoId(barberoId);
+        // La barbería actual sale de la BD (el token puede estar obsoleto): al dejarla, el barbero pierde sus citas anteriores
+        const barbero = await getUserById(barberoId);
+        if (!barbero?.barberiaId) return res.json([]);
+        const citas = await getCitasByBarberoId(barberoId, barbero.barberiaId);
         res.json(citas);
     } catch (error) {
         console.error("Error al obtener citas:", error);
@@ -941,7 +953,7 @@ const resumirCitas = (citas) => {
         importeNoPresentadas: redondear(sumarPrecios(noPresentadas)),
         ingresosEsperados: redondear(sumarPrecios(atendibles)),
         ingresosReales: redondear(ingresosReales),
-        pendienteCobro: redondear(sumarPrecios(atendibles.filter(c => !c.pagado))),
+        pendienteCobro: redondear(sumarPrecios(completadas.filter(c => !c.pagado))),
         ticketMedio: cobradas.length > 0 ? redondear(ingresosReales / cobradas.length) : 0
     };
 };

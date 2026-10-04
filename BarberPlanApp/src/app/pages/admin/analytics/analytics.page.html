@@ -67,7 +67,7 @@
         <div class="kpi-card">
           <span class="kpi-label">Pendiente de cobro</span>
           <strong class="kpi-value">{{ formatEuro(datos.resumen.pendienteCobro) }}</strong>
-          <span class="kpi-sub">Citas aún sin pagar</span>
+          <span class="kpi-sub">Citas completadas sin cobrar</span>
           <span class="kpi-sub" *ngIf="datos.resumen.importeNoPresentadas > 0">{{ formatEuro(datos.resumen.importeNoPresentadas) }} perdidos por no-show</span>
         </div>
 

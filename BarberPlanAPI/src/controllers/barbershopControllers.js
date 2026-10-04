@@ -100,6 +100,7 @@ export const registerBarberia = async (req, res) => {
         const {
             // Datos de la barbería
             nombreBarberia,
+            ciudad,
             direccion,
             telefono,
             descripcion,
@@ -156,6 +157,7 @@ export const registerBarberia = async (req, res) => {
         // Crear barbería
         const newBarberia = await createBarbershop({
             nombre: nombreBarberia,
+            ciudad: typeof ciudad === "string" && ciudad.trim() ? ciudad.trim() : null,
             direccion,
             telefono: telefono || null,
             descripcion: descripcion || null,
