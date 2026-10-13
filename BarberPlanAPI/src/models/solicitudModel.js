@@ -27,9 +27,10 @@ export const getSolicitudesByBarberia = async (barberiaId) => {
     return await db.collection("Solicitudes").find({ barberiaId: new ObjectId(barberiaId) }).sort({ createdAt: -1 }).toArray();
 };
 
+// Responde una solicitud solo si sigue pendiente; matchedCount 0 si otra petición ya la respondió
 export const updateSolicitudEstado = async (id, estado, respuestaAdmin) => {
     return await db.collection("Solicitudes").updateOne(
-        { _id: new ObjectId(id) },
+        { _id: new ObjectId(id), estado: "pendiente" },
         { 
             $set: { 
                 estado, 

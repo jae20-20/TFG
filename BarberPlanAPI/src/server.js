@@ -6,6 +6,7 @@ import helmet from "helmet";
 
 import { connectDB } from "./db/connection.js";
 import { iniciarTareasCitas } from "./jobs/citaJobs.js";
+import { manejadorErrores, rutaNoEncontrada } from "./middleware/errorMiddleware.js";
 import { mongoSanitize } from "./middleware/sanitizeMiddleware.js";
 
 // Importar rutas
@@ -45,17 +46,18 @@ app.use(mongoSanitize);
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   // RATE_LIMIT_MAX solo se sube en las pruebas de integración, que lanzan cientos de peticiones desde una IP
-  max: Number(process.env.RATE_LIMIT_MAX) || 100
+  max: Number(process.env.RATE_LIMIT_MAX) || 100,
+  message: { error: "Demasiadas peticiones, inténtalo más tarde" }
 });
 
 app.use(globalLimiter);
 
 // ==================== RUTAS ====================
-app.use("/user", userRoutes);           // Rutas de usuarios
-app.use("/barberia", barbershopRoutes); // Rutas de barberías
-app.use("/cita", citaRoutes);           // Rutas de citas
-app.use("/solicitud", solicitudRoutes); // Rutas de solicitudes
-app.use("/barbero", barberoRoutes);     // Rutas de barberos
+app.use("/usuarios", userRoutes);         // Rutas de usuarios
+app.use("/barberias", barbershopRoutes);  // Rutas de barberías
+app.use("/citas", citaRoutes);            // Rutas de citas
+app.use("/solicitudes", solicitudRoutes); // Rutas de solicitudes
+app.use("/barberos", barberoRoutes);      // Rutas de barberos
 
 // Ruta de estado del servidor
 app.get("/", (req, res) => {
@@ -63,12 +65,18 @@ app.get("/", (req, res) => {
     message: "BarberPlan API funcionando correctamente",
     version: "1.0.0",
     endpoints: {
-      users: "/user",
-      barberias: "/barberia",
-      citas: "/cita"
+      usuarios: "/usuarios",
+      barberias: "/barberias",
+      citas: "/citas",
+      solicitudes: "/solicitudes",
+      barberos: "/barberos"
     }
   });
 });
+
+// Después de todas las rutas: 404 y errores no controlados, también en formato { error }
+app.use(rutaNoEncontrada);
+app.use(manejadorErrores);
 
 // Conectar a la base de datos y luego iniciar el servidor
 connectDB().then(() => {

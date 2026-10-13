@@ -26,23 +26,23 @@ export class ApiService {
 
   // Método para login
   login(correo: string, pw: string) {
-    return this.http.post(`${this.apiUrl}/user/login`, { correo, pw});
+    return this.http.post(`${this.apiUrl}/usuarios/login`, { correo, pw});
   }
 
   // Método para registro de usuario
   register(data: any) {
-    return this.http.post(`${this.apiUrl}/user/register`, data);
+    return this.http.post(`${this.apiUrl}/usuarios/registro`, data);
   }
 
   // Método para registro de barbería + admin
   registerBarberia(data: any) {
-    return this.http.post(`${this.apiUrl}/barberia/register`, data);
+    return this.http.post(`${this.apiUrl}/barberias/registro`, data);
   }
 
   // Validar código de invitación de empleado (paso 1 del registro de barbero)
   async validateInvitationCode(code: string) {
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones/validar`, { code })
+      this.http.post<any>(`${this.apiUrl}/barberias/invitaciones/validar`, { code })
     );
   }
 
@@ -52,7 +52,7 @@ export class ApiService {
   async createInvitacion(data: { nombre: string; apellido: string; cargo: string }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/barberias/invitaciones`, data, { headers })
     );
   }
 
@@ -60,7 +60,7 @@ export class ApiService {
   async getInvitaciones() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia/invitaciones`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/barberias/invitaciones`, { headers })
     );
   }
 
@@ -68,7 +68,7 @@ export class ApiService {
   async regenerarInvitacion(invitacionId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}/regenerar`, {}, { headers })
+      this.http.post<any>(`${this.apiUrl}/barberias/invitaciones/${invitacionId}/regenerar`, {}, { headers })
     );
   }
 
@@ -76,7 +76,7 @@ export class ApiService {
   async revocarInvitacion(invitacionId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}/revocar`, {}, { headers })
+      this.http.put<any>(`${this.apiUrl}/barberias/invitaciones/${invitacionId}/revocar`, {}, { headers })
     );
   }
 
@@ -84,28 +84,28 @@ export class ApiService {
   async deleteInvitacion(invitacionId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/barberia/invitaciones/${invitacionId}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/barberias/invitaciones/${invitacionId}`, { headers })
     );
   }
 
   // Obtener barberías públicas para clientes
   async getBarberias() {
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia`)
+      this.http.get<any[]>(`${this.apiUrl}/barberias`)
     );
   }
 
   // Obtener detalle de barbería pública
   async getBarberia(barberiaId: string) {
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/barberia/${barberiaId}`)
+      this.http.get<any>(`${this.apiUrl}/barberias/${barberiaId}`)
     );
   }
 
   // Obtener servicios públicos de una barbería
   async getServiciosBarberia(barberiaId: string) {
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/servicios`)
+      this.http.get<any[]>(`${this.apiUrl}/barberias/${barberiaId}/servicios`)
     );
   }
 
@@ -113,7 +113,7 @@ export class ApiService {
   async getBarberosBarberia(barberiaId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/barberos`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/barberias/${barberiaId}/barberos`, { headers })
     );
   }
 
@@ -125,7 +125,7 @@ export class ApiService {
     if (incluirEnCurso) params['incluirEnCurso'] = 'true';
     if (duracion) params['duracion'] = String(duracion);
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/${fecha}`, { params })
+      this.http.get<any>(`${this.apiUrl}/citas/disponibilidad/${barberoId}/${fecha}`, { params })
     );
   }
 
@@ -134,7 +134,7 @@ export class ApiService {
     const params: Record<string, string> = { barberiaId };
     if (duracion) params['duracion'] = String(duracion);
     return await firstValueFrom(
-      this.http.get<{ mes: string; dias: string[] }>(`${this.apiUrl}/cita/disponibilidad/${barberoId}/mes/${mes}`, { params })
+      this.http.get<{ mes: string; dias: string[] }>(`${this.apiUrl}/citas/disponibilidad/${barberoId}/mes/${mes}`, { params })
     );
   }
 
@@ -142,7 +142,7 @@ export class ApiService {
   async getMisCitas() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/cita/mis-citas`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/citas/mis-citas`, { headers })
     );
   }
 
@@ -157,7 +157,7 @@ export class ApiService {
   }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/cita`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/citas`, data, { headers })
     );
   }
 
@@ -171,7 +171,7 @@ export class ApiService {
   }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/cita/manual`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/citas/manual`, data, { headers })
     );
   }
 
@@ -179,14 +179,14 @@ export class ApiService {
   async getCitasBarberia(barberiaId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/cita/barberia/${barberiaId}`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/citas/barberia/${barberiaId}`, { headers })
     );
   }
 
   async getAnaliticasBarberia(barberiaId: string, periodo: 'dia' | 'semana' | 'mes', fecha: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/cita/barberia/${barberiaId}/analiticas`, {
+      this.http.get<any>(`${this.apiUrl}/citas/barberia/${barberiaId}/analiticas`, {
         headers,
         params: { periodo, fecha }
       })
@@ -197,7 +197,7 @@ export class ApiService {
   async getCitasBarbero() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/cita/barbero`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/citas/barbero`, { headers })
     );
   }
 
@@ -205,7 +205,7 @@ export class ApiService {
   async updateCitaPago(id: string, pagado: boolean, importePagado: number) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/cita/${id}/pago`, { pagado, importePagado }, { headers })
+      this.http.put<any>(`${this.apiUrl}/citas/${id}/pago`, { pagado, importePagado }, { headers })
     );
   }
 
@@ -213,7 +213,7 @@ export class ApiService {
   async cambiarEstadoCita(id: string, accion: AccionEstadoCita) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/cita/${id}/${accion}`, {}, { headers })
+      this.http.put<any>(`${this.apiUrl}/citas/${id}/${accion}`, {}, { headers })
     );
   }
 
@@ -221,7 +221,7 @@ export class ApiService {
   async cancelarCita(id: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/cita/${id}/cancelar`, {}, { headers })
+      this.http.put<any>(`${this.apiUrl}/citas/${id}/cancelar`, {}, { headers })
     );
   }
 
@@ -229,7 +229,7 @@ export class ApiService {
   async getMyBarberia() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/barberia/my/barberia`, { headers })
+      this.http.get<any>(`${this.apiUrl}/barberias/mi/barberia`, { headers })
     );
   }
 
@@ -237,7 +237,7 @@ export class ApiService {
   async getMyHorario() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/barberia/my/horario`, { headers })
+      this.http.get<any>(`${this.apiUrl}/barberias/mi/horario`, { headers })
     );
   }
 
@@ -245,7 +245,7 @@ export class ApiService {
   async updateBarberia(barberiaId: string, data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/barberia/${barberiaId}`, data, { headers })
+      this.http.put<any>(`${this.apiUrl}/barberias/${barberiaId}`, data, { headers })
     );
   }
 
@@ -253,7 +253,7 @@ export class ApiService {
   async updateMyHorario(data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/barberia/my/horario`, data, { headers })
+      this.http.put<any>(`${this.apiUrl}/barberias/mi/horario`, data, { headers })
     );
   }
 
@@ -261,7 +261,7 @@ export class ApiService {
   async getMyProfile() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/user/profile`, { headers })
+      this.http.get<any>(`${this.apiUrl}/usuarios/perfil`, { headers })
     );
   }
 
@@ -269,7 +269,7 @@ export class ApiService {
   async updateMyProfile(data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/user/profile`, data, { headers })
+      this.http.put<any>(`${this.apiUrl}/usuarios/perfil`, data, { headers })
     );
   }
 
@@ -277,7 +277,7 @@ export class ApiService {
   async addServicio(barberiaId: string, data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/barberias/${barberiaId}/servicios`, data, { headers })
     );
   }
 
@@ -285,7 +285,7 @@ export class ApiService {
   async getBarberoById(barberoId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/user/${barberoId}`, { headers })
+      this.http.get<any>(`${this.apiUrl}/usuarios/${barberoId}`, { headers })
     );
   }
 
@@ -293,7 +293,7 @@ export class ApiService {
   async updateBarbero(barberoId: string, data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/barbero/${barberoId}`, data, { headers })
+      this.http.put<any>(`${this.apiUrl}/barberos/${barberoId}`, data, { headers })
     );
   }
 
@@ -301,7 +301,7 @@ export class ApiService {
   async removeBarbero(barberiaId: string, barberoId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/barberos/${barberoId}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/barberias/${barberiaId}/barberos/${barberoId}`, { headers })
     );
   }
 
@@ -309,7 +309,7 @@ export class ApiService {
   async deleteServicio(barberiaId: string, servicioId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/barberia/${barberiaId}/servicios/${servicioId}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/barberias/${barberiaId}/servicios/${servicioId}`, { headers })
     );
   }
 
@@ -317,7 +317,7 @@ export class ApiService {
   async desbloquearMiServicio(servicioId: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/barbero/me/servicios-bloqueados/${servicioId}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/barberos/mi/servicios-bloqueados/${servicioId}`, { headers })
     );
   }
 
@@ -325,21 +325,21 @@ export class ApiService {
   async createSolicitud(data: any) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/solicitud`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/solicitudes`, data, { headers })
     );
   }
 
   async getMisSolicitudes() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/solicitud/mis-solicitudes`, { headers })
+      this.http.get<any>(`${this.apiUrl}/solicitudes/mis-solicitudes`, { headers })
     );
   }
 
   async deleteSolicitud(id: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/solicitud/${id}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/solicitudes/${id}`, { headers })
     );
   }
 
@@ -347,14 +347,14 @@ export class ApiService {
   async getSolicitudesEquipo() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/solicitud/equipo`, { headers })
+      this.http.get<any>(`${this.apiUrl}/solicitudes/equipo`, { headers })
     );
   }
 
   async responderSolicitud(id: string, estado: string, respuestaAdmin?: string) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.put<any>(`${this.apiUrl}/solicitud/${id}/responder`, { estado, respuestaAdmin }, { headers })
+      this.http.put<any>(`${this.apiUrl}/solicitudes/${id}/responder`, { estado, respuestaAdmin }, { headers })
     );
   }
 
@@ -364,7 +364,7 @@ export class ApiService {
   async crearResena(citaId: string, data: { valoracion: number; comentario?: string; imagen?: string | null }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.post<any>(`${this.apiUrl}/cita/${citaId}/resena`, data, { headers })
+      this.http.post<any>(`${this.apiUrl}/citas/${citaId}/resena`, data, { headers })
     );
   }
 
@@ -372,14 +372,14 @@ export class ApiService {
   async getResenasMiBarberia() {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/cita/resenas/barberia`, { headers })
+      this.http.get<any[]>(`${this.apiUrl}/citas/resenas/barberia`, { headers })
     );
   }
 
   // Obtener las reseñas públicas de una barbería
   async getResenasBarberia(barberiaId: string) {
     return await firstValueFrom(
-      this.http.get<any[]>(`${this.apiUrl}/barberia/${barberiaId}/resenas`)
+      this.http.get<any[]>(`${this.apiUrl}/barberias/${barberiaId}/resenas`)
     );
   }
 }

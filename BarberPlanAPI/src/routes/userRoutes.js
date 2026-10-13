@@ -21,18 +21,18 @@ router.param("id", validarObjectIdParam);
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: "Demasiados intentos, intenta más tarde"
+  message: { error: "Demasiados intentos, intenta más tarde" }
 });
 
-//  RUTAS PÚBLICAS 
+//  RUTAS PÚBLICAS
 router.post("/login", authLimiter, loginUser);
-router.post("/register",authLimiter, addUser);
+router.post("/registro", authLimiter, addUser);
 
-// RUTAS PROTEGIDAS
+// RUTAS PROTEGIDAS (las fijas antes de "/:id")
 router.get("/", verifyToken, isAdmin, getUsers);
-router.get("/profile", verifyToken, getProfile);
-router.put("/profile", verifyToken, editProfile);
-router.post("/change-password", verifyToken, changePassword);
+router.get("/perfil", verifyToken, getProfile);
+router.put("/perfil", verifyToken, editProfile);
+router.post("/cambiar-contrasena", verifyToken, changePassword);
 
 router.get("/:id", verifyToken, getUser);
 router.delete("/:id", verifyToken, deleteUserAccount);

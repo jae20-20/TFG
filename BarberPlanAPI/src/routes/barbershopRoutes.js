@@ -37,13 +37,13 @@ router.param("invitacionId", validarObjectIdParam);
 const invitationCodeLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 15,
-    message: "Demasiados intentos, inténtalo más tarde"
+    message: { error: "Demasiados intentos, inténtalo más tarde" }
 });
 
 const registerLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: "Demasiados intentos, intenta más tarde"
+    message: { error: "Demasiados intentos, intenta más tarde" }
 });
 
 // GESTIÓN DE INVITACIONES DE EMPLEADOS (ADMIN)
@@ -57,12 +57,12 @@ router.put("/invitaciones/:invitacionId/revocar", verifyToken, isAdmin, revocarI
 router.delete("/invitaciones/:invitacionId", verifyToken, isAdmin, deleteInvitacionEmpleado);
 
 // REGISTRO DE BARBERÍA
-router.post("/register", registerLimiter, registerBarberia);
+router.post("/registro", registerLimiter, registerBarberia);
 
-//  RUTAS AUTENTICADAS (ADMIN O BARBERO)
-router.get("/my/barberia", verifyToken, getMyBarberia);
-router.get("/my/horario", verifyToken, getMyHorario);
-router.put("/my/horario", verifyToken, isAdmin, updateMyHorario);
+//  RUTAS AUTENTICADAS (ADMIN O BARBERO); antes de "/:id" por la misma razón
+router.get("/mi/barberia", verifyToken, getMyBarberia);
+router.get("/mi/horario", verifyToken, getMyHorario);
+router.put("/mi/horario", verifyToken, isAdmin, updateMyHorario);
 
 // RUTAS PÚBLICAS
 router.get("/", getBarberias);

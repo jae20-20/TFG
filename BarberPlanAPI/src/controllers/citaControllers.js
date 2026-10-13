@@ -858,6 +858,11 @@ export const actualizarPagoCita = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para modificar esta cita" });
         }
 
+        // Solo booleanos reales: Boolean("false") sería true y marcaría la cita como cobrada
+        if (typeof pagado !== "boolean") {
+            return res.status(400).json({ error: "El campo pagado debe ser true o false" });
+        }
+
         const nuevoImporte = importePagado !== undefined ? Number(importePagado) : (cita.importePagado !== undefined ? cita.importePagado : cita.servicioPrecio);
         if (!Number.isFinite(nuevoImporte) || nuevoImporte < 0) {
             return res.status(400).json({ error: "El importe debe ser un número mayor o igual que 0" });
@@ -871,16 +876,16 @@ export const actualizarPagoCita = async (req, res) => {
         // Cobrar una cita ya empezada implica que el cliente vino; un pago adelantado no la completa.
         // Desmarcar un cobro hecho por error devuelve la cita a confirmada si fue el cobro el que la completó
         // (no si se completó con el botón, por la tarea automática o si ya tiene reseña)
-        const completar = Boolean(pagado) && cita.estado === "confirmada" && haEmpezado(cita);
+        const completar = pagado && cita.estado === "confirmada" && haEmpezado(cita);
         const revertir = !pagado && cita.estado === "completada" && cita.completadaPorPago === true && !cita.resena;
-        const { matchedCount } = await updateCitaPago(id, Boolean(pagado), nuevoImporte, { completar, revertir });
+        const { matchedCount } = await updateCitaPago(id, pagado, nuevoImporte, { completar, revertir });
         if (matchedCount === 0) {
             return res.status(409).json({ error: MENSAJE_PAGO_NO_PERMITIDO });
         }
         const citaActualizada = await getCitaById(id);
         res.json({
             message: "Estado de pago actualizado correctamente",
-            pagado: Boolean(pagado),
+            pagado,
             importePagado: nuevoImporte,
             cita: citaActualizada
         });

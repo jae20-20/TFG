@@ -62,7 +62,9 @@ export const getBarberia = async (req, res) => {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
 
-        res.json(barberia);
+        // Excluir información sensible, como en el listado
+        const { adminId, ...barberiaPublica } = barberia;
+        res.json(barberiaPublica);
     } catch (error) {
         console.error("Error al obtener barbería:", error);
         res.status(500).json({ error: "Error al obtener barbería" });
@@ -128,13 +130,13 @@ export const registerBarberia = async (req, res) => {
         // Verificar si el correo ya existe
         const existingEmail = await getUserByEmail(correo);
         if (existingEmail) {
-            return res.status(400).json({ error: "El correo ya está registrado" });
+            return res.status(409).json({ error: "El correo ya está registrado" });
         }
 
         // Verificar si el usuario ya existe
         const existingUsername = await getUserByUsername(usuario);
         if (existingUsername) {
-            return res.status(400).json({ error: "El nombre de usuario ya está en uso" });
+            return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
         }
 
         // Encriptar contraseña del admin

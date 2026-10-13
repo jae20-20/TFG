@@ -8,7 +8,7 @@ router.param("id", validarObjectIdParam);
 router.param("servicioId", validarObjectIdParam);
 
 // El barbero autenticado vuelve a ofrecer un servicio bloqueado (sin solicitud)
-router.delete("/me/servicios-bloqueados/:servicioId", verifyToken, isBarbero, desbloquearMiServicio);
+router.delete("/mi/servicios-bloqueados/:servicioId", verifyToken, isBarbero, desbloquearMiServicio);
 
 // Actualizar barbero (horarioEspecial, diasLibres, vacaciones)
 router.put("/:id", verifyToken, isAdminOrBarbero, updateBarberoHorario);

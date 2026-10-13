@@ -75,7 +75,8 @@ export const deleteCita = async (id) => {
 
 // ==================== FUNCIONES POR USUARIO ====================
 
-// Obtener citas de un cliente
+// Obtener citas de un cliente. Del barbero solo se envía su nombre (sin correo, teléfono, horario ni ausencias)
+// y de la barbería se omite adminId, igual que en el listado público
 export const getCitasByClienteId = async (clienteId) => {
     return await db.collection("Citas").aggregate([
         { $match: { clienteId: new ObjectId(clienteId) } },
@@ -92,14 +93,15 @@ export const getCitasByClienteId = async (clienteId) => {
                 from: "Usuarios",
                 localField: "barberoId",
                 foreignField: "_id",
-                as: "barbero"
+                as: "barbero",
+                pipeline: [{ $project: { _id: 0, nombre: 1, apellido: 1 } }]
             }
         },
         { $unwind: { path: "$barberia", preserveNullAndEmptyArrays: true } },
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
         {
             $project: {
-                "barbero.pw": 0,
+                "barberia.adminId": 0,
                 "resena.imagen": 0
             }
         },

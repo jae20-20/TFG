@@ -16,24 +16,24 @@ export const createBarberSolicitud = async (req, res) => {
         const barberoId = req.user.id;
         const barbero = await getUserById(barberoId);
 
-        if (!barbero) return res.status(404).json({ message: "Barbero no encontrado" });
-        if (!barbero.barberiaId) return res.status(400).json({ message: "El barbero no pertenece a ninguna barbería" });
+        if (!barbero) return res.status(404).json({ error: "Barbero no encontrado" });
+        if (!barbero.barberiaId) return res.status(400).json({ error: "El barbero no pertenece a ninguna barbería" });
 
         if (!TIPOS_SOLICITUD.includes(tipo)) {
-            return res.status(400).json({ message: "Tipo de solicitud no válido" });
+            return res.status(400).json({ error: "Tipo de solicitud no válido" });
         }
 
         const inicio = typeof fechaInicio === "string" ? Date.parse(fechaInicio) : NaN;
         const fin = typeof fechaFin === "string" ? Date.parse(fechaFin) : NaN;
         if (Number.isNaN(inicio) || Number.isNaN(fin) || fin < inicio) {
-            return res.status(400).json({ message: "Fechas no válidas" });
+            return res.status(400).json({ error: "Fechas no válidas" });
         }
         if ((fin - inicio) / (24 * 60 * 60 * 1000) > MAX_DIAS_SOLICITUD) {
-            return res.status(400).json({ message: `El periodo no puede superar ${MAX_DIAS_SOLICITUD} días` });
+            return res.status(400).json({ error: `El periodo no puede superar ${MAX_DIAS_SOLICITUD} días` });
         }
 
         if (motivo !== undefined && typeof motivo !== "string") {
-            return res.status(400).json({ message: "Motivo no válido" });
+            return res.status(400).json({ error: "Motivo no válido" });
         }
 
         // Las franjas solo aplican a horas puntuales; el formulario envía filas vacías que se descartan
@@ -42,7 +42,7 @@ export const createBarberSolicitud = async (req, res) => {
             const rellenas = (Array.isArray(franjas) ? franjas : []).filter((f) => f && (f.start || f.end));
             const validas = rellenas.every((f) => RE_HORA.test(f.start) && RE_HORA.test(f.end) && f.start < f.end);
             if (rellenas.length === 0 || rellenas.length > MAX_FRANJAS || !validas) {
-                return res.status(400).json({ message: "Franjas horarias no válidas" });
+                return res.status(400).json({ error: "Franjas horarias no válidas" });
             }
             franjasLimpias = rellenas.map((f) => ({ start: f.start, end: f.end }));
         }
@@ -52,7 +52,7 @@ export const createBarberSolicitud = async (req, res) => {
         if (tipo === "bloqueo_servicio") {
             servicio = esObjectIdValido(servicioId) ? await getServicioById(barbero.barberiaId.toString(), servicioId) : null;
             if (!servicio) {
-                return res.status(400).json({ message: "Servicio no válido" });
+                return res.status(400).json({ error: "Servicio no válido" });
             }
         }
 
@@ -72,7 +72,7 @@ export const createBarberSolicitud = async (req, res) => {
         res.status(201).json({ message: "Solicitud creada exitosamente", id: result.insertedId });
     } catch (error) {
         console.error("Error al crear solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
@@ -83,7 +83,7 @@ export const getMisSolicitudes = async (req, res) => {
         res.json({ solicitudes });
     } catch (error) {
         console.error("Error al obtener solicitudes:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
@@ -91,7 +91,7 @@ export const getMisSolicitudes = async (req, res) => {
 export const getSolicitudesEquipo = async (req, res) => {
     try {
         const barberia = await getBarberiaByAdminId(req.user.id);
-        if (!barberia) return res.status(400).json({ message: "No tienes una barbería asignada" });
+        if (!barberia) return res.status(400).json({ error: "No tienes una barbería asignada" });
 
         const solicitudes = await getSolicitudesByBarberia(barberia._id);
 
@@ -108,7 +108,7 @@ export const getSolicitudesEquipo = async (req, res) => {
         res.json({ solicitudes: populatedSolicitudes });
     } catch (error) {
         console.error("Error al obtener solicitudes del equipo:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
@@ -119,24 +119,27 @@ export const responderSolicitud = async (req, res) => {
         const { estado, respuestaAdmin } = req.body; // estado: "aprobada" | "rechazada"
 
         if (!["aprobada", "rechazada"].includes(estado)) {
-            return res.status(400).json({ message: "Estado no válido" });
+            return res.status(400).json({ error: "Estado no válido" });
         }
 
         const solicitud = await getSolicitudById(id);
-        if (!solicitud) return res.status(404).json({ message: "Solicitud no encontrada" });
+        if (!solicitud) return res.status(404).json({ error: "Solicitud no encontrada" });
 
         const esAdminDeSuBarberia = await isUserAdminOfBarberia(req.user.id, solicitud.barberiaId.toString());
         if (!esAdminDeSuBarberia) {
-            return res.status(403).json({ message: "Acceso denegado: solicitud no vinculada a tu barbería" });
+            return res.status(403).json({ error: "Acceso denegado: solicitud no vinculada a tu barbería" });
         }
 
         // Responder dos veces duplicaría vacaciones o días libres
         if (solicitud.estado !== "pendiente") {
-            return res.status(409).json({ message: "La solicitud ya fue respondida" });
+            return res.status(409).json({ error: "La solicitud ya fue respondida" });
         }
 
-        // Update estado
-        await updateSolicitudEstado(id, estado, respuestaAdmin);
+        // Solo cambia si sigue pendiente: si otra respuesta simultánea se adelantó, no se aplica el efecto dos veces
+        const { matchedCount } = await updateSolicitudEstado(id, estado, respuestaAdmin);
+        if (matchedCount === 0) {
+            return res.status(409).json({ error: "La solicitud ya fue respondida" });
+        }
 
         // Si se aprueba, actualizar días libres/vacaciones del barbero
         if (estado === "aprobada") {
@@ -196,7 +199,7 @@ export const responderSolicitud = async (req, res) => {
         res.json({ message: "Solicitud respondida exitosamente" });
     } catch (error) {
         console.error("Error al responder solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
@@ -206,18 +209,18 @@ export const eliminarSolicitud = async (req, res) => {
         const { id } = req.params;
         const solicitud = await getSolicitudById(id);
         
-        if (!solicitud) return res.status(404).json({ message: "Solicitud no encontrada" });
+        if (!solicitud) return res.status(404).json({ error: "Solicitud no encontrada" });
         if (solicitud.barberoId.toString() !== req.user.id) {
-            return res.status(403).json({ message: "No autorizado para eliminar esta solicitud" });
+            return res.status(403).json({ error: "No autorizado para eliminar esta solicitud" });
         }
         if (solicitud.estado !== "pendiente") {
-            return res.status(400).json({ message: "Solo se pueden eliminar solicitudes pendientes" });
+            return res.status(409).json({ error: "Solo se pueden eliminar solicitudes pendientes" });
         }
 
         await deleteSolicitud(id);
         res.json({ message: "Solicitud eliminada exitosamente" });
     } catch (error) {
         console.error("Error al eliminar solicitud:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 };

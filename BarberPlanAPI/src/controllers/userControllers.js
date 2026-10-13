@@ -29,7 +29,7 @@ import {
 } from "../models/userModel.js";
 
 // Roles que se pueden elegir en el registro público. Los admin solo se crean
-// junto a su barbería en POST /barberia/register.
+// junto a su barbería en POST /barberias/registro.
 const ROLES_REGISTRO = ["cliente", "barbero"];
 
 // Campos del barbero que gestiona el admin; el barbero los pide mediante solicitudes
@@ -56,6 +56,7 @@ export const getUsers = async (req, res) => {
         const users = await getUsersByBarberiaId(barberia._id);
         res.json(users);
     } catch (error) {
+        console.error("Error al obtener usuarios:", error);
         res.status(500).json({ error: "Error al obtener usuarios" });
     }
 };
@@ -80,6 +81,7 @@ export const getUser = async (req, res) => {
         const { pw, ...userWithoutPw } = user;
         res.json(userWithoutPw);
     } catch (error) {
+        console.error("Error al obtener usuario:", error);
         res.status(500).json({ error: "Error al obtener usuario" });
     }
 };
@@ -96,6 +98,7 @@ export const getProfile = async (req, res) => {
         const { pw, ...userWithoutPw } = user;
         res.json(userWithoutPw);
     } catch (error) {
+        console.error("Error al obtener perfil:", error);
         res.status(500).json({ error: "Error al obtener perfil" });
     }
 };
@@ -127,13 +130,13 @@ export const addUser = async (req, res) => {
         // Verificar si el correo ya existe
         const existingEmail = await getUserByEmail(correo);
         if (existingEmail) {
-            return res.status(400).json({ error: "El correo ya está registrado" });
+            return res.status(409).json({ error: "El correo ya está registrado" });
         }
 
         // Verificar si el usuario ya existe
         const existingUsername = await getUserByUsername(usuario);
         if (existingUsername) {
-            return res.status(400).json({ error: "El nombre de usuario ya está en uso" });
+            return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
         }
 
         let invitacion = null;
@@ -264,7 +267,7 @@ export const editProfile = async (req, res) => {
         if (usuario) {
             const existingUser = await getUserByUsername(usuario);
             if (existingUser && existingUser._id.toString() !== userId) {
-                return res.status(400).json({ error: "El nombre de usuario ya está en uso" });
+                return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
             }
         }
 
