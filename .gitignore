@@ -22,8 +22,5 @@ Thumbs.db
 
 # Claude Code configuration (local)
 .claude/
-Confirmacion-y-asistencia-de-citas.md
-docs/persistencia.md
-docs/api.md
-docs/arquitectura.md
-docs/navegacion.md
+docs/
+

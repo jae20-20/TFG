@@ -196,7 +196,7 @@ export class BarberDetailsPage implements OnInit {
         duration: 2000, position: 'bottom', color: 'success'
       });
       await toast.present();
-      this.router.navigate(['/admin/configuration'], { replaceUrl: true });
+      this.router.navigate(['/admin/configuration/manage-team'], { replaceUrl: true });
     } catch (e) {
       console.error('Error eliminando barbero', e);
       const toast = await this.toastCtrl.create({

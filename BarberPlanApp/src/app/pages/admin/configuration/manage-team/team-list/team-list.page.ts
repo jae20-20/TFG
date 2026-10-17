@@ -51,6 +51,7 @@ export class TeamListPage implements OnInit {
 
   async loadBarberos() {
     this.loading = true;
+    this.error = '';
     try {
       const barberia = await this.apiService.getMyBarberia();
       const barberiaId = barberia?._id;

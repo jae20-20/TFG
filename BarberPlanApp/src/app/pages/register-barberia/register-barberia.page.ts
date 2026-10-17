@@ -112,7 +112,7 @@ export class RegisterBarberiaPage implements OnInit {
           {
             text: 'Entendido',
             handler: () => {
-              this.router.navigateByUrl('/admin-home');
+              this.router.navigateByUrl('/admin/calendar', { replaceUrl: true });
             }
           }
         ],

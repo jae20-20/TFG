@@ -67,7 +67,7 @@ export class BarberTabsPage implements OnInit, OnDestroy {
     this.showBackButton = segments.length > 2;
 
     if (this.showBackButton) {
-      this.backHref = '/' + segments.slice(0, 2).join('/');
+      this.backHref = '/' + segments.slice(0, -1).join('/');
     }
 
     if (url.includes('calendar')) this.pageName = 'Calendario';

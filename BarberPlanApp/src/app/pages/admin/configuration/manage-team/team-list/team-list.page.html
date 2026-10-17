@@ -2,6 +2,11 @@
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
 
+  <div class="calendar-empty" *ngIf="!loading && error">
+    <p>{{ error }}</p>
+    <ion-button fill="clear" size="small" (click)="loadBarberos()">Reintentar</ion-button>
+  </div>
+
   <ion-list class="config-hub-list">
     <ion-item *ngFor="let barber of barberos" (click)="openBarber(barber)" [ngClass]="{'admin-item': isAdmin(barber)}" button detail>
       <div slot="start" class="avatar-wrap team-list-avatar">

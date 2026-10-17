@@ -44,4 +44,6 @@ export const routes: Routes = [
     path: 'client-home/barberia/:id/reservar',
     loadComponent: () => import('./pages/client/barberia-booking/client-barberia-booking.page').then(m => m.ClientBarberiaBookingPage),
     canActivate: [authGuard, roleGuard('cliente')]
-  },];
+  },
+  { path: '**', redirectTo: 'login' },
+];
