@@ -6,6 +6,7 @@ import { IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { validarCorreo, validarPasswordNueva } from '../../services/validacion-credenciales.util';
 
 type Rol = 'cliente' | 'barbero';
 
@@ -154,6 +155,12 @@ export class RegisterPage implements AfterViewInit {
     const valid = this.rol === 'cliente' ? this.isClienteValid() : this.isBarberoValid();
     if (!valid) {
       await this.showToast('Completa todos los campos obligatorios.', 'danger');
+      return;
+    }
+
+    const errorCredenciales = validarCorreo(this.correo) || validarPasswordNueva(this.pw);
+    if (errorCredenciales) {
+      await this.showToast(errorCredenciales, 'danger');
       return;
     }
 

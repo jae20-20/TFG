@@ -1,7 +1,7 @@
 //manejar http request - Usuarios
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJE_PW_CORTA, MENSAJES_DUPLICADO, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
+import { MENSAJES_DUPLICADO, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
 
 import {
     addBarberoToBarberia,
@@ -125,8 +125,9 @@ export const addUser = async (req, res) => {
 
         const correo = normalizarCorreo(req.body.correo);
 
-        if (pw.length < PW_MIN_LENGTH) {
-            return res.status(400).json({ error: MENSAJE_PW_CORTA });
+        const errorCredenciales = validarCorreo(correo) || validarPasswordNueva(pw);
+        if (errorCredenciales) {
+            return res.status(400).json({ error: errorCredenciales });
         }
 
         // Comprobación previa solo para responder rápido: la garantía real son los índices únicos (ver catch)
@@ -307,8 +308,9 @@ export const changePassword = async (req, res) => {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        if (newPassword.length < PW_MIN_LENGTH) {
-            return res.status(400).json({ error: MENSAJE_PW_CORTA });
+        const errorPassword = validarPasswordNueva(newPassword);
+        if (errorPassword) {
+            return res.status(400).json({ error: errorPassword });
         }
 
         const isPasswordValid = await bcrypt.compare(currentPassword, user.pw);

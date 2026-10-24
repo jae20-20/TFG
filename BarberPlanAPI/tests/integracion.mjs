@@ -2,6 +2,9 @@
 // normalización del correo y migración. Levanta su propia API (puerto 5098) sobre la BD desechable
 // BarberPlan_test y la borra al terminar. Se niega a ejecutarse contra la BD de desarrollo.
 import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
 
@@ -14,8 +17,12 @@ const req = crearCliente(entorno.api);
 process.env.DB_NAME = entorno.nombreBD;
 const { client, connectDB, db } = await import("../src/db/connection.js");
 const { INDICES, crearIndices } = await import("../src/db/indices.js");
-const { campoDuplicado, createUser } = await import("../src/models/userModel.js");
+const { campoDuplicado, createUser, normalizarCorreo } = await import("../src/models/userModel.js");
 const { createInvitacion } = await import("../src/models/invitacionModel.js");
+const reglasServidor = await import("../src/middleware/validateMiddleware.js");
+// Copia de las reglas en la app (TypeScript; Node 22 la importa eliminando los tipos)
+const reglasApp = await import(pathToFileURL(path.join(RAIZ_API, "..", "BarberPlanApp", "src", "app", "services", "validacion-credenciales.util.ts")).href);
+const M = reglasServidor.MENSAJES_CREDENCIALES;
 
 const PW = "password123";
 const MSG_CORREO = "El correo ya está registrado";
@@ -162,6 +169,74 @@ try {
 
     r = await login("DUENO@Barberia.TEST");
     check("Login del administrador de la barbería con el correo en mayúsculas -> 200 (rol admin)", r.status === 200 && r.data?.user?.rol === "admin", `${r.status}`);
+
+    // ==================== Formato de correo y contraseña ====================
+    // API aparte sobre la misma BD: lo anterior ya gastó casi todos los intentos por IP de los registros y el login
+    const servidorCredenciales = lanzarServidor({ puerto: 5096, nombreBD: entorno.nombreBD });
+    await servidorCredenciales.listo;
+    const reqCred = crearCliente("http://localhost:5096");
+    try {
+        const rechazado = async (nombre, ruta, body, mensaje) => {
+            const respuesta = await reqCred("POST", ruta, { body });
+            const creado = await bd.collection("Usuarios").countDocuments({ usuario: body.usuario });
+            check(nombre, respuesta.status === 400 && respuesta.data?.error === mensaje && creado === 0, `${respuesta.status} ${JSON.stringify(respuesta.data)}`);
+        };
+        const cliente = (usuario, correo, pw) => ({ nombre: "Test", apellido: "Prueba", rol: "cliente", ciudad: "Madrid", usuario, correo, pw });
+        const barberia = (usuario, correo, pw) => ({ nombreBarberia: `Barbería ${usuario}`, direccion: "Calle 1", nombre: "Admin", apellido: "Prueba", usuario, correo, pw });
+
+        await rechazado("Registro: correo sin @ -> 400 formato no válido", "/usuarios/registro", cliente("cred_1", "sin-arroba.test", PW), M.correoFormato);
+        await rechazado("Registro: correo de más de 254 caracteres -> 400 demasiado largo", "/usuarios/registro",
+            cliente("cred_2", `${"a".repeat(60)}@${"b".repeat(190)}.test`, PW), M.correoLargo);
+        await rechazado("Registro: parte local del correo de más de 64 caracteres -> 400 demasiado largo", "/usuarios/registro",
+            cliente("cred_3", `${"a".repeat(65)}@prueba.test`, PW), M.correoLargo);
+        await rechazado("Registro: contraseña de 7 caracteres -> 400 mínimo 8", "/usuarios/registro", cliente("cred_4", "cred4@prueba.test", "abcdef1"), M.pwCorta);
+        await rechazado("Registro: contraseña sin número -> 400", "/usuarios/registro", cliente("cred_5", "cred5@prueba.test", "soloLetras"), M.pwSinNumero);
+        await rechazado("Registro: contraseña sin letra -> 400", "/usuarios/registro", cliente("cred_6", "cred6@prueba.test", "12345678"), M.pwSinLetra);
+        await rechazado("Registro: contraseña de 73 caracteres -> 400 demasiado larga", "/usuarios/registro",
+            cliente("cred_7", "cred7@prueba.test", "a1" + "b".repeat(71)), M.pwLarga);
+        await rechazado("Registro de barbero: contraseña corta -> 400 antes de mirar el código de invitación", "/usuarios/registro",
+            { ...cliente("cred_8", "cred8@prueba.test", "corta1"), rol: "barbero", code: "AAAA-BBBB" }, M.pwCorta);
+
+        await rechazado("Registro de barbería: correo sin dominio -> 400 formato no válido", "/barberias/registro", barberia("cred_9", "dueno@sin-dominio", PW), M.correoFormato);
+        await rechazado("Registro de barbería: contraseña sin letra -> 400", "/barberias/registro", barberia("cred_10", "cred10@prueba.test", "123456789"), M.pwSinLetra);
+        await rechazado("Registro de barbería: 37 caracteres con «ñ» ocupan 73 bytes -> 400 demasiado larga", "/barberias/registro",
+            barberia("cred_11", "cred11@prueba.test", "ñ".repeat(36) + "1"), M.pwLarga);
+        r = await reqCred("POST", "/barberias/registro", { body: barberia("cred_12", "  Valido.MAYUS@Prueba.TEST ", "contraseña1") });
+        const valido = await bd.collection("Usuarios").findOne({ usuario: "cred_12" });
+        check("Registro de barbería: correo válido con mayúsculas -> 201 y se guarda en minúsculas", r.status === 201 && valido?.correo === "valido.mayus@prueba.test", `${r.status} ${valido?.correo}`);
+
+        // Cuenta creada con la política antigua (6 caracteres, sin número): puede entrar y cambiar su contraseña
+        const antiguo = { nombre: "Antiguo", apellido: "Usuario", correo: "antiguo@prueba.test", usuario: "cred_antiguo", rol: "cliente", pw: await bcrypt.hash("abcdef", 10) };
+        antiguo._id = (await bd.collection("Usuarios").insertOne(antiguo)).insertedId;
+        r = await reqCred("POST", "/usuarios/login", { body: { correo: "Antiguo@Prueba.test", pw: "abcdef" } });
+        check("Login con una contraseña antigua que no cumple la política nueva -> 200", r.status === 200 && Boolean(r.data?.token), `${r.status}`);
+
+        const cambiar = (actual, nueva) => reqCred("POST", "/usuarios/cambiar-contrasena", { token: firmar(antiguo), body: { currentPassword: actual, newPassword: nueva } });
+        r = await cambiar("abcdef", "abcdef");
+        check("Cambiar contraseña: la nueva también debe cumplir la política -> 400", r.status === 400 && r.data?.error === M.pwCorta, `${r.status} ${JSON.stringify(r.data)}`);
+        r = await cambiar("abcdef", "a1" + "b".repeat(71));
+        check("Cambiar contraseña: 73 bytes -> 400 demasiado larga", r.status === 400 && r.data?.error === M.pwLarga, `${r.status}`);
+        r = await cambiar("abcdef", "ñandúñandú1");
+        check("Cambiar contraseña: letras con tilde y «ñ» cuentan como letra -> 200",
+            r.status === 200 && await bcrypt.compare("ñandúñandú1", (await bd.collection("Usuarios").findOne({ _id: antiguo._id })).pw), `${r.status}`);
+        r = await cambiar("ñandúñandú1", "a1" + "b".repeat(70));
+        check("Cambiar contraseña: exactamente 72 bytes -> 200 (límite incluido)", r.status === 200, `${r.status}`);
+    } finally {
+        await servidorCredenciales.detener();
+    }
+
+    // ==================== Reglas de la app = reglas del servidor ====================
+    const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];
+    check("App y servidor: mismos límites y misma regex de correo",
+        constantes.every((c) => reglasApp[c] === reglasServidor[c]) && reglasApp.RE_CORREO.source === reglasServidor.RE_CORREO.source,
+        constantes.map((c) => `${c}=${reglasApp[c]}/${reglasServidor[c]}`).join(" "));
+    check("App y servidor: mismos mensajes", JSON.stringify(reglasApp.MENSAJES_CREDENCIALES) === JSON.stringify(M));
+    const contrasenas = ["", "abc12", "abcdefgh", "12345678", "abcdefg1", "ñandúñandú1", "a1" + "b".repeat(70), "a1" + "b".repeat(71), "ñ".repeat(36) + "1"];
+    const distintasPw = contrasenas.filter((pw) => reglasApp.validarPasswordNueva(pw) !== reglasServidor.validarPasswordNueva(pw));
+    check("App y servidor: mismo resultado al validar contraseñas", distintasPw.length === 0, distintasPw.join(" | "));
+    const correos = ["a@b.co", "  A@B.CO ", "sin-arroba", "a@b", "a b@c.de", "a@@b.co", `${"a".repeat(65)}@b.co`, `${"a".repeat(60)}@${"b".repeat(190)}.test`];
+    const distintosCorreo = correos.filter((c) => reglasApp.validarCorreo(c) !== reglasServidor.validarCorreo(normalizarCorreo(c)));
+    check("App y servidor: mismo resultado al validar correos", distintosCorreo.length === 0, distintosCorreo.join(" | "));
 
     // ==================== Migración de correos ====================
     await bd.collection("Usuarios").insertMany([

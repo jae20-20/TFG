@@ -67,7 +67,7 @@
             <div class="auth-row">
               <div class="auth-field">
                 <label class="auth-label">Contraseña</label>
-                <input type="password" [(ngModel)]="pw" name="pwCliente" placeholder="Mínimo 6 caracteres" [required]="rol === 'cliente'" class="auth-input" />
+                <input type="password" [(ngModel)]="pw" name="pwCliente" placeholder="Mínimo 8, con letra y número" [required]="rol === 'cliente'" class="auth-input" />
               </div>
               <div class="auth-field">
                 <label class="auth-label">Confirmar</label>
@@ -157,7 +157,7 @@
               <div class="auth-row">
                 <div class="auth-field">
                   <label class="auth-label">Contraseña</label>
-                  <input type="password" [(ngModel)]="pw" name="pwBarbero" placeholder="Mínimo 6 caracteres" [required]="rol === 'barbero'" class="auth-input" />
+                  <input type="password" [(ngModel)]="pw" name="pwBarbero" placeholder="Mínimo 8, con letra y número" [required]="rol === 'barbero'" class="auth-input" />
                 </div>
                 <div class="auth-field">
                   <label class="auth-label">Confirmar</label>

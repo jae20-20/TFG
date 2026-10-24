@@ -227,6 +227,10 @@ try {
     // --- Contraseña mínima (se rechaza antes de tocar la BD)
     r = await req("POST", "/usuarios/registro", { body: { nombre: "x", apellido: "x", correo: "x@x.x", pw: "1234", usuario: "x", rol: "cliente", ciudad: "x" } });
     check("Registro con contraseña de 4 caracteres -> 400", r.status === 400 && /al menos 8/.test(r.data?.error), `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("POST", "/usuarios/registro", { body: { nombre: "x", apellido: "x", correo: "x@x.xx", pw: "a1".repeat(50000), usuario: "x", rol: "cliente", ciudad: "x" } });
+    check("Registro con contraseña de 100 KB -> 400 sin llegar a bcrypt ni a la BD", r.status === 400 && /demasiado larga/.test(r.data?.error), `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("POST", "/barberias/registro", { body: { nombreBarberia: "x", direccion: "x", nombre: "x", apellido: "x", correo: "<script>@x", pw: "abcdefg1", usuario: "x" } });
+    check("Registro de barbería con correo malformado -> 400 con mensaje fijo", r.status === 400 && JSON.stringify(r.data) === JSON.stringify({ error: "El correo electrónico no tiene un formato válido" }), `${r.status} ${JSON.stringify(r.data)}`);
 
     // --- Disponibilidad: barbero de otra barbería
     if (barberias.length > 1) {

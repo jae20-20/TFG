@@ -10,8 +10,46 @@ export const validarObjectIdParam = (req, res, next, valor) => {
     next();
 };
 
-export const PW_MIN_LENGTH = 8;
-export const MENSAJE_PW_CORTA = `La contraseña debe tener al menos ${PW_MIN_LENGTH} caracteres`;
+// ==================== CREDENCIALES ====================
+// Copia en la app: BarberPlanApp/src/app/services/validacion-credenciales.util.ts.
+// Los valores y mensajes deben coincidir; la batería de integración lo comprueba.
+
+export const PW_MIN_CARACTERES = 8;
+// bcrypt ignora lo que pasa de 72 bytes: se cuentan bytes UTF-8, no caracteres
+export const PW_MAX_BYTES = 72;
+export const CORREO_MAX_CARACTERES = 254;
+export const CORREO_LOCAL_MAX_CARACTERES = 64;
+export const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const RE_LETRA = /\p{L}/u;
+const RE_DIGITO = /[0-9]/;
+
+export const MENSAJES_CREDENCIALES = {
+    pwCorta: `La contraseña debe tener al menos ${PW_MIN_CARACTERES} caracteres`,
+    pwSinLetra: "La contraseña debe incluir al menos una letra",
+    pwSinNumero: "La contraseña debe incluir al menos un número",
+    pwLarga: `La contraseña es demasiado larga (máximo ${PW_MAX_BYTES} caracteres; las letras con tilde y los emojis cuentan más)`,
+    correoFormato: "El correo electrónico no tiene un formato válido",
+    correoLargo: "El correo electrónico es demasiado largo"
+};
+
+// Política de contraseñas nuevas (registro y cambio). Devuelve el mensaje de la regla incumplida o null.
+// El login no la aplica, para que las cuentas con contraseñas antiguas puedan seguir entrando.
+export const validarPasswordNueva = (pw) => {
+    if (typeof pw !== "string" || [...pw].length < PW_MIN_CARACTERES) return MENSAJES_CREDENCIALES.pwCorta;
+    if (Buffer.byteLength(pw, "utf8") > PW_MAX_BYTES) return MENSAJES_CREDENCIALES.pwLarga;
+    if (!RE_LETRA.test(pw)) return MENSAJES_CREDENCIALES.pwSinLetra;
+    if (!RE_DIGITO.test(pw)) return MENSAJES_CREDENCIALES.pwSinNumero;
+    return null;
+};
+
+// Formato del correo ya normalizado (normalizarCorreo). Devuelve el mensaje de la regla incumplida o null.
+export const validarCorreo = (correo) => {
+    if (typeof correo !== "string") return MENSAJES_CREDENCIALES.correoFormato;
+    if (correo.length > CORREO_MAX_CARACTERES) return MENSAJES_CREDENCIALES.correoLargo;
+    if (!RE_CORREO.test(correo)) return MENSAJES_CREDENCIALES.correoFormato;
+    if (correo.split("@")[0].length > CORREO_LOCAL_MAX_CARACTERES) return MENSAJES_CREDENCIALES.correoLargo;
+    return null;
+};
 
 // Respuesta 409 de cada campo con índice único en Usuarios; la comprobación previa y el error 11000 dan el mismo mensaje
 export const MENSAJES_DUPLICADO = {

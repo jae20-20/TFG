@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AlertController, IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { validarCorreo, validarPasswordNueva } from '../../services/validacion-credenciales.util';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input.component';
 
 @Component({
@@ -86,16 +87,14 @@ export class RegisterBarberiaPage implements OnInit {
   }
 
   async onSubmit() {
-    // Validar contraseñas
-    if (this.formData.pw !== this.confirmPw) {
-      await this.showToast('Las contraseñas no coinciden', 'danger');
+    const errorCredenciales = validarCorreo(this.formData.correo) || validarPasswordNueva(this.formData.pw);
+    if (errorCredenciales) {
+      await this.showToast(errorCredenciales, 'danger');
       return;
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.formData.correo)) {
-      await this.showToast('El correo electrónico no es válido', 'danger');
+    if (this.formData.pw !== this.confirmPw) {
+      await this.showToast('Las contraseñas no coinciden', 'danger');
       return;
     }
 
