@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { connectDB } from "./db/connection.js";
+import { crearIndices } from "./db/indices.js";
 import { iniciarTareasCitas } from "./jobs/citaJobs.js";
 import { manejadorErrores, rutaNoEncontrada } from "./middleware/errorMiddleware.js";
 import { mongoSanitize } from "./middleware/sanitizeMiddleware.js";
@@ -78,8 +79,8 @@ app.get("/", (req, res) => {
 app.use(rutaNoEncontrada);
 app.use(manejadorErrores);
 
-// Conectar a la base de datos y luego iniciar el servidor
-connectDB().then(() => {
+// Conectar a la base de datos, asegurar los índices y luego iniciar el servidor
+connectDB().then(crearIndices).then(() => {
   app.listen(PORT, () => {
     console.log(`¡Éxito!, Servidor corriendo en http://localhost:${PORT}`);
   });
@@ -89,4 +90,5 @@ connectDB().then(() => {
   }
 }).catch(err => {
   console.error("GG, Error al iniciar el servidor:", err);
+  process.exit(1);
 });

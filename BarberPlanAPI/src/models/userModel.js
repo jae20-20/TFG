@@ -1,12 +1,22 @@
 import { ObjectId } from "mongodb";
 import { db } from "../db/connection.js";
 
+// Regla única del correo: sin espacios en los extremos y en minúsculas. Se aplica al guardar y al buscar,
+// de modo que el índice único de Usuarios.correo no distingue mayúsculas
+export const normalizarCorreo = (correo) => String(correo ?? "").trim().toLowerCase();
+
+// Campo ("correo" o "usuario") que ha violado un índice único al insertar o actualizar; null si el error es otro
+export const campoDuplicado = (error) => {
+    if (error?.code !== 11000) return null;
+    return ["correo", "usuario"].find((campo) => error.keyPattern && campo in error.keyPattern) ?? null;
+};
+
 export const getAllUsers = async () => {
     return await db.collection("Usuarios").find().toArray();
 };
 
 export const createUser = async (userData) => {
-    return await db.collection("Usuarios").insertOne(userData);
+    return await db.collection("Usuarios").insertOne({ ...userData, correo: normalizarCorreo(userData.correo) });
 };
 
 // Obtener usuario por ID
@@ -16,7 +26,7 @@ export const getUserById = async (id) => {
 
 // Obtener usuario por correo
 export const getUserByEmail = async (correo) => {
-    return await db.collection("Usuarios").findOne({ correo });
+    return await db.collection("Usuarios").findOne({ correo: normalizarCorreo(correo) });
 };
 
 // Obtener usuario por nombre de usuario

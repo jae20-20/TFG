@@ -1,0 +1,211 @@
+// Batería de integración: índices de MongoDB, unicidad de correo y usuario bajo concurrencia,
+// normalización del correo y migración. Levanta su propia API (puerto 5098) sobre la BD desechable
+// BarberPlan_test y la borra al terminar. Se niega a ejecutarse contra la BD de desarrollo.
+import { spawnSync } from "node:child_process";
+import jwt from "jsonwebtoken";
+import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
+
+const { check, terminar } = crearComprobador("integración");
+const entorno = await crearEntorno({ puerto: 5098 });
+const { bd } = entorno;
+const req = crearCliente(entorno.api);
+
+// El código de src/ se importa DESPUÉS de fijar DB_NAME: connection.js lo lee al cargarse
+process.env.DB_NAME = entorno.nombreBD;
+const { client, connectDB, db } = await import("../src/db/connection.js");
+const { INDICES, crearIndices } = await import("../src/db/indices.js");
+const { campoDuplicado, createUser } = await import("../src/models/userModel.js");
+const { createInvitacion } = await import("../src/models/invitacionModel.js");
+
+const PW = "password123";
+const MSG_CORREO = "El correo ya está registrado";
+const MSG_USUARIO = "El nombre de usuario ya está en uso";
+
+const registroCliente = (correo, usuario) => req("POST", "/usuarios/registro", {
+    body: { nombre: "Test", apellido: "Prueba", correo, pw: PW, usuario, rol: "cliente", ciudad: "Madrid" }
+});
+const registroBarberia = (correo, usuario, nombreBarberia) => req("POST", "/barberias/registro", {
+    body: { nombreBarberia, direccion: "Calle de prueba 1", ciudad: "Madrid", nombre: "Admin", apellido: "Prueba", correo, pw: PW, usuario }
+});
+const login = (correo, pw = PW) => req("POST", "/usuarios/login", { body: { correo, pw } });
+const estados = (respuestas) => respuestas.map((r) => r.status).sort((a, b) => a - b);
+const soloUnaCreada = (respuestas) => JSON.stringify(estados(respuestas)) === "[201,409]";
+const perdedora = (respuestas) => respuestas.find((r) => r.status === 409);
+const firmar = (usuario) => jwt.sign({ id: usuario._id.toString(), rol: usuario.rol, barberiaId: null }, process.env.JWT_SECRET, { expiresIn: "5m" });
+
+const ejecutarMigracion = (...args) => spawnSync(process.execPath, ["scripts/normalizar-correos.mjs", ...args], {
+    cwd: RAIZ_API,
+    env: { ...process.env, DB_NAME: entorno.nombreBD },
+    encoding: "utf8"
+});
+
+try {
+    await connectDB();
+    check("Las pruebas usan la BD desechable, no la de desarrollo", db.databaseName === entorno.nombreBD && db.databaseName !== "BarberPlan", db.databaseName);
+
+    // ==================== Índices creados al arrancar ====================
+    for (const { coleccion, clave, opciones } of INDICES) {
+        const existentes = await bd.collection(coleccion).indexes();
+        const indice = existentes.find((i) => i.name === opciones.name);
+        const correcto = indice && JSON.stringify(indice.key) === JSON.stringify(clave) && Boolean(indice.unique) === Boolean(opciones.unique);
+        check(`Índice ${coleccion}.${opciones.name}${opciones.unique ? " (único)" : ""} creado al arrancar`, Boolean(correcto), JSON.stringify(indice?.key));
+    }
+
+    const totalAntes = (await Promise.all(["Usuarios", "Invitaciones", "Barberias", "Citas"].map((c) => bd.collection(c).indexes()))).flat().length;
+    let idempotente = true;
+    try {
+        await crearIndices();
+        await crearIndices();
+    } catch {
+        idempotente = false;
+    }
+    const totalDespues = (await Promise.all(["Usuarios", "Invitaciones", "Barberias", "Citas"].map((c) => bd.collection(c).indexes()))).flat().length;
+    check("crearIndices es idempotente: ejecutarla otra vez no falla ni duplica índices", idempotente && totalAntes === totalDespues, `${totalAntes} -> ${totalDespues}`);
+
+    // ==================== El índice es la garantía (sin pasar por la comprobación previa) ====================
+    const usuarioModelo = (correo, usuario) => ({ nombre: "M", apellido: "M", correo, pw: "x", usuario, rol: "cliente" });
+
+    let resultado = await Promise.allSettled([
+        createUser(usuarioModelo("Carrera@Modelo.test", "modelo_a")),
+        createUser(usuarioModelo("carrera@modelo.test", "modelo_b"))
+    ]);
+    const rechazadaCorreo = resultado.find((r) => r.status === "rejected");
+    check("Modelo: dos createUser simultáneos con el mismo correo (otras mayúsculas): solo uno se inserta",
+        resultado.filter((r) => r.status === "fulfilled").length === 1 && campoDuplicado(rechazadaCorreo?.reason) === "correo"
+        && await bd.collection("Usuarios").countDocuments({ correo: "carrera@modelo.test" }) === 1);
+
+    resultado = await Promise.allSettled([
+        createUser(usuarioModelo("c1@modelo.test", "modelo_igual")),
+        createUser(usuarioModelo("c2@modelo.test", "modelo_igual"))
+    ]);
+    check("Modelo: dos createUser simultáneos con el mismo usuario: solo uno se inserta",
+        resultado.filter((r) => r.status === "fulfilled").length === 1 && campoDuplicado(resultado.find((r) => r.status === "rejected")?.reason) === "usuario");
+
+    resultado = await Promise.allSettled([
+        createInvitacion({ codigoHash: "hash-repetido", estado: "pendiente" }),
+        createInvitacion({ codigoHash: "hash-repetido", estado: "pendiente" })
+    ]);
+    check("Modelo: dos invitaciones con el mismo codigoHash: solo una se inserta",
+        resultado.filter((r) => r.status === "fulfilled").length === 1 && resultado.find((r) => r.status === "rejected")?.reason?.code === 11000);
+
+    check("campoDuplicado ignora los errores que no son de clave duplicada", campoDuplicado(new Error("otro")) === null && campoDuplicado({ code: 11000, keyPattern: { codigoHash: 1 } }) === null);
+
+    // ==================== Registro de usuarios ====================
+    let rs = await Promise.all([registroCliente("Uno@Api.Test", "api_uno_a"), registroCliente("uno@api.test", "api_uno_b")]);
+    check("Registro: dos peticiones simultáneas con el mismo correo -> solo una se crea (201 y 409)", soloUnaCreada(rs), JSON.stringify(estados(rs)));
+    check("Registro: el perdedor recibe 409 con el mensaje de siempre y sin detalles internos",
+        JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_CORREO }), JSON.stringify(perdedora(rs)?.data));
+    check("Registro: en la BD queda un solo usuario con ese correo, guardado en minúsculas",
+        await bd.collection("Usuarios").countDocuments({ correo: "uno@api.test" }) === 1);
+
+    let r = await registroCliente("  Mixto@Api.TEST  ", "api_mixto");
+    const mixto = await bd.collection("Usuarios").findOne({ usuario: "api_mixto" });
+    check("Registro: el correo se guarda sin espacios y en minúsculas", r.status === 201 && mixto?.correo === "mixto@api.test", `${r.status} ${mixto?.correo}`);
+
+    r = await registroCliente("MIXTO@api.test", "api_mixto_2");
+    check("Registro: mismo correo con otras mayúsculas -> 409 correo ya registrado", r.status === 409 && r.data?.error === MSG_CORREO, `${r.status} ${JSON.stringify(r.data)}`);
+    check("Registro: el rechazo no deja ningún usuario a medias", await bd.collection("Usuarios").countDocuments({ usuario: "api_mixto_2" }) === 0);
+
+    rs = await Promise.all([registroCliente("dos@api.test", "api_repetido"), registroCliente("tres@api.test", "api_repetido")]);
+    check("Registro: dos peticiones simultáneas con el mismo nombre de usuario -> solo una se crea (201 y 409)", soloUnaCreada(rs), JSON.stringify(estados(rs)));
+    check("Registro: el perdedor recibe 409 con el mensaje de usuario en uso",
+        JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_USUARIO }), JSON.stringify(perdedora(rs)?.data));
+    check("Registro: en la BD queda un solo usuario con ese nombre de usuario", await bd.collection("Usuarios").countDocuments({ usuario: "api_repetido" }) === 1);
+
+    // ==================== Inicio de sesión ====================
+    r = await login("MIXTO@API.TEST");
+    check("Login con el correo en mayúsculas -> 200 con token", r.status === 200 && Boolean(r.data?.token), `${r.status}`);
+    check("Login: la respuesta devuelve el correo normalizado", r.data?.user?.correo === "mixto@api.test", r.data?.user?.correo);
+    r = await login("  mixto@api.test ", "contraseña-incorrecta");
+    check("Login con contraseña incorrecta sigue dando 401 genérico", r.status === 401 && r.data?.error === "Correo o contraseña incorrectos", `${r.status}`);
+
+    // ==================== Edición de perfil (nombre de usuario) ====================
+    const uno = await bd.collection("Usuarios").findOne({ correo: "uno@api.test" });
+    r = await req("PUT", "/usuarios/perfil", { token: firmar(mixto), body: { usuario: uno.usuario } });
+    check("Perfil: cambiar a un nombre de usuario ya usado -> 409", r.status === 409 && r.data?.error === MSG_USUARIO, `${r.status} ${JSON.stringify(r.data)}`);
+
+    rs = await Promise.all([
+        req("PUT", "/usuarios/perfil", { token: firmar(mixto), body: { usuario: "api_libre" } }),
+        req("PUT", "/usuarios/perfil", { token: firmar(uno), body: { usuario: "api_libre" } })
+    ]);
+    check("Perfil: dos usuarios piden a la vez el mismo nombre libre -> uno 200 y otro 409", JSON.stringify(estados(rs)) === "[200,409]", JSON.stringify(estados(rs)));
+    check("Perfil: el perdedor recibe el mensaje de usuario en uso, sin detalles internos",
+        JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_USUARIO }), JSON.stringify(perdedora(rs)?.data));
+    check("Perfil: en la BD solo un usuario tiene el nombre disputado", await bd.collection("Usuarios").countDocuments({ usuario: "api_libre" }) === 1);
+
+    // ==================== Registro de barbería (crea también al admin) ====================
+    rs = await Promise.all([
+        registroBarberia("Dueno@Barberia.Test", "dueno_a", "Barbería Carrera A"),
+        registroBarberia("dueno@barberia.test", "dueno_b", "Barbería Carrera B")
+    ]);
+    check("Registro de barbería: dos peticiones simultáneas con el mismo correo -> solo una se crea (201 y 409)", soloUnaCreada(rs), JSON.stringify(estados(rs)));
+    check("Registro de barbería: el perdedor recibe 409 con el mensaje de correo ya registrado",
+        JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_CORREO }), JSON.stringify(perdedora(rs)?.data));
+    check("Registro de barbería: solo se crea una barbería y un administrador",
+        await bd.collection("Barberias").countDocuments({ nombre: { $in: ["Barbería Carrera A", "Barbería Carrera B"] } }) === 1
+        && await bd.collection("Usuarios").countDocuments({ correo: "dueno@barberia.test" }) === 1);
+
+    r = await registroBarberia("DUENO@BARBERIA.TEST", "dueno_c", "Barbería Tres");
+    check("Registro de barbería: mismo correo con otras mayúsculas -> 409", r.status === 409 && r.data?.error === MSG_CORREO, `${r.status} ${JSON.stringify(r.data)}`);
+    check("Registro de barbería: el rechazo no crea una barbería huérfana", await bd.collection("Barberias").countDocuments({ nombre: "Barbería Tres" }) === 0);
+
+    r = await registroBarberia("MIXTO@api.test", "dueno_d", "Barbería Cuatro");
+    check("Registro de barbería con el correo de un cliente (otras mayúsculas) -> 409", r.status === 409 && r.data?.error === MSG_CORREO, `${r.status}`);
+
+    rs = await Promise.all([
+        registroBarberia("e1@barberia.test", "dueno_repetido", "Barbería Usuario A"),
+        registroBarberia("e2@barberia.test", "dueno_repetido", "Barbería Usuario B")
+    ]);
+    check("Registro de barbería: dos peticiones simultáneas con el mismo nombre de usuario -> solo una se crea (201 y 409)", soloUnaCreada(rs), JSON.stringify(estados(rs)));
+    check("Registro de barbería: el perdedor recibe 409 con el mensaje de usuario en uso",
+        JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_USUARIO }), JSON.stringify(perdedora(rs)?.data));
+
+    r = await login("DUENO@Barberia.TEST");
+    check("Login del administrador de la barbería con el correo en mayúsculas -> 200 (rol admin)", r.status === 200 && r.data?.user?.rol === "admin", `${r.status}`);
+
+    // ==================== Migración de correos ====================
+    await bd.collection("Usuarios").insertMany([
+        { correo: "  Sucio@Mig.TEST ", usuario: "mig_1", rol: "cliente" },
+        { correo: "Otro@mig.test", usuario: "mig_2", rol: "cliente" }
+    ]);
+    let ejecucion = ejecutarMigracion();
+    check("Migración en simulación: informa de los correos por normalizar y termina bien", ejecucion.status === 0 && /Correos por normalizar: 2/.test(ejecucion.stdout), `código ${ejecucion.status}`);
+    check("Migración en simulación: no modifica ningún dato", (await bd.collection("Usuarios").findOne({ usuario: "mig_1" })).correo === "  Sucio@Mig.TEST ");
+
+    ejecucion = ejecutarMigracion("--aplicar");
+    const migrados = await bd.collection("Usuarios").find({ usuario: /^mig_/ }).sort({ usuario: 1 }).toArray();
+    check("Migración con --aplicar: deja los correos en minúsculas y sin espacios",
+        ejecucion.status === 0 && migrados.map((u) => u.correo).join() === "sucio@mig.test,otro@mig.test", migrados.map((u) => u.correo).join());
+
+    await bd.collection("Usuarios").insertMany([
+        { correo: "dup@mig.test", usuario: "mig_3", rol: "cliente" },
+        { correo: "DUP@mig.test", usuario: "mig_4", rol: "cliente" },
+        { correo: " Sucio2@mig.test", usuario: "mig_5", rol: "cliente" }
+    ]);
+    ejecucion = ejecutarMigracion("--aplicar");
+    const tras = await bd.collection("Usuarios").find({ usuario: { $in: ["mig_3", "mig_4", "mig_5"] } }).sort({ usuario: 1 }).toArray();
+    check("Migración con duplicados: avisa, termina con código 1 y no modifica nada aunque se pida --aplicar",
+        ejecucion.status === 1 && /DUPLICADO "dup@mig.test"/.test(ejecucion.stdout) && tras.map((u) => u.correo).join() === "dup@mig.test,DUP@mig.test, Sucio2@mig.test",
+        `código ${ejecucion.status}`);
+    await bd.collection("Usuarios").deleteMany({ usuario: /^mig_/ });
+
+    // ==================== Arranque sin garantía de unicidad ====================
+    await bd.collection("Usuarios").dropIndex("correo_unico");
+    await bd.collection("Usuarios").insertMany([
+        { correo: "igual@arranque.test", usuario: "arranque_1", rol: "cliente" },
+        { correo: "igual@arranque.test", usuario: "arranque_2", rol: "cliente" }
+    ]);
+    const servidorFallido = lanzarServidor({ puerto: 5097, nombreBD: entorno.nombreBD });
+    const codigoSalida = await servidorFallido.salio;
+    check("Arranque: si no se puede crear un índice único el servidor no arranca y sale con código 1",
+        codigoSalida === 1 && !servidorFallido.salida().includes("Servidor corriendo") && servidorFallido.salida().includes("Faltan índices únicos: Usuarios.correo_unico"),
+        `código ${codigoSalida}`);
+    await bd.collection("Usuarios").deleteMany({ usuario: /^arranque_/ });
+    await crearIndices();
+    check("Arranque: sin duplicados el índice único se vuelve a crear", Boolean((await bd.collection("Usuarios").indexes()).find((i) => i.name === "correo_unico" && i.unique)));
+} finally {
+    await client.close();
+    await entorno.cerrar();
+}
+
+terminar();

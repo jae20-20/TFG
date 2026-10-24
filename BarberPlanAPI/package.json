@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:integracion && npm run test:seguridad",
+    "test:integracion": "node tests/integracion.mjs",
+    "test:seguridad": "node tests/seguridad.mjs"
   },
   "keywords": [],
   "author": "",

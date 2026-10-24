@@ -1,7 +1,7 @@
 //manejar http request - Barberías
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJE_PW_CORTA, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
+import { MENSAJE_PW_CORTA, MENSAJES_DUPLICADO, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
 import { ObjectId } from "mongodb";
 
 import {
@@ -35,7 +35,7 @@ import {
     revocarInvitacion
 } from "../models/invitacionModel.js";
 
-import { createUser, getUserByEmail, getUserByUsername, getUserById } from "../models/userModel.js";
+import { campoDuplicado, createUser, getUserByEmail, getUserByUsername, getUserById, normalizarCorreo } from "../models/userModel.js";
 import { getResenasByBarberiaId } from "../models/citaModel.js";
 
 
@@ -121,22 +121,21 @@ export const registerBarberia = async (req, res) => {
             return res.status(400).json({ error: "Todos los campos obligatorios deben completarse" });
         }
 
-        const correo = req.body.correo.trim();
+        const correo = normalizarCorreo(req.body.correo);
 
         if (pw.length < PW_MIN_LENGTH) {
             return res.status(400).json({ error: MENSAJE_PW_CORTA });
         }
 
-        // Verificar si el correo ya existe
+        // Comprobación previa solo para responder rápido: la garantía real son los índices únicos (ver catch)
         const existingEmail = await getUserByEmail(correo);
         if (existingEmail) {
-            return res.status(409).json({ error: "El correo ya está registrado" });
+            return res.status(409).json({ error: MENSAJES_DUPLICADO.correo });
         }
 
-        // Verificar si el usuario ya existe
         const existingUsername = await getUserByUsername(usuario);
         if (existingUsername) {
-            return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
+            return res.status(409).json({ error: MENSAJES_DUPLICADO.usuario });
         }
 
         // Encriptar contraseña del admin
@@ -207,6 +206,10 @@ export const registerBarberia = async (req, res) => {
         });
 
     } catch (error) {
+        const duplicado = campoDuplicado(error);
+        if (duplicado) {
+            return res.status(409).json({ error: MENSAJES_DUPLICADO[duplicado] });
+        }
         console.error("Error al registrar barbería:", error);
         res.status(500).json({ error: "Error al registrar barbería" });
     }

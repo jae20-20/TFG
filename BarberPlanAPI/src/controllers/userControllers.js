@@ -1,7 +1,7 @@
 //manejar http request - Usuarios
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJE_PW_CORTA, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
+import { MENSAJE_PW_CORTA, MENSAJES_DUPLICADO, PW_MIN_LENGTH } from "../middleware/validateMiddleware.js";
 
 import {
     addBarberoToBarberia,
@@ -16,12 +16,14 @@ import {
     normalizeInvitationCode
 } from "../models/invitacionModel.js";
 import {
+    campoDuplicado,
     createUser,
     deleteUser,
     getUserByEmail,
     getUserById,
     getUserByUsername,
     getUsersByBarberiaId,
+    normalizarCorreo,
     quitarServicioBloqueado,
     updateUserPassword,
     updateUserProfile,
@@ -121,22 +123,21 @@ export const addUser = async (req, res) => {
             return res.status(400).json({ error: "La ciudad es obligatoria para el registro de clientes" });
         }
 
-        const correo = req.body.correo.trim();
+        const correo = normalizarCorreo(req.body.correo);
 
         if (pw.length < PW_MIN_LENGTH) {
             return res.status(400).json({ error: MENSAJE_PW_CORTA });
         }
 
-        // Verificar si el correo ya existe
+        // Comprobación previa solo para responder rápido: la garantía real son los índices únicos (ver catch)
         const existingEmail = await getUserByEmail(correo);
         if (existingEmail) {
-            return res.status(409).json({ error: "El correo ya está registrado" });
+            return res.status(409).json({ error: MENSAJES_DUPLICADO.correo });
         }
 
-        // Verificar si el usuario ya existe
         const existingUsername = await getUserByUsername(usuario);
         if (existingUsername) {
-            return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
+            return res.status(409).json({ error: MENSAJES_DUPLICADO.usuario });
         }
 
         let invitacion = null;
@@ -194,6 +195,10 @@ export const addUser = async (req, res) => {
         res.status(201).json({ message: "Usuario creado correctamente" });
 
     } catch (error) {
+        const duplicado = campoDuplicado(error);
+        if (duplicado) {
+            return res.status(409).json({ error: MENSAJES_DUPLICADO[duplicado] });
+        }
         console.error("Error al crear usuario:", error);
         res.status(500).json({ error: "Error al crear usuario" });
     }
@@ -204,7 +209,7 @@ export const addUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     try {
         // Solo se aceptan strings: un objeto como {"$regex": "^a"} nunca llega a la consulta
-        const correo = typeof req.body.correo === "string" ? req.body.correo.trim() : "";
+        const correo = typeof req.body.correo === "string" ? normalizarCorreo(req.body.correo) : "";
         const pw = typeof req.body.pw === "string" ? req.body.pw : "";
 
         if (!correo || !pw) {
@@ -263,11 +268,11 @@ export const editProfile = async (req, res) => {
             return res.status(400).json({ error: "Nombre de usuario no válido" });
         }
 
-        // Verificar si el nuevo nombre de usuario ya existe
+        // Comprobación previa solo para responder rápido: la garantía real es el índice único (ver catch)
         if (usuario) {
             const existingUser = await getUserByUsername(usuario);
             if (existingUser && existingUser._id.toString() !== userId) {
-                return res.status(409).json({ error: "El nombre de usuario ya está en uso" });
+                return res.status(409).json({ error: MENSAJES_DUPLICADO.usuario });
             }
         }
 
@@ -278,6 +283,9 @@ export const editProfile = async (req, res) => {
         
         res.json({ message: "Perfil actualizado correctamente", user: userWithoutPw });
     } catch (error) {
+        if (campoDuplicado(error) === "usuario") {
+            return res.status(409).json({ error: MENSAJES_DUPLICADO.usuario });
+        }
         console.error("Error al actualizar perfil:", error);
         res.status(500).json({ error: "Error al actualizar perfil" });
     }
