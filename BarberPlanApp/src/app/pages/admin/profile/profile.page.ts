@@ -6,18 +6,20 @@ import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
 import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
+import { CambiarPasswordModalComponent } from '../../../components/cambiar-password-modal/cambiar-password-modal.component';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PhoneInputComponent, PhoneDisplayPipe]
+  imports: [IonicModule, CommonModule, FormsModule, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent]
 })
 export class ProfilePage implements OnInit {
   user: any = null;
   adminEditForm: any = null;
   isEditingAdmin = false;
+  isPasswordModalOpen = false;
   savingAdmin = false;
   profileError = '';
 

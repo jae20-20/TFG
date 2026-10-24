@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
 import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
+import { CambiarPasswordModalComponent } from '../../../components/cambiar-password-modal/cambiar-password-modal.component';
 
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutline, checkmarkOutline, closeOutline, cameraOutline } from 'ionicons/icons';
@@ -18,7 +19,7 @@ import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutli
   templateUrl: './client-profile.page.html',
   styleUrls: ['./client-profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent]
 })
 export class ClientProfilePage implements OnInit {
   user: any = null;
@@ -29,6 +30,7 @@ export class ClientProfilePage implements OnInit {
 
   clientEditForm: any = null;
   isEditingClient = false;
+  isPasswordModalOpen = false;
   savingClient = false;
   clientProfileError = '';
   ciudades = ['Madrid', 'Valencia', 'Sevilla'];

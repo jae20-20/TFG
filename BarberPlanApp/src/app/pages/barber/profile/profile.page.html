@@ -108,6 +108,15 @@
       </ion-button>
     </div>
 
+    <div class="barbero-actions" *ngIf="!isEditingBarbero">
+      <ion-button expand="block" fill="outline" (click)="isPasswordModalOpen = true">
+        <ion-icon slot="start" name="key-outline"></ion-icon>
+        Cambiar contraseña
+      </ion-button>
+    </div>
+
     <p class="barbero-error" *ngIf="barberoProfileError">{{ barberoProfileError }}</p>
   </div>
+
+  <app-cambiar-password-modal [isOpen]="isPasswordModalOpen" (cerrado)="isPasswordModalOpen = false"></app-cambiar-password-modal>
 </ion-content>

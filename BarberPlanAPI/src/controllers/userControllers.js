@@ -1,7 +1,7 @@
 //manejar http request - Usuarios
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJES_DUPLICADO, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
+import { MENSAJES_CREDENCIALES, MENSAJES_DUPLICADO, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
 
 import {
     addBarberoToBarberia,
@@ -316,6 +316,11 @@ export const changePassword = async (req, res) => {
         const isPasswordValid = await bcrypt.compare(currentPassword, user.pw);
         if (!isPasswordValid) {
             return res.status(401).json({ error: "Contraseña actual incorrecta" });
+        }
+
+        // La actual ya está verificada: basta comparar los dos textos recibidos
+        if (newPassword === currentPassword) {
+            return res.status(400).json({ error: MENSAJES_CREDENCIALES.pwIgualActual });
         }
 
         const salt = await bcrypt.genSalt(10);

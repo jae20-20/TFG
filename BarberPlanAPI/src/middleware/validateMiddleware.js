@@ -28,6 +28,7 @@ export const MENSAJES_CREDENCIALES = {
     pwSinLetra: "La contraseña debe incluir al menos una letra",
     pwSinNumero: "La contraseña debe incluir al menos un número",
     pwLarga: `La contraseña es demasiado larga (máximo ${PW_MAX_BYTES} caracteres; las letras con tilde y los emojis cuentan más)`,
+    pwIgualActual: "La nueva contraseña debe ser distinta de la actual",
     correoFormato: "El correo electrónico no tiene un formato válido",
     correoLargo: "El correo electrónico es demasiado largo"
 };

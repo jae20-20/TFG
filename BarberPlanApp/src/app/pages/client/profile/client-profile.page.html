@@ -142,8 +142,17 @@
       </ion-button>
     </div>
 
+    <div class="cliente-actions" *ngIf="!isEditingClient">
+      <ion-button expand="block" fill="outline" (click)="isPasswordModalOpen = true">
+        <ion-icon slot="start" name="key-outline"></ion-icon>
+        Cambiar contraseña
+      </ion-button>
+    </div>
+
     <p class="cliente-error" *ngIf="clientProfileError">{{ clientProfileError }}</p>
   </div>
+
+  <app-cambiar-password-modal [isOpen]="isPasswordModalOpen" (cerrado)="isPasswordModalOpen = false"></app-cambiar-password-modal>
 </ion-content>
 
 <ion-footer class="ion-no-border">

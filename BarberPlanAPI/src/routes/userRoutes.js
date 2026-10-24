@@ -24,6 +24,17 @@ const authLimiter = rateLimit({
   message: { error: "Demasiados intentos, intenta más tarde" }
 });
 
+// Fallos de contraseña actual al cambiarla: por usuario (va detrás de verifyToken), no por IP, y solo
+// cuentan las respuestas 401. Los errores de formato de la nueva (400) y los cambios correctos se descuentan
+const cambioPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  keyGenerator: (req) => req.user.id,
+  skipSuccessfulRequests: true,
+  requestWasSuccessful: (req, res) => res.statusCode !== 401,
+  message: { error: "Demasiados intentos, inténtalo más tarde" }
+});
+
 //  RUTAS PÚBLICAS
 router.post("/login", authLimiter, loginUser);
 router.post("/registro", authLimiter, addUser);
@@ -32,7 +43,7 @@ router.post("/registro", authLimiter, addUser);
 router.get("/", verifyToken, isAdmin, getUsers);
 router.get("/perfil", verifyToken, getProfile);
 router.put("/perfil", verifyToken, editProfile);
-router.post("/cambiar-contrasena", verifyToken, changePassword);
+router.post("/cambiar-contrasena", verifyToken, cambioPasswordLimiter, changePassword);
 
 router.get("/:id", verifyToken, getUser);
 router.delete("/:id", verifyToken, deleteUserAccount);

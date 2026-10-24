@@ -225,6 +225,60 @@ try {
         await servidorCredenciales.detener();
     }
 
+    // ==================== Cambio de contraseña ====================
+    // API aparte otra vez: necesita intentos de login limpios y su propio contador de fallos por usuario
+    const servidorCambio = lanzarServidor({ puerto: 5095, nombreBD: entorno.nombreBD });
+    await servidorCambio.listo;
+    const reqCambio = crearCliente("http://localhost:5095");
+    try {
+        const crearConPassword = async (usuario, pw) => {
+            const doc = { nombre: "Cambio", apellido: "Prueba", correo: `${usuario}@prueba.test`, usuario, rol: "cliente", pw: await bcrypt.hash(pw, 10) };
+            doc._id = (await bd.collection("Usuarios").insertOne(doc)).insertedId;
+            return doc;
+        };
+        const passwordGuardada = async (usuario, pw) => bcrypt.compare(pw, (await bd.collection("Usuarios").findOne({ _id: usuario._id })).pw);
+        const cambio = await crearConPassword("cambio_1", "ClaveActual1");
+        const victima = await crearConPassword("cambio_victima", "Victima123");
+        const cambiar = (usuario, body) => reqCambio("POST", "/usuarios/cambiar-contrasena", { token: firmar(usuario), body });
+        const MSG_ACTUAL = "Contraseña actual incorrecta";
+
+        r = await cambiar(cambio, { currentPassword: "NoEsLaMia1", newPassword: "NuevaClave2" });
+        check("Cambio de contraseña: actual incorrecta -> 401", r.status === 401 && r.data?.error === MSG_ACTUAL, `${r.status} ${JSON.stringify(r.data)}`);
+        r = await cambiar(cambio, { currentPassword: "ClaveActual1", newPassword: "sinnumero" });
+        check("Cambio de contraseña: la nueva no cumple la política -> 400", r.status === 400 && r.data?.error === M.pwSinNumero, `${r.status} ${JSON.stringify(r.data)}`);
+        r = await cambiar(cambio, { currentPassword: "ClaveActual1", newPassword: "ClaveActual1" });
+        check("Cambio de contraseña: la nueva igual a la actual -> 400", r.status === 400 && r.data?.error === M.pwIgualActual, `${r.status} ${JSON.stringify(r.data)}`);
+
+        r = await cambiar(cambio, { currentPassword: "Victima123", newPassword: "Robada123", id: victima._id.toString(), userId: victima._id.toString(), _id: victima._id.toString() });
+        check("Cambio de contraseña sobre otro usuario (id ajeno en el body y su contraseña) -> 401 y la víctima no cambia",
+            r.status === 401 && await passwordGuardada(victima, "Victima123"), `${r.status}`);
+        r = await reqCambio("POST", `/usuarios/cambiar-contrasena/${victima._id}`, { token: firmar(cambio), body: { currentPassword: "Victima123", newPassword: "Robada123" } });
+        check("Cambio de contraseña con el id ajeno en la ruta -> 404 (la ruta no admite id)", r.status === 404 && await passwordGuardada(victima, "Victima123"), `${r.status}`);
+
+        r = await cambiar(cambio, { currentPassword: "ClaveActual1", newPassword: "NuevaClave2" });
+        check("Cambio de contraseña correcto -> 200 y se guarda el hash nuevo", r.status === 200 && await passwordGuardada(cambio, "NuevaClave2"), `${r.status}`);
+        r = await reqCambio("POST", "/usuarios/login", { body: { correo: cambio.correo, pw: "NuevaClave2" } });
+        check("Tras el cambio: login con la contraseña nueva -> 200", r.status === 200 && Boolean(r.data?.token), `${r.status}`);
+        r = await reqCambio("POST", "/usuarios/login", { body: { correo: cambio.correo, pw: "ClaveActual1" } });
+        check("Tras el cambio: login con la contraseña antigua -> 401", r.status === 401, `${r.status}`);
+
+        // Llevamos 2 fallos (401). Los 400 no cuentan: el quinto fallo aún responde 401 y el sexto intento ya es 429
+        const fallos = [];
+        fallos.push((await cambiar(cambio, { currentPassword: "Fallo1234", newPassword: "OtraClave3" })).status);
+        fallos.push((await cambiar(cambio, { currentPassword: "Fallo1234", newPassword: "OtraClave3" })).status);
+        fallos.push((await cambiar(cambio, { currentPassword: "NuevaClave2", newPassword: "corta" })).status);
+        fallos.push((await cambiar(cambio, { currentPassword: "Fallo1234", newPassword: "OtraClave3" })).status);
+        check("Límite: los errores de formato (400) no cuentan y el quinto fallo de contraseña actual sigue siendo 401",
+            JSON.stringify(fallos) === "[401,401,400,401]", JSON.stringify(fallos));
+        r = await cambiar(cambio, { currentPassword: "NuevaClave2", newPassword: "OtraClave3" });
+        check("Límite: tras 5 fallos, incluso con la contraseña correcta -> 429 y no cambia nada",
+            r.status === 429 && r.data?.error === "Demasiados intentos, inténtalo más tarde" && await passwordGuardada(cambio, "NuevaClave2"), `${r.status} ${JSON.stringify(r.data)}`);
+        r = await cambiar(victima, { currentPassword: "Victima123", newPassword: "VictimaNueva4" });
+        check("Límite por usuario, no por IP: otro usuario desde la misma IP puede cambiar su contraseña -> 200", r.status === 200, `${r.status}`);
+    } finally {
+        await servidorCambio.detener();
+    }
+
     // ==================== Reglas de la app = reglas del servidor ====================
     const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];
     check("App y servidor: mismos límites y misma regex de correo",

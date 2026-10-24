@@ -216,6 +216,14 @@ try {
     r = await req("POST", "/usuarios/registro", { body: { nombre: "x", apellido: "x", correo: "x@x.x", pw: "x", usuario: "x", rol: "admin" } });
     check("Registro con rol admin -> 400", r.status === 400 && r.data?.error === "Rol no válido", `${r.status} ${JSON.stringify(r.data)}`);
 
+    // --- Cambio de contraseña (se rechaza antes de escribir)
+    r = await req("POST", "/usuarios/cambiar-contrasena", { body: { currentPassword: "x", newPassword: "NuevaClave1" } });
+    check("Cambiar contraseña sin token -> 401", r.status === 401, `${r.status}`);
+    r = await req("POST", "/usuarios/cambiar-contrasena", { token: propioToken, body: { currentPassword: { $ne: null }, newPassword: "NuevaClave1" } });
+    check("Cambiar contraseña con operador Mongo en la actual -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("POST", "/usuarios/cambiar-contrasena", { token: clienteFalso, body: { currentPassword: "Cualquiera1", newPassword: "NuevaClave1" } });
+    check("Cambiar contraseña con token de un usuario inexistente -> 404", r.status === 404, `${r.status}`);
+
     // --- IDs mal formados -> 400 (antes 500)
     r = await req("GET", "/usuarios/abc", { token: adminReal });
     check("GET /usuarios/abc -> 400", r.status === 400, `${r.status}`);

@@ -273,6 +273,14 @@ export class ApiService {
     );
   }
 
+  // Cambiar la contraseña del usuario autenticado
+  async cambiarPassword(currentPassword: string, newPassword: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/usuarios/cambiar-contrasena`, { currentPassword, newPassword }, { headers })
+    );
+  }
+
   // Crear un nuevo servicio
   async addServicio(barberiaId: string, data: any) {
     const headers = await this.getAuthHeaders();
