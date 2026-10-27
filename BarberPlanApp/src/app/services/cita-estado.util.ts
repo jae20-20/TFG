@@ -44,6 +44,15 @@ export function limiteRespuesta(cita: any): Date | null {
 
 export const esPendiente = (cita: any) => cita?.estado === 'pendiente';
 
+// Cita del filtro «Próximas» del cliente: no cancelada y que aún no ha empezado (sin fecha cuenta como próxima).
+// La usan Mis citas y el aviso del panel Explorar, para que ambos cuenten lo mismo
+export function esCitaProxima(cita: any, ahora: Date = new Date()): boolean {
+  if (cita?.estado === 'cancelada') return false;
+  if (!cita?.fecha) return true;
+  const fechaHora = new Date(`${cita.fecha}T${cita.horaInicio || cita.horaFin || '00:00'}`);
+  return Number.isNaN(fechaHora.getTime()) || fechaHora.getTime() >= ahora.getTime();
+}
+
 export function esPendienteVigente(cita: any): boolean {
   const limite = limiteRespuesta(cita);
   return esPendiente(cita) && (!limite || limite.getTime() > Date.now());

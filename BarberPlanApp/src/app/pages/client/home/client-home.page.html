@@ -25,6 +25,14 @@
     </span>
   </section>
 
+  <button type="button" class="citas-aviso" *ngIf="citasProximas > 0" (click)="verCitasProximas()">
+    <ion-icon name="calendar-outline" class="citas-aviso-icono"></ion-icon>
+    <span class="citas-aviso-texto">
+      Tienes {{ citasProximas }} {{ citasProximas === 1 ? 'cita pendiente' : 'citas pendientes' }}
+    </span>
+    <ion-icon name="chevron-forward-outline" class="citas-aviso-icono"></ion-icon>
+  </button>
+
   <div class="filter-bar">
     <div class="search-field">
       <ion-icon name="search-outline" class="search-icon"></ion-icon>

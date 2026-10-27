@@ -185,7 +185,7 @@
       <app-week-agenda
         *ngIf="viewMode === 'week'"
         [weekDays]="weekDays"
-        [citas]="getAppointmentsForSelectedBarber(selectedDateKey)"
+        [citas]="selectedBarberDayAppointments"
         [slots]="daySlots"
         [absences]="dayAbsences"
         (daySelected)="selectWeekDay($event)"

@@ -39,6 +39,9 @@ export class CalendarPage implements OnInit {
   selectedDateKey = this.toDateKey(new Date());
   selectedDateLabel = '';
   selectedDayAppointments: any[] = [];
+  // Entrada de la vista semanal. Debe ser una propiedad estable: con una llamada a método en la plantilla
+  // se creaba un array nuevo en cada detección de cambios y la agenda se recalculaba y redibujaba sin parar
+  selectedBarberDayAppointments: any[] = [];
   expandedCitaId: string | null = null;
 
   // Agrupamiento por barberos
@@ -797,6 +800,7 @@ export class CalendarPage implements OnInit {
 
   private updateSelectedDayAppointments() {
     this.selectedDayAppointments = this.getAppointmentsByDateKey(this.selectedDateKey);
+    this.selectedBarberDayAppointments = this.getFilteredAppointments();
 
     this.selectedDateLabel = new Intl.DateTimeFormat('es-ES', {
       weekday: 'long',

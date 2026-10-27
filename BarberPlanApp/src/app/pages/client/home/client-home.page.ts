@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { NavController, AlertController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
@@ -78,8 +78,10 @@ import {
   closeOutline,
   closeCircle,
   pricetagOutline,
-  peopleOutline
+  peopleOutline,
+  chevronForwardOutline
 } from 'ionicons/icons';
+import { esCitaProxima } from '../../../services/cita-estado.util';
 
 @Component({
   selector: 'app-client-home',
@@ -89,12 +91,15 @@ import {
   imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent]
 })
 export class ClientHomePage implements OnInit {
+  // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior
+  private navCtrl = inject(NavController);
   user: any = null;
   barberias: BarberiaPublica[] = [];
   barberiasFiltradas: BarberiaPublica[] = [];
   loadingBarberias = false;
   barberiasError = '';
   currentTab: 'inicio' | 'citas' | 'perfil' = 'inicio';
+  citasProximas = 0;
 
   busqueda = '';
   filtros: FiltrosBarberia = ClientHomePage.filtrosPorDefecto();
@@ -132,7 +137,8 @@ export class ClientHomePage implements OnInit {
       'close-outline': closeOutline,
       'close-circle': closeCircle,
       'pricetag-outline': pricetagOutline,
-      'people-outline': peopleOutline
+      'people-outline': peopleOutline,
+      'chevron-forward-outline': chevronForwardOutline
     });
 
     this.router.events.subscribe((event) => {
@@ -148,6 +154,23 @@ export class ClientHomePage implements OnInit {
   ionViewWillEnter() {
     this.currentTab = 'inicio';
     this.cdr.detectChanges();
+    // En cada entrada: el cliente puede haber reservado o cancelado desde otra pantalla
+    this.cargarCitasProximas();
+  }
+
+  // El aviso es secundario: si la petición falla simplemente no se muestra
+  async cargarCitasProximas() {
+    try {
+      const citas = await this.apiService.getMisCitas();
+      const ahora = new Date();
+      this.citasProximas = Array.isArray(citas) ? citas.filter((cita) => esCitaProxima(cita, ahora)).length : 0;
+    } catch {
+      this.citasProximas = 0;
+    }
+  }
+
+  verCitasProximas() {
+    this.router.navigate(['/client-appointments'], { queryParams: { filtro: 'proximas' } });
   }
 
   async ngOnInit() {
@@ -545,7 +568,7 @@ export class ClientHomePage implements OnInit {
           handler: async () => {
             await this.authService.logout();
             await this.storage.remove('user');
-            this.router.navigateByUrl('/login', { replaceUrl: true });
+            this.navCtrl.navigateRoot('/login');
           }
         }
       ]

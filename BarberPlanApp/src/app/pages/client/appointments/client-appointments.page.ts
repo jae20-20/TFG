@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
-import { AlertController, ToastController, IonicModule } from '@ionic/angular';
+import { NavController, AlertController, ToastController, IonicModule } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
@@ -12,9 +12,10 @@ import { ReviewImageComponent } from '../../../components/review-image/review-im
 
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline, hourglassOutline, informationCircleOutline } from 'ionicons/icons';
-import { esPendiente, etiquetaEstadoCita, limiteRespuesta } from '../../../services/cita-estado.util';
+import { esCitaProxima, esPendiente, etiquetaEstadoCita, limiteRespuesta } from '../../../services/cita-estado.util';
 
 type FiltroCitas = 'proximas' | 'anteriores' | 'canceladas' | 'todas';
+const FILTROS_CITAS: FiltroCitas[] = ['proximas', 'anteriores', 'canceladas', 'todas'];
 
 interface ResenaForm {
   valoracion: number;
@@ -30,6 +31,8 @@ interface ResenaForm {
   imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, StarRatingComponent, ReviewImageComponent]
 })
 export class ClientAppointmentsPage implements OnInit {
+  // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior
+  private navCtrl = inject(NavController);
   user: any = null;
   citas: any[] = [];
   loadingCitas = false;
@@ -79,6 +82,11 @@ export class ClientAppointmentsPage implements OnInit {
   }
 
   ionViewWillEnter() {
+    // El aviso del panel Explorar llega con ?filtro=proximas; la página se reutiliza, así que se lee en cada entrada
+    const filtro = this.router.parseUrl(this.router.url).queryParams['filtro'];
+    if (FILTROS_CITAS.includes(filtro)) {
+      this.filtroCitas = filtro;
+    }
     this.currentTab = 'citas';
     this.cdr.detectChanges();
     this.loadMisCitas();
@@ -123,8 +131,7 @@ export class ClientAppointmentsPage implements OnInit {
         return false;
       }
 
-      const fechaHora = this.getCitaDateTime(cita);
-      const esFutura = fechaHora === null || fechaHora.getTime() >= ahora.getTime();
+      const esFutura = esCitaProxima(cita, ahora);
       return this.filtroCitas === 'proximas' ? esFutura : !esFutura;
     });
 
@@ -371,7 +378,7 @@ export class ClientAppointmentsPage implements OnInit {
           handler: async () => {
             await this.authService.logout();
             await this.storage.remove('user');
-            this.router.navigateByUrl('/login', { replaceUrl: true });
+            this.navCtrl.navigateRoot('/login');
           }
         }
       ]

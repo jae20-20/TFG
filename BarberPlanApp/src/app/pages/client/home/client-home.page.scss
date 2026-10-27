@@ -47,6 +47,35 @@ ion-content.client-premium-content {
 	white-space: nowrap;
 }
 
+/* --- Aviso de citas próximas (mismos tokens que el aviso de reservas pendientes del dueño) --- */
+.citas-aviso {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 14px;
+	padding: 12px 14px;
+	border-radius: var(--bp-radius-md);
+	border: 1px solid var(--custom-gold);
+	background: var(--custom-gold-soft);
+	color: var(--custom-text-primary);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.citas-aviso-icono {
+	font-size: 20px;
+	flex-shrink: 0;
+	color: var(--custom-gold-light);
+}
+
+.citas-aviso-texto {
+	flex: 1;
+	font-size: var(--bp-fs-body);
+	font-weight: 800;
+}
+
 /* --- Barra de búsqueda + acceso a filtros --- */
 .filter-bar {
 	display: flex;

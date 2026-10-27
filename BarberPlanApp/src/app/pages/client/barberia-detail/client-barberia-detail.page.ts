@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { NavController, IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { Storage } from '@ionic/storage-angular';
@@ -27,6 +27,8 @@ interface ReservaForm {
   imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, StarRatingComponent, ReviewImageComponent]
 })
 export class ClientBarberiaDetailPage implements OnInit {
+  // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior
+  private navCtrl = inject(NavController);
   barberiaId = '';
   barberia: any = null;
   servicios: any[] = [];
@@ -193,7 +195,7 @@ export class ClientBarberiaDetailPage implements OnInit {
           handler: async () => {
             await this.authService.logout();
             await this.storage.remove('user');
-            this.router.navigateByUrl('/login', { replaceUrl: true });
+            this.navCtrl.navigateRoot('/login');
           }
         }
       ]

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
-import { AlertController, IonicModule, ToastController } from '@ionic/angular';
+import { NavController, AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
@@ -22,6 +22,8 @@ import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutli
   imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent]
 })
 export class ClientProfilePage implements OnInit {
+  // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior
+  private navCtrl = inject(NavController);
   user: any = null;
   profile: any = null;
   loadingProfile = false;
@@ -286,7 +288,7 @@ export class ClientProfilePage implements OnInit {
           handler: async () => {
             await this.authService.logout();
             await this.storage.remove('user');
-            this.router.navigateByUrl('/login', { replaceUrl: true });
+            this.navCtrl.navigateRoot('/login');
           }
         }
       ]
