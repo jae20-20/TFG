@@ -14,8 +14,11 @@
         <div *ngIf="!barber.avatar" class="avatar-initials">{{ getInitials(barber) }}</div>
       </div>
       <ion-label>
-        <h2>{{ barber.nombre }} {{ barber.apellido }} <span *ngIf="isAdmin(barber)" class="admin-badge">(Tú)</span></h2>
-        <p *ngIf="!isAdmin(barber)">{{ barber.cargo || 'Barbero' }}</p>
+        <h2>
+          {{ barber.nombre }} {{ barber.apellido }} <span *ngIf="isAdmin(barber)" class="admin-badge">(Tú)</span>
+          <ion-badge *ngIf="barber.activo === false" color="medium">Desactivado</ion-badge>
+        </h2>
+        <p *ngIf="!isAdmin(barber)" [class.field-display-muted]="barber.activo === false">{{ barber.cargo || 'Barbero' }}</p>
         <p *ngIf="isAdmin(barber)" class="admin-role-text">Admin</p>
       </ion-label>
     </ion-item>

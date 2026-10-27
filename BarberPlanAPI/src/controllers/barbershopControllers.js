@@ -35,8 +35,8 @@ import {
     revocarInvitacion
 } from "../models/invitacionModel.js";
 
-import { campoDuplicado, createUser, getUserByEmail, getUserByUsername, getUserById, normalizarCorreo } from "../models/userModel.js";
-import { getResenasByBarberiaId } from "../models/citaModel.js";
+import { barberoActivo, campoDuplicado, createUser, getUserByEmail, getUserByUsername, getUserById, normalizarCorreo, setBarberoActivo } from "../models/userModel.js";
+import { contarCitasFuturasBarbero, getResenasByBarberiaId } from "../models/citaModel.js";
 
 
 // Obtener todas las barberías (público)
@@ -518,13 +518,59 @@ export const getBarberos = async (req, res) => {
             return res.json(barberos);
         }
 
-        const barberosPublicos = barberos.map((barbero) =>
+        // Los desactivados no se ofrecen para reservar; el admin sí los recibe (con activo: false) para gestionarlos
+        const barberosPublicos = barberos.filter(barberoActivo).map((barbero) =>
             Object.fromEntries(CAMPOS_PUBLICOS_BARBERO.filter((campo) => campo in barbero).map((campo) => [campo, barbero[campo]]))
         );
         res.json(barberosPublicos);
     } catch (error) {
         console.error("Error al obtener barberos:", error);
         res.status(500).json({ error: "Error al obtener barberos" });
+    }
+};
+
+// Activar o desactivar a un barbero (solo el admin de su barbería). Desactivar no cancela sus citas:
+// se devuelve cuántas futuras tiene para que el admin decida qué hacer con ellas
+export const setEstadoBarbero = async (req, res) => {
+    try {
+        const { id, barberoId } = req.params;
+        const { activo } = req.body;
+
+        if (typeof activo !== "boolean") {
+            return res.status(400).json({ error: "Indica si el barbero debe quedar activo o no" });
+        }
+
+        const isAdmin = await isUserAdminOfBarberia(req.user.id, id);
+        if (!isAdmin) {
+            return res.status(403).json({ error: "No tienes permiso para gestionar este equipo" });
+        }
+
+        const barbero = await getUserById(barberoId);
+        if (!barbero || barbero.barberiaId?.toString() !== id) {
+            return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
+        }
+        if (barbero.rol !== "barbero") {
+            return res.status(400).json({ error: "Solo se puede activar o desactivar a los barberos del equipo" });
+        }
+
+        const actualizado = await setBarberoActivo(barberoId, activo);
+        if (!actualizado) {
+            return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
+        }
+
+        const ahora = new Date();
+        const fecha = ahora.toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
+        const hora = ahora.toLocaleTimeString("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", hour12: false });
+        const citasFuturas = await contarCitasFuturasBarbero(barberoId, fecha, hora);
+
+        res.json({
+            message: activo ? "Barbero activado" : "Barbero desactivado",
+            activo,
+            citasFuturas
+        });
+    } catch (error) {
+        console.error("Error al cambiar el estado del barbero:", error);
+        res.status(500).json({ error: "Error al cambiar el estado del barbero" });
     }
 };
 

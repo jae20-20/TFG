@@ -5,6 +5,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../../services/api.service';
 import { PhoneDisplayPipe } from '../../../../../components/phone-input/phone-display.pipe';
+import { addIcons } from 'ionicons';
+import { pauseCircleOutline, playCircleOutline } from 'ionicons/icons';
+
+addIcons({ 'pause-circle-outline': pauseCircleOutline, 'play-circle-outline': playCircleOutline });
 
 type ScheduleDayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
@@ -22,6 +26,7 @@ interface BarberDetail {
   telefono: string;
   correo: string;
   cargo?: string;
+  activo?: boolean;
   avatar?: string;
   diasLibres?: string[];
   vacaciones?: { fechaInicio: string; fechaFin: string; motivo: string }[];
@@ -165,6 +170,64 @@ export class BarberDetailsPage implements OnInit {
       const toast = await this.toastCtrl.create({
         message: 'Error al guardar los cambios.',
         duration: 2000, position: 'bottom', color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  // Sin el campo cuenta como activo, igual que en el servidor
+  get barberActivo(): boolean {
+    return this.barber?.activo !== false;
+  }
+
+  async confirmToggleActivo() {
+    const nombre = `${this.barber?.nombre} ${this.barber?.apellido}`.trim();
+    const desactivar = this.barberActivo;
+    const alert = await this.alertCtrl.create({
+      header: desactivar ? 'Desactivar barbero' : 'Activar barbero',
+      message: desactivar
+        ? `${nombre} dejará de aparecer al reservar y no se le podrán asignar citas nuevas. Conserva su cuenta, su historial y sus citas ya reservadas. Podrás volver a activarlo cuando quieras.`
+        : `${nombre} volverá a aparecer al reservar y podrá recibir citas nuevas.`,
+      cssClass: 'premium-alert',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: desactivar ? 'Desactivar' : 'Activar', role: desactivar ? 'destructive' : 'confirm', handler: () => { this.toggleActivo(!desactivar); } }
+      ]
+    });
+    await alert.present();
+  }
+
+  async toggleActivo(activo: boolean) {
+    if (!this.barber) return;
+    this.saving = true;
+    try {
+      const miBarberia = await this.apiService.getMyBarberia();
+      const respuesta = await this.apiService.setEstadoBarbero(miBarberia._id, this.barber._id, activo);
+      this.barber.activo = respuesta.activo;
+
+      if (!activo && respuesta.citasFuturas > 0) {
+        const aviso = await this.alertCtrl.create({
+          header: 'Barbero desactivado',
+          message: respuesta.citasFuturas === 1
+            ? 'Tiene 1 cita futura. No se ha cancelado: revísala en el calendario y decide qué hacer con ella.'
+            : `Tiene ${respuesta.citasFuturas} citas futuras. No se han cancelado: revísalas en el calendario y decide qué hacer con ellas.`,
+          cssClass: 'premium-alert',
+          buttons: ['Entendido']
+        });
+        await aviso.present();
+      } else {
+        const toast = await this.toastCtrl.create({
+          message: activo ? 'Barbero activado.' : 'Barbero desactivado.',
+          duration: 2000, position: 'bottom', color: 'success'
+        });
+        await toast.present();
+      }
+    } catch (e: any) {
+      const toast = await this.toastCtrl.create({
+        message: e?.error?.error || 'No se pudo cambiar el estado del barbero.',
+        duration: 2500, position: 'bottom', color: 'danger'
       });
       await toast.present();
     } finally {

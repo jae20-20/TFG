@@ -216,6 +216,21 @@ try {
     r = await req("POST", "/usuarios/registro", { body: { nombre: "x", apellido: "x", correo: "x@x.x", pw: "x", usuario: "x", rol: "admin" } });
     check("Registro con rol admin -> 400", r.status === 400 && r.data?.error === "Rol no válido", `${r.status} ${JSON.stringify(r.data)}`);
 
+    // --- Activar o desactivar barberos (se rechaza antes de escribir)
+    const rutaEstadoBarbero = `/barberias/${barberia._id}/barberos/${barbero._id}/estado`;
+    r = await req("PUT", rutaEstadoBarbero, { body: { activo: false } });
+    check("Desactivar barbero sin token -> 401", r.status === 401, `${r.status}`);
+    r = await req("PUT", rutaEstadoBarbero, { token: adminAjeno, body: { activo: false } });
+    check("Desactivar barbero como admin de otra barbería -> 403", r.status === 403, `${r.status}`);
+    r = await req("PUT", rutaEstadoBarbero, { token: propioToken, body: { activo: false } });
+    check("Desactivar barbero con rol barbero -> 403", r.status === 403, `${r.status}`);
+    r = await req("PUT", rutaEstadoBarbero, { token: clienteFalso, body: { activo: false } });
+    check("Desactivar barbero con rol cliente -> 403", r.status === 403, `${r.status}`);
+    r = await req("PUT", rutaEstadoBarbero, { token: adminReal, body: { activo: { $ne: null } } });
+    check("Desactivar barbero con operador Mongo en activo -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("PUT", `/barberias/${barberia._id}/barberos/abc/estado`, { token: adminReal, body: { activo: false } });
+    check("Desactivar barbero con id mal formado -> 400", r.status === 400, `${r.status}`);
+
     // --- Cambio de contraseña (se rechaza antes de escribir)
     r = await req("POST", "/usuarios/cambiar-contrasena", { body: { currentPassword: "x", newPassword: "NuevaClave1" } });
     check("Cambiar contraseña sin token -> 401", r.status === 401, `${r.status}`);

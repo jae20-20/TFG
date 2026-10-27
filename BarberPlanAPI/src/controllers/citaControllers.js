@@ -17,12 +17,14 @@ import {
 
 import { esObjectIdValido } from "../middleware/validateMiddleware.js";
 import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
-import { getUserById } from "../models/userModel.js";
+import { barberoActivo, getUserById } from "../models/userModel.js";
 
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const RE_MES = /^[0-9]{4}-(0[1-9]|1[0-2])$/;
+
+const MENSAJE_BARBERO_INACTIVO = "Este barbero no admite citas nuevas en este momento";
 
 // Plazo para aceptar o rechazar una reserva cuando la barbería confirma manualmente
 const PLAZO_RESPUESTA_MS = 24 * 60 * 60 * 1000;
@@ -298,6 +300,9 @@ export const crearCita = async (req, res) => {
         if (!barbero || barbero.barberiaId?.toString() !== barberiaId) {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
+        if (!barberoActivo(barbero)) {
+            return res.status(409).json({ error: MENSAJE_BARBERO_INACTIVO });
+        }
 
         const bloqueado = servicios.find((s) => (barbero.serviciosBloqueados || []).includes(s._id.toString()));
         if (bloqueado) {
@@ -403,6 +408,10 @@ export const crearCitaManual = async (req, res) => {
             if (!isAdmin) {
                 return res.status(403).json({ error: "No tienes permiso para gestionar citas en esta barbería" });
             }
+        }
+
+        if (!barberoActivo(barbero)) {
+            return res.status(409).json({ error: MENSAJE_BARBERO_INACTIVO });
         }
 
         const barberia = await getBarbershopById(barberiaId);
@@ -765,8 +774,9 @@ export const getDiasDisponibles = async (req, res) => {
         if (!barberia) {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
+        // Un barbero desactivado no se ofrece para reservar: se responde igual que si no estuviera en la barbería
         const barbero = await getUserById(barberoId);
-        if (!barbero || barbero.barberiaId?.toString() !== barberiaId) {
+        if (!barbero || barbero.barberiaId?.toString() !== barberiaId || !barberoActivo(barbero)) {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
@@ -819,9 +829,9 @@ export const getDisponibilidad = async (req, res) => {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
 
-        // Obtener barbero para conocer su horario personal, excepciones y días libres
+        // Obtener barbero para conocer su horario personal, excepciones y días libres (los desactivados no se ofrecen)
         const barbero = await getUserById(barberoId);
-        if (!barbero || barbero.barberiaId?.toString() !== barberiaId) {
+        if (!barbero || barbero.barberiaId?.toString() !== barberiaId || !barberoActivo(barbero)) {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 

@@ -313,6 +313,14 @@ export class ApiService {
     );
   }
 
+  // Activar o desactivar a un barbero; devuelve { activo, citasFuturas }
+  async setEstadoBarbero(barberiaId: string, barberoId: string, activo: boolean) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<{ activo: boolean; citasFuturas: number }>(`${this.apiUrl}/barberias/${barberiaId}/barberos/${barberoId}/estado`, { activo }, { headers })
+    );
+  }
+
   // Eliminar un servicio
   async deleteServicio(barberiaId: string, servicioId: string) {
     const headers = await this.getAuthHeaders();

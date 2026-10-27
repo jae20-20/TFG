@@ -42,6 +42,19 @@ export const updateUser = async (id, updatedData) => {
     );
 };
 
+// Un barbero desactivado conserva su cuenta, su agenda y su historial, pero no recibe citas nuevas.
+// Los documentos sin el campo cuentan como activos
+export const barberoActivo = (barbero) => barbero?.activo !== false;
+
+// Activa o desactiva a un barbero; devuelve el barbero actualizado o null si no existe
+export const setBarberoActivo = async (barberoId, activo) => {
+    return await db.collection("Usuarios").findOneAndUpdate(
+        { _id: new ObjectId(barberoId), rol: "barbero" },
+        { $set: { activo, updatedAt: new Date() } },
+        { returnDocument: "after", projection: { activo: 1 } }
+    );
+};
+
 // Vuelve a ofrecer un servicio que el barbero tenía bloqueado; devuelve el barbero actualizado o null si no lo tenía
 export const quitarServicioBloqueado = async (barberoId, servicioId) => {
     return await db.collection("Usuarios").findOneAndUpdate(

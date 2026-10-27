@@ -20,6 +20,7 @@ import {
     registerBarberia,
     regenerarInvitacionEmpleado,
     removeBarbero,
+    setEstadoBarbero,
     revocarInvitacionEmpleado,
     updateMyHorario,
     validateInvitationCode
@@ -79,5 +80,6 @@ router.delete("/:id/servicios/:servicioId", verifyToken, isAdmin, deleteServicio
 
 //GESTIÓN DE BARBEROS (ADMIN)
 router.delete("/:id/barberos/:barberoId", verifyToken, isAdmin, removeBarbero);
+router.put("/:id/barberos/:barberoId/estado", verifyToken, isAdmin, setEstadoBarbero);
 
 export default router;

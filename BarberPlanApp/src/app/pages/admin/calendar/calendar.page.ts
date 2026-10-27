@@ -121,7 +121,8 @@ export class CalendarPage implements OnInit {
           .filter(b => b._id !== this.user.id)
           .map(b => ({
             ...b,
-            displayName: `${b.nombre} ${b.apellido || ''}`.trim()
+            // Los desactivados siguen visibles para gestionar sus citas existentes, pero no admiten citas nuevas
+            displayName: `${b.nombre} ${b.apellido || ''}`.trim() + (b.activo === false ? ' (desactivado)' : '')
           }));
 
         // Crear explícitamente el objeto del administrador
@@ -629,6 +630,10 @@ export class CalendarPage implements OnInit {
   cancelSlotsModal() {
     this.isSlotsModalOpen = false;
     this.currentSlots = [];
+  }
+
+  get selectedBarberActivo(): boolean {
+    return this.teamBarbers.find((b: any) => b._id === this.selectedBarberId)?.activo !== false;
   }
 
   async openNewCitaModal() {

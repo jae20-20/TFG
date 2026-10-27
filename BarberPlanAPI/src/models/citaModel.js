@@ -265,6 +265,18 @@ export const getCitasByBarberoEnRango = async (barberoId, desde, hasta) => {
     }).project({ fecha: 1, horaInicio: 1, horaFin: 1 }).toArray();
 };
 
+// Citas pendientes o confirmadas de un barbero que aún no han empezado (fecha "YYYY-MM-DD", hora "HH:MM")
+export const contarCitasFuturasBarbero = async (barberoId, fechaActual, horaActual) => {
+    return await db.collection("Citas").countDocuments({
+        barberoId: new ObjectId(barberoId),
+        estado: { $in: ["pendiente", "confirmada"] },
+        $or: [
+            { fecha: { $gt: fechaActual } },
+            { fecha: fechaActual, horaInicio: { $gt: horaActual } }
+        ]
+    });
+};
+
 // ==================== TAREAS PROGRAMADAS ====================
 
 // Caduca las pendientes con plazo vencido u hora ya llegada; sin expiraEn son "pendiente" antiguas y no caducan

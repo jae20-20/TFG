@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
+import { sembrarDatos } from "./semilla.mjs";
 
 const { check, terminar } = crearComprobador("integración");
 const entorno = await crearEntorno({ puerto: 5098 });
@@ -278,6 +279,77 @@ try {
     } finally {
         await servidorCambio.detener();
     }
+
+    // ==================== Desactivar a un barbero ====================
+    // Dos barberías completas (semilla de la batería de seguridad): barbero_a1 tiene 2 citas futuras (pendiente y confirmada)
+    await sembrarDatos(bd);
+    const porUsuario = async (usuario) => bd.collection("Usuarios").findOne({ usuario });
+    const [adminA, adminB, barberoA1, barberoA2, clienteSemilla] = await Promise.all(["admin_a", "admin_b", "barbero_a1", "barbero_a2", "cliente_1"].map(porUsuario));
+    const idA = adminA.barberiaId.toString();
+    const servicioA = (await bd.collection("Barberias").findOne({ _id: adminA.barberiaId })).servicios[0]._id.toString();
+    const rutaEstado = (barbero) => `/barberias/${idA}/barberos/${barbero._id}/estado`;
+    const estado = (token, barbero, body) => req("PUT", rutaEstado(barbero), { token, body });
+    const enListaPublica = async (token) => ((await req("GET", `/barberias/${idA}/barberos`, { token })).data || []).some((b) => b._id === barberoA1._id.toString());
+    const activoEnBD = async () => (await bd.collection("Usuarios").findOne({ _id: barberoA1._id })).activo;
+    const fechaFutura = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
+    const mesActual = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" }).slice(0, 7);
+    const disponibilidadDia = () => req("GET", `/citas/disponibilidad/${barberoA1._id}/${fechaFutura}?barberiaId=${idA}`);
+    const disponibilidadMes = () => req("GET", `/citas/disponibilidad/${barberoA1._id}/mes/${mesActual}?barberiaId=${idA}`);
+    const reservar = (horaInicio) => req("POST", "/citas", {
+        token: firmar(clienteSemilla), body: { barberiaId: idA, barberoId: barberoA1._id.toString(), servicioIds: [servicioA], fecha: fechaFutura, horaInicio }
+    });
+    const citaManual = (token, horaInicio) => req("POST", "/citas/manual", {
+        token, body: { barberoId: barberoA1._id.toString(), servicioIds: [servicioA], fecha: fechaFutura, horaInicio, clienteNombre: "Sin reserva" }
+    });
+    const citasAntes = await bd.collection("Citas").countDocuments({ barberoId: barberoA1._id });
+
+    check("Desactivar: antes de empezar el barbero aparece en la lista pública", await enListaPublica());
+
+    r = await estado(firmar(adminB), barberoA1, { activo: false });
+    check("Desactivar: el dueño de otra barbería -> 403 y no cambia nada", r.status === 403 && await activoEnBD() === undefined, `${r.status}`);
+    r = await estado(firmar(barberoA2), barberoA1, { activo: false });
+    check("Desactivar: un barbero no puede desactivar a nadie -> 403", r.status === 403, `${r.status}`);
+    r = await estado(firmar(clienteSemilla), barberoA1, { activo: false });
+    check("Desactivar: un cliente no puede desactivar a nadie -> 403", r.status === 403, `${r.status}`);
+    r = await estado(firmar(adminA), adminA, { activo: false });
+    check("Desactivar: el dueño no puede desactivarse a sí mismo -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await estado(firmar(adminA), barberoA1, { activo: "false" });
+    check("Desactivar: activo como texto (no booleano) -> 400", r.status === 400 && await activoEnBD() === undefined, `${r.status}`);
+
+    r = await estado(firmar(adminA), barberoA1, { activo: false });
+    check("Desactivar: el dueño de su barbería -> 200 y avisa de las 2 citas futuras sin cancelarlas",
+        r.status === 200 && r.data?.activo === false && r.data?.citasFuturas === 2 && await activoEnBD() === false
+        && await bd.collection("Citas").countDocuments({ barberoId: barberoA1._id, estado: "cancelada" }) === 1,
+        `${r.status} ${JSON.stringify(r.data)}`);
+
+    check("Desactivado: no aparece en la lista pública ni para un cliente", !(await enListaPublica()) && !(await enListaPublica(firmar(clienteSemilla))));
+    const listaAdmin = (await req("GET", `/barberias/${idA}/barberos`, { token: firmar(adminA) })).data || [];
+    check("Desactivado: el dueño lo sigue viendo en su equipo con activo: false",
+        listaAdmin.some((b) => b._id === barberoA1._id.toString() && b.activo === false));
+    r = await disponibilidadDia();
+    check("Desactivado: huecos del día -> 404", r.status === 404, `${r.status}`);
+    r = await disponibilidadMes();
+    check("Desactivado: días disponibles del mes -> 404", r.status === 404, `${r.status}`);
+    r = await reservar("10:00");
+    check("Desactivado: un cliente no puede reservar con él por la API -> 409", r.status === 409 && r.data?.error === "Este barbero no admite citas nuevas en este momento", `${r.status} ${JSON.stringify(r.data)}`);
+    r = await citaManual(firmar(adminA), "11:00");
+    check("Desactivado: el dueño no puede crearle una cita manual -> 409", r.status === 409, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await citaManual(firmar(barberoA1), "12:00");
+    check("Desactivado: el propio barbero no puede crearse una cita manual -> 409", r.status === 409, `${r.status}`);
+    r = await req("GET", "/citas/barbero", { token: firmar(barberoA1) });
+    check("Desactivado: el barbero sigue consultando su agenda y conserva sus citas",
+        r.status === 200 && Array.isArray(r.data) && r.data.length === citasAntes
+        && await bd.collection("Citas").countDocuments({ barberoId: barberoA1._id }) === citasAntes, `${r.status} ${r.data?.length}/${citasAntes}`);
+
+    r = await estado(firmar(adminA), barberoA1, { activo: true });
+    check("Reactivar: el dueño -> 200", r.status === 200 && r.data?.activo === true && await activoEnBD() === true, `${r.status}`);
+    check("Reactivado: vuelve a aparecer en la lista pública", await enListaPublica());
+    r = await disponibilidadDia();
+    check("Reactivado: huecos del día -> 200 con horas libres", r.status === 200 && r.data?.horariosDisponibles?.includes("10:00"), `${r.status}`);
+    r = await disponibilidadMes();
+    check("Reactivado: días disponibles del mes -> 200", r.status === 200 && Array.isArray(r.data?.dias), `${r.status}`);
+    r = await reservar("10:00");
+    check("Reactivado: un cliente puede volver a reservar con él -> 201", r.status === 201, `${r.status} ${JSON.stringify(r.data)}`);
 
     // ==================== Reglas de la app = reglas del servidor ====================
     const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];

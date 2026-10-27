@@ -74,7 +74,7 @@
           <ion-button fill="clear" class="mini-icon-btn" [title]="'Gestionar horario de ' + getSelectedBarberName()" (click)="gestionarDiaBarbero()">
             <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
           </ion-button>
-          <ion-button fill="clear" class="mini-icon-btn add-cita-btn" [title]="'Añadir cita'" (click)="openNewCitaModal()" *ngIf="!isBarberDayClosed(selectedDateKey)">
+          <ion-button fill="clear" class="mini-icon-btn add-cita-btn" [title]="'Añadir cita'" (click)="openNewCitaModal()" *ngIf="!isBarberDayClosed(selectedDateKey) && selectedBarberActivo">
             <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
           </ion-button>
         </div>

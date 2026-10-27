@@ -13,7 +13,14 @@
       </div>
     </div>
 
-    <div class="barberia-editable-section">      
+    <div class="barberia-editable-section">
+      <div class="barberia-field-group">
+        <label>Estado</label>
+        <div class="field-display" [class.field-display-muted]="!barberActivo">
+          {{ barberActivo ? 'Activo' : 'Desactivado: no aparece al reservar ni recibe citas nuevas' }}
+        </div>
+      </div>
+
       <div class="barberia-field-group">
         <label>Nombre</label>
         <div class="field-display">{{ barber.nombre }}</div>
@@ -142,6 +149,10 @@
       <ion-button expand="block" color="primary" class="save-visual-btn" (click)="saveChanges()" [disabled]="saving">
         <ion-icon slot="start" name="save-outline"></ion-icon>
         {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="confirmToggleActivo()" [disabled]="saving">
+        <ion-icon slot="start" [name]="barberActivo ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
+        {{ barberActivo ? 'Desactivar barbero' : 'Activar barbero' }}
       </ion-button>
       <ion-button expand="block" color="danger" fill="outline" (click)="confirmRemoveBarber()" [disabled]="saving">
         <ion-icon slot="start" name="trash-outline"></ion-icon>
