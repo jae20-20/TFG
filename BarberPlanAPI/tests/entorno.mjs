@@ -13,10 +13,13 @@ export const NOMBRE_BD_PRUEBAS = process.env.TEST_DB_NAME || "BarberPlan_test";
 
 // Arranca la API (src/server.js) apuntando a una BD concreta. Sin tareas periódicas y con el límite
 // global muy alto, porque las pruebas lanzan muchas peticiones desde una sola IP.
-export const lanzarServidor = ({ puerto, nombreBD }) => {
+// limitesReales deja el límite global en su valor por defecto, para probar el 429.
+export const lanzarServidor = ({ puerto, nombreBD, limitesReales = false }) => {
+    const env = { ...process.env, PORT: String(puerto), DB_NAME: nombreBD, TAREAS_CITAS: "off", RATE_LIMIT_MAX: "100000" };
+    if (limitesReales) delete env.RATE_LIMIT_MAX;
     const proceso = spawn(process.execPath, ["src/server.js"], {
         cwd: RAIZ_API,
-        env: { ...process.env, PORT: String(puerto), DB_NAME: nombreBD, TAREAS_CITAS: "off", RATE_LIMIT_MAX: "100000" },
+        env,
         stdio: ["ignore", "pipe", "pipe"]
     });
     let salida = "";

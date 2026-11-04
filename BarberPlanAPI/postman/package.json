@@ -1,0 +1,11 @@
+{
+  "name": "barberplanapi-postman",
+  "private": true,
+  "description": "Dependencias para ejecutar la colección de Postman con newman (npm run test:postman). Separadas de la API para no alterar su árbol de dependencias.",
+  "devDependencies": {
+    "newman": "6.2.3"
+  },
+  "dependencies": {
+    "barberplanapi": "file:.."
+  }
+}
