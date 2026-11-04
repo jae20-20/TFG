@@ -147,7 +147,8 @@ export const responderSolicitud = async (req, res) => {
             if (barbero) {
                 let diasLibres = barbero.diasLibres || [];
                 let vacaciones = barbero.vacaciones || [];
-                let horarioPersonal = barbero.horarioPersonal || { enabled: true, timezone: 'Europe/Madrid', weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, exceptions: [] };
+                // Sin horario propio sigue el de la barbería: activar esta plantilla vacía lo dejaría ausente todos los días
+                let horarioPersonal = barbero.horarioPersonal || { enabled: false, timezone: 'Europe/Madrid', weeklyTemplate: { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }, exceptions: [] };
                 
                 if (!horarioPersonal.exceptions) horarioPersonal.exceptions = [];
 
@@ -176,7 +177,6 @@ export const responderSolicitud = async (req, res) => {
                                 isAbsence: true
                             });
                         });
-                        horarioPersonal.enabled = true;
                     }
                     await updateUser(solicitud.barberoId, { diasLibres, vacaciones, horarioPersonal });
                 } else {

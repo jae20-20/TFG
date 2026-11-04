@@ -52,6 +52,27 @@ export const validarCorreo = (correo) => {
     return null;
 };
 
+// ==================== DATOS PERSONALES ====================
+// Perfil propio (PUT /usuarios/perfil) y datos personales del barbero (PUT /barberos/:id).
+
+// Campos de texto de la persona; nombre y apellido no pueden quedar vacíos (los demás sí, para borrarlos)
+export const CAMPOS_TEXTO_PERSONA = ["nombre", "apellido", "telefono", "avatar"];
+const CAMPOS_TEXTO_OBLIGATORIOS = ["nombre", "apellido"];
+
+// Un cuerpo ausente (petición sin JSON), un array o un valor suelto no son un objeto con campos
+export const errorCuerpoNoObjeto = (body) =>
+    body && typeof body === "object" && !Array.isArray(body) ? null : "El cuerpo de la petición debe ser un objeto JSON";
+
+// Solo cadenas: rechaza números, booleanos, null, arrays y objetos (también los que llevan operadores de Mongo).
+// Devuelve el mensaje del primer campo incorrecto o null
+export const errorCamposTexto = (body, campos) => {
+    const noTexto = campos.find((campo) => body[campo] !== undefined && typeof body[campo] !== "string");
+    if (noTexto) return `El campo ${noTexto} debe ser texto`;
+
+    const vacio = campos.find((campo) => CAMPOS_TEXTO_OBLIGATORIOS.includes(campo) && body[campo] !== undefined && body[campo].trim() === "");
+    return vacio ? `El campo ${vacio} no puede estar vacío` : null;
+};
+
 // Respuesta 409 de cada campo con índice único en Usuarios; la comprobación previa y el error 11000 dan el mismo mensaje
 export const MENSAJES_DUPLICADO = {
     correo: "El correo ya está registrado",

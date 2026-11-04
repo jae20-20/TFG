@@ -1,7 +1,15 @@
 //manejar http request - Usuarios
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJES_CREDENCIALES, MENSAJES_DUPLICADO, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
+import {
+    CAMPOS_TEXTO_PERSONA,
+    MENSAJES_CREDENCIALES,
+    MENSAJES_DUPLICADO,
+    errorCamposTexto,
+    errorCuerpoNoObjeto,
+    validarCorreo,
+    validarPasswordNueva
+} from "../middleware/validateMiddleware.js";
 
 import {
     addBarberoToBarberia,
@@ -263,9 +271,21 @@ export const loginUser = async (req, res) => {
 export const editProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { nombre, apellido, usuario, telefono, avatar, ciudad } = req.body;
 
-        if (usuario !== undefined && typeof usuario !== "string") {
+        const errorCuerpo = errorCuerpoNoObjeto(req.body);
+        if (errorCuerpo) {
+            return res.status(400).json({ error: errorCuerpo });
+        }
+
+        // Solo texto: un objeto, un array o un número no llega a guardarse. Las cadenas vacías sirven para
+        // borrar teléfono, avatar o ciudad; el nombre de usuario, como en el registro, no puede quedar vacío
+        const errorTexto = errorCamposTexto(req.body, [...CAMPOS_TEXTO_PERSONA, "ciudad"]);
+        if (errorTexto) {
+            return res.status(400).json({ error: errorTexto });
+        }
+
+        const { nombre, apellido, usuario, telefono, avatar, ciudad } = req.body;
+        if (usuario !== undefined && !esTextoNoVacio(usuario)) {
             return res.status(400).json({ error: "Nombre de usuario no válido" });
         }
 
@@ -375,7 +395,6 @@ export const deleteUserAccount = async (req, res) => {
 export const updateBarberoHorario = async (req, res) => {
     try {
         const { id } = req.params;
-        const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados, cargo } = req.body;
 
         const barbero = await getUserById(id);
         if (!barbero) {
@@ -389,6 +408,12 @@ export const updateBarberoHorario = async (req, res) => {
         if (!esDuenio && !esAdminDeSuBarberia) {
             return res.status(403).json({ error: "No tienes permiso para actualizar este barbero" });
         }
+
+        const errorValidacion = errorCuerpoNoObjeto(req.body) || errorCamposTexto(req.body, CAMPOS_TEXTO_PERSONA);
+        if (errorValidacion) {
+            return res.status(400).json({ error: errorValidacion });
+        }
+        const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados, cargo } = req.body;
 
         // Horario, ausencias, servicios y cargo los decide el admin: el barbero
         // los pide mediante solicitudes, no puede aprobárselos a sí mismo.

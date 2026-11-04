@@ -1,6 +1,7 @@
 # Dependencias de Node
 BarberPlanApp/node_modules/
 BarberPlanAPI/node_modules/
+BarberPlanAPI/postman/node_modules/
 
 # Builds de Ionic/Angular
 BarberPlanApp/www/

@@ -239,6 +239,42 @@ try {
     r = await req("POST", "/usuarios/cambiar-contrasena", { token: clienteFalso, body: { currentPassword: "Cualquiera1", newPassword: "NuevaClave1" } });
     check("Cambiar contraseña con token de un usuario inexistente -> 404", r.status === 404, `${r.status}`);
 
+    // --- Edición de perfil (se rechaza antes de escribir)
+    r = await req("PUT", "/usuarios/perfil", { body: { nombre: "x" } });
+    check("Editar perfil sin token -> 401", r.status === 401, `${r.status}`);
+    const leerBarbero = () => entorno.bd.collection("Usuarios").findOne({ _id: new ObjectId(barbero._id) });
+    const barberoAntes = JSON.stringify(await leerBarbero());
+    for (const campo of ["usuario", "nombre", "apellido", "telefono", "avatar", "ciudad"]) {
+        for (const operador of [{ $ne: null }, { $gt: "" }, { $where: "1" }]) {
+            r = await req("PUT", "/usuarios/perfil", { token: propioToken, body: { [campo]: operador } });
+            check(`Editar perfil con ${Object.keys(operador)[0]} en ${campo} -> 400 con el campo error`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+        r = await req("PUT", "/usuarios/perfil", { token: propioToken, body: { [campo]: [{ $ne: null }] } });
+        check(`Editar perfil con un array de operadores en ${campo} -> 400`, r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await req("PUT", "/usuarios/perfil", { token: propioToken, body: { usuario: "" } });
+    check("Editar perfil con usuario vacío -> 400", r.status === 400 && r.data?.error === "Nombre de usuario no válido", `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("PUT", "/usuarios/perfil", { token: propioToken, body: { nombre: 123, telefono: { a: 1 } } });
+    check("Editar perfil con nombre numérico y teléfono objeto -> 400", r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+    check("Editar perfil: los intentos rechazados no cambian nada en la BD", JSON.stringify(await leerBarbero()) === barberoAntes);
+
+    // --- Datos personales del barbero (se rechaza antes de escribir)
+    r = await req("PUT", `/barberos/${barbero._id}`, { body: { nombre: "x" } });
+    check("PUT /barberos/:id sin token -> 401", r.status === 401, `${r.status}`);
+    for (const campo of ["nombre", "apellido", "telefono", "avatar"]) {
+        for (const operador of [{ $ne: null }, { $gt: "" }, { $where: "1" }]) {
+            r = await req("PUT", `/barberos/${barbero._id}`, { token: propioToken, body: { [campo]: operador } });
+            check(`PUT /barberos/:id con ${Object.keys(operador)[0]} en ${campo} -> 400 con el campo error`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+    }
+    r = await req("PUT", `/barberos/${barbero._id}`, { token: adminReal, body: { nombre: 123, telefono: { a: 1 } } });
+    check("PUT /barberos/:id como dueño con nombre numérico y teléfono objeto -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("PUT", `/barberos/${barbero._id}`, { token: adminAjeno, body: { nombre: 123 } });
+    check("PUT /barberos/:id como admin de otra barbería -> 403 antes de validar el cuerpo", r.status === 403, `${r.status}`);
+    r = await req("PUT", `/barberos/${barbero._id}`, { token: propioToken, body: { nombre: "" } });
+    check("PUT /barberos/:id con nombre vacío -> 400", r.status === 400 && r.data?.error === "El campo nombre no puede estar vacío", `${r.status} ${JSON.stringify(r.data)}`);
+    check("PUT /barberos/:id: los intentos rechazados no cambian nada en la BD", JSON.stringify(await leerBarbero()) === barberoAntes);
+
     // --- IDs mal formados -> 400 (antes 500)
     r = await req("GET", "/usuarios/abc", { token: adminReal });
     check("GET /usuarios/abc -> 400", r.status === 400, `${r.status}`);

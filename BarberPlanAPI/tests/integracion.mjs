@@ -141,6 +141,105 @@ try {
         JSON.stringify(perdedora(rs)?.data) === JSON.stringify({ error: MSG_USUARIO }), JSON.stringify(perdedora(rs)?.data));
     check("Perfil: en la BD solo un usuario tiene el nombre disputado", await bd.collection("Usuarios").countDocuments({ usuario: "api_libre" }) === 1);
 
+    // ==================== Edición de perfil (validación de los campos) ====================
+    const leerUno = () => bd.collection("Usuarios").findOne({ _id: uno._id });
+    const tokenUno = firmar(uno);
+    const perfil = (body) => req("PUT", "/usuarios/perfil", { token: tokenUno, body });
+
+    r = await perfil({ nombre: "Nombre nuevo", apellido: "Apellido nuevo", usuario: "api_uno_editado", telefono: "+34600111222", ciudad: "Alicante", avatar: "" });
+    let guardado = await leerUno();
+    check("Perfil: datos válidos (como los envía la app) -> 200 y se guardan",
+        r.status === 200 && guardado.nombre === "Nombre nuevo" && guardado.apellido === "Apellido nuevo" && guardado.usuario === "api_uno_editado" &&
+        guardado.telefono === "+34600111222" && guardado.ciudad === "Alicante" && guardado.avatar === "", `${r.status} ${JSON.stringify(r.data)}`);
+    check("Perfil: la respuesta devuelve el usuario sin la contraseña", r.data?.user?.usuario === "api_uno_editado" && !("pw" in (r.data?.user || {})));
+
+    r = await perfil({ usuario: "api_uno_editado" });
+    check("Perfil: reenviar el propio nombre de usuario -> 200, no es un duplicado", r.status === 200, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await perfil({ usuario: (await bd.collection("Usuarios").findOne({ correo: "mixto@api.test" })).usuario });
+    check("Perfil: tras la validación, un nombre de usuario en uso sigue dando 409", r.status === 409 && r.data?.error === MSG_USUARIO, `${r.status} ${JSON.stringify(r.data)}`);
+
+    r = await perfil({ telefono: "", ciudad: "" });
+    guardado = await leerUno();
+    check("Perfil: teléfono y ciudad vacíos -> 200 y se borran (la app lo usa para quitarlos)",
+        r.status === 200 && guardado.telefono === "" && guardado.ciudad === "", `${r.status} ${JSON.stringify(r.data)}`);
+
+    for (const [descripcion, valor] of [["vacío", ""], ["solo espacios", "   "], ["número", 123], ["null", null], ["array", ["a"]], ["objeto", { a: 1 }]]) {
+        r = await perfil({ usuario: valor });
+        check(`Perfil: usuario ${descripcion} -> 400 y no se guarda`,
+            r.status === 400 && r.data?.error === "Nombre de usuario no válido" && (await leerUno()).usuario === "api_uno_editado", `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    for (const campo of ["nombre", "apellido", "telefono", "avatar", "ciudad"]) {
+        for (const [descripcion, valor] of [["número", 123], ["booleano", true], ["null", null], ["array", ["a"]], ["objeto", { a: 1 }]]) {
+            const antes = await leerUno();
+            r = await perfil({ [campo]: valor });
+            const despues = await leerUno();
+            check(`Perfil: ${campo} ${descripcion} -> 400 con el campo error y no se guarda`,
+                r.status === 400 && r.data?.error === `El campo ${campo} debe ser texto` && JSON.stringify(despues) === JSON.stringify(antes), `${r.status} ${JSON.stringify(r.data)}`);
+        }
+    }
+
+    const antesParcial = await leerUno();
+    r = await perfil({ nombre: "No debe guardarse", telefono: { a: 1 } });
+    check("Perfil: un campo válido junto a otro no válido -> 400 y no se guarda ninguno",
+        r.status === 400 && JSON.stringify(await leerUno()) === JSON.stringify(antesParcial), `${r.status} ${JSON.stringify(r.data)}`);
+
+    const antesCredenciales = await leerUno();
+    r = await perfil({ correo: "formato-malo", pw: "x" });
+    let trasCredenciales = await leerUno();
+    check("Perfil: correo y contraseña se ignoran -> 200 sin cambiarlos",
+        r.status === 200 && trasCredenciales.correo === antesCredenciales.correo && trasCredenciales.pw === antesCredenciales.pw, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await perfil({ correo: 123, pw: { a: 1 } });
+    trasCredenciales = await leerUno();
+    check("Perfil: correo y contraseña se ignoran aunque no sean texto -> 200 sin cambiarlos",
+        r.status === 200 && trasCredenciales.correo === antesCredenciales.correo && trasCredenciales.pw === antesCredenciales.pw, `${r.status} ${JSON.stringify(r.data)}`);
+
+    for (const campo of ["nombre", "apellido"]) {
+        for (const [descripcion, valor] of [["vacío", ""], ["solo espacios", "   "]]) {
+            const antes = await leerUno();
+            r = await perfil({ [campo]: valor });
+            check(`Perfil: ${campo} ${descripcion} -> 400 y no se guarda`,
+                r.status === 400 && r.data?.error === `El campo ${campo} no puede estar vacío` && JSON.stringify(await leerUno()) === JSON.stringify(antes), `${r.status} ${JSON.stringify(r.data)}`);
+        }
+    }
+    const MSG_CUERPO = "El cuerpo de la petición debe ser un objeto JSON";
+    let sinCuerpo = await fetch(`${entorno.api}/usuarios/perfil`, { method: "PUT", headers: { Authorization: `Bearer ${tokenUno}` } });
+    check("Perfil: petición sin cuerpo -> 400 (antes 500)", sinCuerpo.status === 400 && (await sinCuerpo.json()).error === MSG_CUERPO, `${sinCuerpo.status}`);
+    sinCuerpo = await fetch(`${entorno.api}/usuarios/perfil`, { method: "PUT", headers: { Authorization: `Bearer ${tokenUno}`, "Content-Type": "application/json" }, body: "[1,2]" });
+    check("Perfil: cuerpo que es un array -> 400", sinCuerpo.status === 400 && (await sinCuerpo.json()).error === MSG_CUERPO, `${sinCuerpo.status}`);
+    r = await perfil({});
+    check("Perfil: objeto vacío -> 200 sin cambios (comportamiento de siempre)", r.status === 200, `${r.status} ${JSON.stringify(r.data)}`);
+
+    // ==================== Datos personales del barbero (PUT /barberos/:id) ====================
+    const barberoId = (await createUser({ nombre: "Barbero", apellido: "Perfil", correo: "barbero.perfil@api.test", pw: "hash-no-valido", usuario: "api_barbero_perfil", rol: "barbero", barberiaId: null, createdAt: new Date(), updatedAt: new Date() })).insertedId;
+    const leerBarbero = () => bd.collection("Usuarios").findOne({ _id: barberoId });
+    const tokenBarbero = firmar({ _id: barberoId, rol: "barbero" });
+    const editarBarbero = (body) => req("PUT", `/barberos/${barberoId}`, { token: tokenBarbero, body });
+
+    r = await editarBarbero({ nombre: "Barbero nuevo", apellido: "Apellido nuevo", telefono: "+34600333444", avatar: "" });
+    guardado = await leerBarbero();
+    check("Barbero: datos personales válidos -> 200 y se guardan",
+        r.status === 200 && guardado.nombre === "Barbero nuevo" && guardado.apellido === "Apellido nuevo" && guardado.telefono === "+34600333444", `${r.status} ${JSON.stringify(r.data)}`);
+    for (const campo of ["nombre", "apellido", "telefono", "avatar"]) {
+        for (const [descripcion, valor] of [["número", 123], ["null", null], ["array", ["a"]], ["objeto", { a: 1 }], ["operador Mongo", { $ne: null }]]) {
+            const antes = await leerBarbero();
+            r = await editarBarbero({ [campo]: valor });
+            check(`Barbero: ${campo} ${descripcion} -> 400 y no se guarda`,
+                r.status === 400 && r.data?.error === `El campo ${campo} debe ser texto` && JSON.stringify(await leerBarbero()) === JSON.stringify(antes), `${r.status} ${JSON.stringify(r.data)}`);
+        }
+    }
+    for (const campo of ["nombre", "apellido"]) {
+        const antes = await leerBarbero();
+        r = await editarBarbero({ [campo]: "  " });
+        check(`Barbero: ${campo} vacío -> 400 y no se guarda`,
+            r.status === 400 && r.data?.error === `El campo ${campo} no puede estar vacío` && JSON.stringify(await leerBarbero()) === JSON.stringify(antes), `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await editarBarbero({ nombre: "No debe guardarse", telefono: { a: 1 } });
+    check("Barbero: un campo válido junto a otro no válido -> 400 y no se guarda ninguno", r.status === 400 && (await leerBarbero()).nombre === "Barbero nuevo", `${r.status} ${JSON.stringify(r.data)}`);
+    sinCuerpo = await fetch(`${entorno.api}/barberos/${barberoId}`, { method: "PUT", headers: { Authorization: `Bearer ${tokenBarbero}` } });
+    check("Barbero: petición sin cuerpo -> 400 (antes 500)", sinCuerpo.status === 400 && (await sinCuerpo.json()).error === MSG_CUERPO, `${sinCuerpo.status}`);
+    r = await editarBarbero({ cargo: "Jefe" });
+    check("Barbero: el cargo sigue reservado al dueño -> 403", r.status === 403, `${r.status} ${JSON.stringify(r.data)}`);
+
     // ==================== Registro de barbería (crea también al admin) ====================
     rs = await Promise.all([
         registroBarberia("Dueno@Barberia.Test", "dueno_a", "Barbería Carrera A"),
@@ -350,6 +449,63 @@ try {
     check("Reactivado: días disponibles del mes -> 200", r.status === 200 && Array.isArray(r.data?.dias), `${r.status}`);
     r = await reservar("10:00");
     check("Reactivado: un cliente puede volver a reservar con él -> 201", r.status === 201, `${r.status} ${JSON.stringify(r.data)}`);
+
+    // ==================== Aprobar solicitudes sin perder el horario ====================
+    // Regresión: aprobar una solicitud a un barbero sin horario propio le guardaba uno activado y con todos los
+    // días vacíos, y desde entonces figuraba como ausente todos los días
+    const fechaEn = (dias) => new Date(Date.now() + dias * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
+    const tokenAdminA = firmar(adminA);
+    const aprobar = async (barbero, datos) => {
+        const creada = await req("POST", "/solicitudes", { token: firmar(barbero), body: { motivo: "Regresión", ...datos } });
+        const respuesta = await req("PUT", `/solicitudes/${creada.data?.id}/responder`, { token: tokenAdminA, body: { estado: "aprobada" } });
+        return creada.status === 201 ? respuesta : creada;
+    };
+    const huecos = async (barbero, fecha) => (await req("GET", `/citas/disponibilidad/${barbero._id}/${fecha}?barberiaId=${idA}&duracion=30`)).data;
+    const horarioEnBD = async (barbero) => (await bd.collection("Usuarios").findOne({ _id: barbero._id })).horarioPersonal;
+    const diaLibre = fechaEn(20), otroDia = fechaEn(21);
+
+    r = await aprobar(barberoA2, { tipo: "dia_libre", fechaInicio: diaLibre, fechaFin: diaLibre });
+    check("Aprobar día libre -> 200", r.status === 200, `${r.status} ${JSON.stringify(r.data)}`);
+    let dia = await huecos(barberoA2, diaLibre);
+    check("Aprobar día libre: ese día figura ausente y sin huecos", dia?.estado === "ausente" && dia?.horariosDisponibles?.length === 0, JSON.stringify(dia));
+    dia = await huecos(barberoA2, otroDia);
+    check("Aprobar día libre: otro día conserva el horario de la barbería", dia?.estado === "abierto" && dia?.horariosDisponibles?.includes("09:00"), JSON.stringify(dia));
+    check("Aprobar día libre: no activa un horario personal vacío", (await horarioEnBD(barberoA2))?.enabled === false, JSON.stringify(await horarioEnBD(barberoA2)));
+    r = await req("POST", "/citas", { token: firmar(clienteSemilla), body: { barberiaId: idA, barberoId: barberoA2._id.toString(), servicioIds: [servicioA], fecha: otroDia, horaInicio: "09:00" } });
+    check("Aprobar día libre: un cliente puede reservar otro día con él -> 201", r.status === 201, `${r.status} ${JSON.stringify(r.data)}`);
+
+    r = await aprobar(barberoA2, { tipo: "vacaciones", fechaInicio: fechaEn(25), fechaFin: fechaEn(26) });
+    const vacaciones = [await huecos(barberoA2, fechaEn(25)), await huecos(barberoA2, fechaEn(26))];
+    check("Aprobar vacaciones: los días pedidos figuran ausentes", r.status === 200 && vacaciones.every((d) => d?.estado === "ausente"), JSON.stringify(vacaciones));
+    dia = await huecos(barberoA2, fechaEn(27));
+    check("Aprobar vacaciones: el día siguiente conserva el horario", dia?.estado === "abierto" && dia?.horariosDisponibles?.includes("09:00"), JSON.stringify(dia));
+
+    r = await aprobar(barberoA2, { tipo: "horas_puntuales", fechaInicio: fechaEn(30), fechaFin: fechaEn(30), franjas: [{ start: "10:00", end: "11:00" }] });
+    dia = await huecos(barberoA2, fechaEn(30));
+    check("Aprobar horas puntuales: bloquea solo esa franja",
+        r.status === 200 && dia?.horariosDisponibles?.includes("09:30") && dia?.horariosDisponibles?.includes("11:00") && !dia?.horariosDisponibles?.includes("10:00") && !dia?.horariosDisponibles?.includes("10:30"), JSON.stringify(dia));
+    dia = await huecos(barberoA2, fechaEn(31));
+    check("Aprobar horas puntuales: otro día conserva el horario", dia?.estado === "abierto" && dia?.horariosDisponibles?.includes("10:00"), JSON.stringify(dia));
+    check("Aprobar horas puntuales: no activa el horario personal", (await horarioEnBD(barberoA2))?.enabled === false, JSON.stringify(await horarioEnBD(barberoA2)));
+
+    r = await aprobar(barberoA2, { tipo: "bloqueo_servicio", fechaInicio: fechaEn(32), fechaFin: fechaEn(32), servicioId: servicioA });
+    dia = await huecos(barberoA2, fechaEn(33));
+    check("Aprobar bloqueo de servicio: lo bloquea y conserva el horario",
+        r.status === 200 && (await porUsuario("barbero_a2")).serviciosBloqueados?.includes(servicioA) && dia?.estado === "abierto", JSON.stringify(dia));
+
+    // Un horario propio ya configurado se respeta: activado sigue mandando y desactivado no se activa
+    const plantillaPropia = Object.fromEntries(["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((d) => [d, [{ start: "15:00", end: "16:00" }]]));
+    const fijarHorario = (enabled) => bd.collection("Usuarios").updateOne({ _id: barberoA1._id }, { $set: { horarioPersonal: { enabled, timezone: "Europe/Madrid", weeklyTemplate: plantillaPropia, exceptions: [] } } });
+    await fijarHorario(true);
+    r = await aprobar(barberoA1, { tipo: "dia_libre", fechaInicio: fechaEn(40), fechaFin: fechaEn(40) });
+    dia = await huecos(barberoA1, fechaEn(41));
+    check("Aprobar con horario propio activado: sigue activado y manda su plantilla",
+        r.status === 200 && (await horarioEnBD(barberoA1)).enabled === true && dia?.horariosDisponibles?.includes("15:00") && !dia?.horariosDisponibles?.includes("09:00"), JSON.stringify(dia));
+    await fijarHorario(false);
+    r = await aprobar(barberoA1, { tipo: "horas_puntuales", fechaInicio: fechaEn(42), fechaFin: fechaEn(42), franjas: [{ start: "10:00", end: "11:00" }] });
+    dia = await huecos(barberoA1, fechaEn(43));
+    check("Aprobar con horario propio desactivado: no se activa y sigue el de la barbería",
+        r.status === 200 && (await horarioEnBD(barberoA1)).enabled === false && dia?.horariosDisponibles?.includes("09:00"), JSON.stringify(dia));
 
     // ==================== Reglas de la app = reglas del servidor ====================
     const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];

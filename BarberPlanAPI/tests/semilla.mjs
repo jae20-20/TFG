@@ -5,12 +5,12 @@ import { ObjectId } from "mongodb";
 const DIAS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
 // Fecha "YYYY-MM-DD" en Madrid desplazada n días respecto a hoy
-const fechaRelativa = (dias) => {
+export const fechaRelativa = (dias) => {
     const fecha = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
     return fecha.toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" });
 };
 
-const usuarioBase = (datos) => ({
+export const usuarioBase = (datos) => ({
     pw: "hash-no-valido",
     telefono: null,
     createdAt: new Date(),
@@ -18,7 +18,7 @@ const usuarioBase = (datos) => ({
     ...datos
 });
 
-const crearBarberia = (nombre, ciudad, adminId, barberos, servicio) => ({
+export const crearBarberia = (nombre, ciudad, adminId, barberos, servicio) => ({
     _id: new ObjectId(),
     nombre,
     ciudad,
@@ -38,7 +38,7 @@ const crearBarberia = (nombre, ciudad, adminId, barberos, servicio) => ({
     updatedAt: new Date()
 });
 
-const crearCita = ({ barberia, barbero, cliente, servicio, fecha, horaInicio, horaFin, estado }) => ({
+export const crearCita = ({ barberia, barbero, cliente, servicio, fecha, horaInicio, horaFin, estado }) => ({
     clienteId: cliente._id,
     barberoId: barbero._id,
     barberiaId: barberia._id,

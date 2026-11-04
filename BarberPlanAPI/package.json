@@ -9,7 +9,8 @@
     "dev": "nodemon src/server.js",
     "test": "npm run test:integracion && npm run test:seguridad",
     "test:integracion": "node tests/integracion.mjs",
-    "test:seguridad": "node tests/seguridad.mjs"
+    "test:seguridad": "node tests/seguridad.mjs",
+    "test:postman": "node tests/postman.mjs"
   },
   "keywords": [],
   "author": "",
