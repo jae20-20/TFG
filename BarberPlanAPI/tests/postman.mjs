@@ -7,12 +7,12 @@
 //   --mantener  no ejecuta newman: deja las tres APIs y la BD sembrada levantadas para usar el Runner
 //               de Postman a mano, e imprime los valores del entorno. Ctrl+C para y borra todo.
 //   --limpiar   solo borra la BD desechable y el entorno generado (por si quedaron de una ejecución interrumpida).
+import { MongoClient } from "mongodb";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { MongoClient } from "mongodb";
 import { NOMBRE_BD_PRUEBAS, RAIZ_API, lanzarServidor } from "./entorno.mjs";
 import { sembrarPostman } from "./semilla-postman.mjs";
 
@@ -192,9 +192,9 @@ if (soloLimpiar) {
         fs.writeFileSync(ENTORNO_GENERADO, JSON.stringify(crearEntornoPostman(baseUrl, datos), null, 2));
 
         console.log(`\nBD ${NOMBRE_BD_PRUEBAS} sembrada y tres APIs levantadas:`);
-        console.log(`  ${baseUrl}  límite global subido: carpetas 00 a 07, juntas y una única vez`);
-        console.log(`  http://localhost:${PUERTO_LIMITES}  límites reales: carpeta 08, SOLA y una única vez`);
-        console.log(`  http://localhost:${PUERTO_CREDENCIALES}  carpeta 09, SOLA y una única vez (cambia baseUrl en el entorno)`);
+        console.log(`  ${baseUrl}  límite global subido: carpetas 00 a 07 juntas `);
+        console.log(`  http://localhost:${PUERTO_LIMITES}  límites reales: carpeta 08`);
+        console.log(`  http://localhost:${PUERTO_CREDENCIALES}  carpeta 09`);
         console.log("\nValores para el entorno de Postman:");
         console.log(`  ${"baseUrl".padEnd(18)} ${baseUrl}`);
         for (const [clave, valor] of Object.entries(datos)) console.log(`  ${clave.padEnd(18)} ${valor}`);

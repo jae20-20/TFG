@@ -1,11 +1,11 @@
 // Batería de integración: índices de MongoDB, unicidad de correo y usuario bajo concurrencia,
 // normalización del correo y migración. Levanta su propia API (puerto 5098) sobre la BD desechable
 // BarberPlan_test y la borra al terminar. Se niega a ejecutarse contra la BD de desarrollo.
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
 import { sembrarDatos } from "./semilla.mjs";
 
@@ -506,6 +506,55 @@ try {
     dia = await huecos(barberoA1, fechaEn(43));
     check("Aprobar con horario propio desactivado: no se activa y sigue el de la barbería",
         r.status === 200 && (await horarioEnBD(barberoA1)).enabled === false && dia?.horariosDisponibles?.includes("09:00"), JSON.stringify(dia));
+
+    // **/*/*/*/*/*/ Reservas simultáneas */*/*/*/*/*/*/*/
+    // N clientes distintos piden a la vez el mismo barbero, día y hora. Cada repetición usa un día sin citas:
+    // así compiten también por crear el bloqueo de la agenda (AgendaBloqueos)
+    const TAMANOS_CARRERA = [2, 5, 20, 50];
+    const REPETICIONES_CARRERA = 10;
+    const HORA_CARRERA = "10:00";
+    const MSG_HUECO_OCUPADO = "El barbero no está disponible en ese horario";
+    const barberoCarrera = (await bd.collection("Usuarios").insertOne({
+        nombre: "Barbero", apellido: "Carrera", correo: "barbero.carrera@api.test", pw: "hash-no-valido", usuario: "api_barbero_carrera",
+        rol: "barbero", barberiaId: adminA.barberiaId, createdAt: new Date(), updatedAt: new Date()
+    })).insertedId;
+    const clientesCarrera = Array.from({ length: Math.max(...TAMANOS_CARRERA) }, (_, i) => ({
+        nombre: "Cliente", apellido: `Carrera ${i}`, correo: `cliente.carrera.${i}@api.test`, pw: "hash-no-valido", usuario: `api_cliente_carrera_${i}`,
+        rol: "cliente", ciudad: "Madrid", barberiaId: null, createdAt: new Date(), updatedAt: new Date()
+    }));
+    await bd.collection("Usuarios").insertMany(clientesCarrera);
+    const tokensCarrera = clientesCarrera.map(firmar);
+    let diaCarrera = 60;
+
+    for (const n of TAMANOS_CARRERA) {
+        const totales = { creadas: 0, conflictos: 0, otros: {} };
+        const inicioN = Date.now();
+        for (let repeticion = 1; repeticion <= REPETICIONES_CARRERA; repeticion++) {
+            const fecha = fechaEn(diaCarrera++);
+            const body = { barberiaId: idA, barberoId: barberoCarrera.toString(), servicioIds: [servicioA], fecha, horaInicio: HORA_CARRERA };
+            // Un fallo de red cuenta como un código más, para que no aborte la batería y quede en el recuento
+            const respuestas = await Promise.all(tokensCarrera.slice(0, n).map((token) =>
+                req("POST", "/citas", { token, body }).catch((error) => ({ status: `red: ${error.cause?.code || error.message}` }))));
+
+            const codigos = {};
+            respuestas.forEach(({ status }) => { codigos[status] = (codigos[status] || 0) + 1; });
+            const creadas = codigos[201] || 0;
+            const conflictos = codigos[409] || 0;
+            totales.creadas += creadas;
+            totales.conflictos += conflictos;
+            for (const [codigo, veces] of Object.entries(codigos)) {
+                if (codigo !== "201" && codigo !== "409") totales.otros[codigo] = (totales.otros[codigo] || 0) + veces;
+            }
+
+            check(`Reservas simultáneas N=${n}, repetición ${repeticion}: una 201 y el resto 409 con el mensaje de hueco ocupado`,
+                creadas === 1 && conflictos === n - 1 && respuestas.filter((x) => x.status === 409).every((x) => x.data?.error === MSG_HUECO_OCUPADO), JSON.stringify(codigos));
+            const enBD = await bd.collection("Citas").countDocuments({ barberoId: barberoCarrera, fecha, horaInicio: HORA_CARRERA });
+            check(`Reservas simultáneas N=${n}, repetición ${repeticion}: una sola cita en la BD para ese hueco`, enBD === 1, `${enBD} citas`);
+        }
+        console.log(`Reservas simultáneas N=${n}: ${REPETICIONES_CARRERA} repeticiones, ${n * REPETICIONES_CARRERA} peticiones, creadas=${totales.creadas}, 409=${totales.conflictos}, otros=${JSON.stringify(totales.otros)}, ${Date.now() - inicioN} ms`);
+    }
+    await bd.collection("Citas").deleteMany({ barberoId: barberoCarrera });
+    await bd.collection("Usuarios").deleteMany({ $or: [{ _id: barberoCarrera }, { usuario: /^api_cliente_carrera_/ }] });
 
     // ==================== Reglas de la app = reglas del servidor ====================
     const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];
