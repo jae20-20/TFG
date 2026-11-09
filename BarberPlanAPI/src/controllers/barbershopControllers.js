@@ -1,7 +1,10 @@
 //manejar http request - Barberías
+import { registrarError } from "../utils/registrarError.js";
+import { responderErrorInterno } from "../middleware/errorMiddleware.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { MENSAJES_DUPLICADO, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
+import { POLITICA_VERSION, config } from "../config.js";
+import { MENSAJES_DUPLICADO, errorConsentimiento, errorGaleria, errorImagen, validarCorreo, validarPasswordNueva } from "../middleware/validateMiddleware.js";
 import { ObjectId } from "mongodb";
 
 import {
@@ -39,6 +42,9 @@ import { barberoActivo, campoDuplicado, createUser, getUserByEmail, getUserByUse
 import { contarCitasFuturasBarbero, getResenasByBarberiaId } from "../models/citaModel.js";
 
 
+// Reseñas que devuelve la ficha pública de una barbería (las más recientes)
+export const LIMITE_RESENAS_PUBLICAS = 50;
+
 // Obtener todas las barberías (público)
 export const getBarberias = async (req, res) => {
     try {
@@ -47,8 +53,8 @@ export const getBarberias = async (req, res) => {
         const barberiasPublicas = barberias.map(({ adminId, ...barberia }) => barberia);
         res.json(barberiasPublicas);
     } catch (error) {
-        console.error("Error al obtener barberías:", error);
-        res.status(500).json({ error: "Error al obtener barberías" });
+        registrarError("Error al obtener barberías:", error);
+        responderErrorInterno(res, error, "Error al obtener barberías");
     }
 };
 
@@ -66,8 +72,8 @@ export const getBarberia = async (req, res) => {
         const { adminId, ...barberiaPublica } = barberia;
         res.json(barberiaPublica);
     } catch (error) {
-        console.error("Error al obtener barbería:", error);
-        res.status(500).json({ error: "Error al obtener barbería" });
+        registrarError("Error al obtener barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener barbería");
     }
 };
 
@@ -90,8 +96,8 @@ export const getMyBarberia = async (req, res) => {
 
         res.json(barberia);
     } catch (error) {
-        console.error("Error al obtener mi barbería:", error);
-        res.status(500).json({ error: "Error al obtener barbería" });
+        registrarError("Error al obtener mi barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener barbería");
     }
 };
 
@@ -123,7 +129,7 @@ export const registerBarberia = async (req, res) => {
 
         const correo = normalizarCorreo(req.body.correo);
 
-        const errorCredenciales = validarCorreo(correo) || validarPasswordNueva(pw);
+        const errorCredenciales = validarCorreo(correo) || validarPasswordNueva(pw) || errorConsentimiento(req.body);
         if (errorCredenciales) {
             return res.status(400).json({ error: errorCredenciales });
         }
@@ -140,7 +146,7 @@ export const registerBarberia = async (req, res) => {
         }
 
         // Encriptar contraseña del admin
-        const salt = await bcrypt.genSalt(10);
+        const salt = await bcrypt.genSalt(config.bcryptRondas);
         const hashedPassword = await bcrypt.hash(pw, salt);
 
         // Crear usuario admin
@@ -152,6 +158,8 @@ export const registerBarberia = async (req, res) => {
             usuario,
             rol: "admin",
             barberiaId: null, // Se actualizará después
+            // Qué texto de la política se aceptó y cuándo (la versión la fija el servidor, no el cliente)
+            consentimiento: { aceptadoEn: new Date(), version: POLITICA_VERSION },
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -184,8 +192,8 @@ export const registerBarberia = async (req, res) => {
                 rol: "admin",
                 barberiaId: newBarberia.insertedId
             },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
+            config.jwtSecret,
+            { expiresIn: config.jwtExpiracion }
         );
 
         res.status(201).json({
@@ -211,8 +219,8 @@ export const registerBarberia = async (req, res) => {
         if (duplicado) {
             return res.status(409).json({ error: MENSAJES_DUPLICADO[duplicado] });
         }
-        console.error("Error al registrar barbería:", error);
-        res.status(500).json({ error: "Error al registrar barbería" });
+        registrarError("Error al registrar barbería:", error);
+        responderErrorInterno(res, error, "Error al registrar barbería");
     }
 };
 
@@ -276,6 +284,15 @@ export const editBarberia = async (req, res) => {
             return res.status(400).json({ error: "Modo de confirmación no válido. Usa automatico o manual" });
         }
 
+        // Solo imágenes (data URL jpeg, png o webp) dentro de los límites de peso y con un máximo de fotos en la galería
+        const errorImagenes = errorImagen(logoUrl, "logo")
+            || errorImagen(portadaUrl, "portada")
+            || errorImagen(imagen, "portada")
+            || (galeriaTrabajos !== undefined ? errorGaleria(galeriaTrabajos) : null);
+        if (errorImagenes) {
+            return res.status(400).json({ error: errorImagenes });
+        }
+
         let tagsSaneados;
         if (tags !== undefined) {
             tagsSaneados = sanearTags(tags);
@@ -312,8 +329,8 @@ export const editBarberia = async (req, res) => {
         res.json({ message: "Barbería actualizada correctamente", barberia: updatedBarberia });
 
     } catch (error) {
-        console.error("Error al actualizar barbería:", error);
-        res.status(500).json({ error: "Error al actualizar barbería" });
+        registrarError("Error al actualizar barbería:", error);
+        responderErrorInterno(res, error, "Error al actualizar barbería");
     }
 };
 
@@ -341,8 +358,8 @@ export const getMyHorario = async (req, res) => {
             legacyHorario: barberia.horario || null
         });
     } catch (error) {
-        console.error("Error al obtener horario de la barbería:", error);
-        res.status(500).json({ error: "Error al obtener horario de la barbería" });
+        registrarError("Error al obtener horario de la barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener horario de la barbería");
     }
 };
 
@@ -378,8 +395,8 @@ export const updateMyHorario = async (req, res) => {
             horario: updatedBarberia?.schedule || updatedSchedule
         });
     } catch (error) {
-        console.error("Error al actualizar horario de la barbería:", error);
-        res.status(500).json({ error: "Error al actualizar horario de la barbería" });
+        registrarError("Error al actualizar horario de la barbería:", error);
+        responderErrorInterno(res, error, "Error al actualizar horario de la barbería");
     }
 };
 
@@ -409,8 +426,8 @@ export const getServicios = async (req, res) => {
         const servicios = await getServiciosByBarberiaId(id);
         res.json(servicios);
     } catch (error) {
-        console.error("Error al obtener servicios:", error);
-        res.status(500).json({ error: "Error al obtener servicios" });
+        registrarError("Error al obtener servicios:", error);
+        responderErrorInterno(res, error, "Error al obtener servicios");
     }
 };
 
@@ -418,11 +435,12 @@ export const getServicios = async (req, res) => {
 export const getResenasPublicas = async (req, res) => {
     try {
         const { id } = req.params;
-        const resenas = await getResenasByBarberiaId(id);
+        // Público: sin la foto de cada reseña (hasta 120 KB cada una) y solo las más recientes
+        const resenas = await getResenasByBarberiaId(id, { incluirImagen: false, limite: LIMITE_RESENAS_PUBLICAS });
         res.json(resenas);
     } catch (error) {
-        console.error("Error al obtener reseñas:", error);
-        res.status(500).json({ error: "Error al obtener reseñas" });
+        registrarError("Error al obtener reseñas:", error);
+        responderErrorInterno(res, error, "Error al obtener reseñas");
     }
 };
 
@@ -447,8 +465,8 @@ export const addServicio = async (req, res) => {
         res.status(201).json({ message: "Servicio añadido correctamente", servicio });
 
     } catch (error) {
-        console.error("Error al añadir servicio:", error);
-        res.status(500).json({ error: "Error al añadir servicio" });
+        registrarError("Error al añadir servicio:", error);
+        responderErrorInterno(res, error, "Error al añadir servicio");
     }
 };
 
@@ -477,8 +495,8 @@ export const editServicio = async (req, res) => {
         res.json({ message: "Servicio actualizado correctamente", servicio: servicioActualizado });
 
     } catch (error) {
-        console.error("Error al actualizar servicio:", error);
-        res.status(500).json({ error: "Error al actualizar servicio" });
+        registrarError("Error al actualizar servicio:", error);
+        responderErrorInterno(res, error, "Error al actualizar servicio");
     }
 };
 
@@ -497,8 +515,8 @@ export const deleteServicio = async (req, res) => {
         res.json({ message: "Servicio eliminado correctamente" });
 
     } catch (error) {
-        console.error("Error al eliminar servicio:", error);
-        res.status(500).json({ error: "Error al eliminar servicio" });
+        registrarError("Error al eliminar servicio:", error);
+        responderErrorInterno(res, error, "Error al eliminar servicio");
     }
 };
 
@@ -524,8 +542,8 @@ export const getBarberos = async (req, res) => {
         );
         res.json(barberosPublicos);
     } catch (error) {
-        console.error("Error al obtener barberos:", error);
-        res.status(500).json({ error: "Error al obtener barberos" });
+        registrarError("Error al obtener barberos:", error);
+        responderErrorInterno(res, error, "Error al obtener barberos");
     }
 };
 
@@ -569,8 +587,8 @@ export const setEstadoBarbero = async (req, res) => {
             citasFuturas
         });
     } catch (error) {
-        console.error("Error al cambiar el estado del barbero:", error);
-        res.status(500).json({ error: "Error al cambiar el estado del barbero" });
+        registrarError("Error al cambiar el estado del barbero:", error);
+        responderErrorInterno(res, error, "Error al cambiar el estado del barbero");
     }
 };
 
@@ -603,8 +621,8 @@ export const removeBarbero = async (req, res) => {
         res.json({ message: "Barbero eliminado de la barbería correctamente" });
 
     } catch (error) {
-        console.error("Error al eliminar barbero:", error);
-        res.status(500).json({ error: "Error al eliminar barbero" });
+        registrarError("Error al eliminar barbero:", error);
+        responderErrorInterno(res, error, "Error al eliminar barbero");
     }
 };
 
@@ -658,8 +676,8 @@ export const createInvitacionEmpleado = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al crear invitación:", error);
-        res.status(500).json({ error: "Error al crear invitación" });
+        registrarError("Error al crear invitación:", error);
+        responderErrorInterno(res, error, "Error al crear invitación");
     }
 };
 
@@ -679,8 +697,8 @@ export const getInvitacionesEmpleados = async (req, res) => {
         res.json(invitacionesSeguras);
 
     } catch (error) {
-        console.error("Error al obtener invitaciones:", error);
-        res.status(500).json({ error: "Error al obtener invitaciones" });
+        registrarError("Error al obtener invitaciones:", error);
+        responderErrorInterno(res, error, "Error al obtener invitaciones");
     }
 };
 
@@ -723,8 +741,8 @@ export const regenerarInvitacionEmpleado = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al regenerar invitación:", error);
-        res.status(500).json({ error: "Error al regenerar invitación" });
+        registrarError("Error al regenerar invitación:", error);
+        responderErrorInterno(res, error, "Error al regenerar invitación");
     }
 };
 
@@ -747,8 +765,8 @@ export const revocarInvitacionEmpleado = async (req, res) => {
         res.json({ message: "Invitación revocada correctamente" });
 
     } catch (error) {
-        console.error("Error al revocar invitación:", error);
-        res.status(500).json({ error: "Error al revocar invitación" });
+        registrarError("Error al revocar invitación:", error);
+        responderErrorInterno(res, error, "Error al revocar invitación");
     }
 };
 
@@ -771,8 +789,8 @@ export const deleteInvitacionEmpleado = async (req, res) => {
         res.json({ message: "Invitación eliminada correctamente" });
 
     } catch (error) {
-        console.error("Error al eliminar invitación:", error);
-        res.status(500).json({ error: "Error al eliminar invitación" });
+        registrarError("Error al eliminar invitación:", error);
+        responderErrorInterno(res, error, "Error al eliminar invitación");
     }
 };
 
@@ -804,7 +822,7 @@ export const validateInvitationCode = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al validar código de invitación:", error);
-        res.status(500).json({ error: "Error al validar código" });
+        registrarError("Error al validar código de invitación:", error);
+        responderErrorInterno(res, error, "Error al validar código");
     }
 };

@@ -18,6 +18,12 @@
         <p class="auth-card-desc">Accede a tu cuenta de BarberPlan</p>
       </div>
 
+      <!-- La API gratuita se duerme sin tráfico: aviso mientras despierta -->
+      <div class="auth-aviso-servidor" *ngIf="servidorDespertando" role="status" aria-live="polite">
+        <ion-spinner name="dots"></ion-spinner>
+        <span>El servidor se está despertando. La primera vez puede tardar hasta un minuto; no hace falta que recargues la página.</span>
+      </div>
+
       <!-- Formulario -->
       <form (ngSubmit)="login()" class="auth-form">
         <div class="auth-field">
@@ -44,8 +50,8 @@
           />
         </div>
 
-        <button type="submit" class="auth-submit-btn">
-          Iniciar Sesión
+        <button type="submit" class="auth-submit-btn" [disabled]="iniciandoSesion">
+          {{ iniciandoSesion ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
         </button>
       </form>
     </div>

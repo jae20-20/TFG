@@ -75,7 +75,7 @@
                   <div class="cita-header">
                     <span class="cita-time">{{ cita.horaInicio }} - {{ cita.horaFin }}</span>
                     <span class="cita-client">
-                      <img *ngIf="cita.cliente?.avatar" [src]="cita.cliente.avatar" class="cita-client-avatar" alt="Avatar" />
+                      <span class="cita-client-iniciales" aria-hidden="true">{{ inicialesCliente(cita) }}</span>
                       {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}
                     </span>
                     <span class="appointment-status" [ngClass]="cita.estado" *ngIf="cita.estado !== 'confirmada'">{{ etiquetaEstado(cita) }}</span>

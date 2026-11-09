@@ -10,7 +10,8 @@ import {
   admiteCancelacionPersonal,
   admitePago,
   esPendienteVigente,
-  etiquetaEstadoCita
+  etiquetaEstadoCita,
+  inicialesCliente
 } from '../../../services/cita-estado.util';
 import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
 import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
@@ -28,6 +29,7 @@ const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
   imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent]
 })
 export class BarberCalendarPage implements OnInit {
+  readonly inicialesCliente = inicialesCliente;
   user: any = null;
   citas: any[] = [];
   pendientes: any[] = [];

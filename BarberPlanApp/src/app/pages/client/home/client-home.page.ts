@@ -79,9 +79,21 @@ import {
   closeCircle,
   pricetagOutline,
   peopleOutline,
-  chevronForwardOutline
+  chevronForwardOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  alertCircleOutline,
+  notificationsOutline
 } from 'ionicons/icons';
-import { esCitaProxima } from '../../../services/cita-estado.util';
+import { AvisoCita, RecordatorioCita, TipoAvisoCita, avisosDeCitas, esCitaProxima, recordatorioProximaCita } from '../../../services/cita-estado.util';
+
+// Icono y color de cada tipo de aviso al cliente (RF12)
+const ICONOS_AVISO: Record<TipoAvisoCita, string> = {
+  confirmada: 'checkmark-circle-outline',
+  rechazada: 'close-circle-outline',
+  expirada: 'time-outline',
+  cancelada: 'alert-circle-outline'
+};
 
 @Component({
   selector: 'app-client-home',
@@ -100,6 +112,10 @@ export class ClientHomePage implements OnInit {
   barberiasError = '';
   currentTab: 'inicio' | 'citas' | 'perfil' = 'inicio';
   citasProximas = 0;
+  // Avisos del resultado de sus reservas y recordatorio de la próxima cita (RF12, solo dentro de la aplicación)
+  avisos: AvisoCita[] = [];
+  recordatorio: RecordatorioCita | null = null;
+  descartandoAvisos = false;
 
   busqueda = '';
   filtros: FiltrosBarberia = ClientHomePage.filtrosPorDefecto();
@@ -138,7 +154,11 @@ export class ClientHomePage implements OnInit {
       'close-circle': closeCircle,
       'pricetag-outline': pricetagOutline,
       'people-outline': peopleOutline,
-      'chevron-forward-outline': chevronForwardOutline
+      'chevron-forward-outline': chevronForwardOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'close-circle-outline': closeCircleOutline,
+      'alert-circle-outline': alertCircleOutline,
+      'notifications-outline': notificationsOutline
     });
 
     this.router.events.subscribe((event) => {
@@ -158,19 +178,47 @@ export class ClientHomePage implements OnInit {
     this.cargarCitasProximas();
   }
 
-  // El aviso es secundario: si la petición falla simplemente no se muestra
+  // Los avisos son secundarios: si la petición falla simplemente no se muestran
   async cargarCitasProximas() {
     try {
       const citas = await this.apiService.getMisCitas();
       const ahora = new Date();
       this.citasProximas = Array.isArray(citas) ? citas.filter((cita) => esCitaProxima(cita, ahora)).length : 0;
+      this.avisos = avisosDeCitas(citas);
+      this.recordatorio = recordatorioProximaCita(citas, ahora);
     } catch {
       this.citasProximas = 0;
+      this.avisos = [];
+      this.recordatorio = null;
     }
+    this.cdr.detectChanges();
+  }
+
+  iconoAviso(tipo: TipoAvisoCita): string {
+    return ICONOS_AVISO[tipo];
   }
 
   verCitasProximas() {
     this.router.navigate(['/client-appointments'], { queryParams: { filtro: 'proximas' } });
+  }
+
+  verMisCitas() {
+    this.router.navigateByUrl('/client-appointments');
+  }
+
+  // «Entendido»: el servidor borra los avisos de este cliente; si falla se mantienen para la próxima vez
+  async descartarAvisos() {
+    if (this.descartandoAvisos) return;
+    this.descartandoAvisos = true;
+    try {
+      await this.apiService.marcarAvisosLeidos();
+      this.avisos = [];
+    } catch {
+      // se mantienen visibles
+    } finally {
+      this.descartandoAvisos = false;
+      this.cdr.detectChanges();
+    }
   }
 
   async ngOnInit() {

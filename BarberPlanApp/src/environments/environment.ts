@@ -1,9 +1,15 @@
-// This file can be replaced during build by using the `fileReplacements` array.
-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
-// The list of file replacements can be found in `angular.json`.
+// Entorno de desarrollo. `ng build` (producción) lo sustituye por environment.prod.ts (fileReplacements en angular.json).
+// Todo valor que cambie entre desarrollo y producción va aquí, no en el código.
 
 export const environment = {
-  production: false
+  production: false,
+  // URL base de la API (BarberPlanAPI)
+  apiUrl: 'http://localhost:5050',
+  // Datos de contacto que muestra la política de privacidad
+  privacidad: {
+    responsable: '[NOMBRE Y APELLIDOS DEL RESPONSABLE]',
+    correoContacto: '[CORREO DE CONTACTO]'
+  }
 };
 
 /*

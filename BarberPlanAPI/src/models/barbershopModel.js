@@ -18,8 +18,9 @@ export const getDefaultBarberiaSchedule = () => ({
 
 // ==================== FUNCIONES BÁSICAS ====================
 
+// Listado público: sin la galería de trabajos (hasta 6 imágenes por barbería), que solo hace falta en la ficha de cada una
 export const getAllBarbershops = async () => {
-    return await db.collection("Barberias").find().toArray();
+    return await db.collection("Barberias").find({}, { projection: { galeriaTrabajos: 0 } }).toArray();
 };
 
 export const createBarbershop = async (barbershopData) => {

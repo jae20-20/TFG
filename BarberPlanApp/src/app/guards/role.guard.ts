@@ -10,7 +10,6 @@ export const roleGuard = (allowedRole: 'barbero' | 'cliente' | 'admin') => async
 
   await storage.create();
   const user = await storage.get('user');
-  console.log('roleGuard user:', user);
 
   if (!user) {
     router.navigateByUrl('/login', { replaceUrl: true });

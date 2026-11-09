@@ -1,0 +1,117 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()" aria-label="Volver">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Política de privacidad</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <article class="privacidad mx-auto w-full max-w-3xl">
+    <p class="privacidad-version">Versión {{ version }} · Última actualización: {{ fecha }}</p>
+
+    <p class="privacidad-intro">
+      BarberPlan es un proyecto académico (Trabajo de Fin de Grado) para gestionar citas en barberías, sin finalidad comercial.
+      Esta página explica, en pocas palabras, qué datos tuyos guarda la aplicación, para qué y qué puedes hacer con ellos.
+    </p>
+
+    <section>
+      <h2>1. Quién es el responsable</h2>
+      <p>
+        El responsable del tratamiento es <strong>{{ responsable }}</strong>, autor del proyecto.
+        Puedes escribirle a <strong>{{ correoContacto }}</strong> para cualquier duda o para ejercer tus derechos.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Qué datos guardamos</h2>
+      <ul>
+        <li><strong>Tu cuenta:</strong> nombre, apellidos, nombre de usuario, correo electrónico y contraseña. La contraseña se guarda cifrada: nadie, ni el responsable, puede leerla.</li>
+        <li><strong>Datos opcionales de tu perfil:</strong> teléfono y foto de perfil. Si eres cliente, también tu ciudad.</li>
+        <li><strong>Tus citas:</strong> barbería, barbero, servicios, fecha y hora, precio, estado (pendiente, confirmada, completada, cancelada…), si está pagada y el comentario que escribas al reservar.</li>
+        <li><strong>Tus reseñas:</strong> la puntuación, el comentario y la imagen opcional que añadas.</li>
+        <li><strong>Si eres barbero:</strong> tu puesto, tu horario y las solicitudes de ausencias o cambios que envíes al administrador.</li>
+        <li><strong>Si eres dueño de una barbería:</strong> los datos de la barbería (nombre, ciudad, dirección, teléfono, descripción, servicios y horario).</li>
+        <li><strong>Tu aceptación de esta política:</strong> la fecha y la versión del texto que aceptaste al registrarte.</li>
+      </ul>
+      <p>No pedimos datos de pago: la aplicación solo anota si una cita está pagada. No usamos cookies de publicidad ni de seguimiento.</p>
+    </section>
+
+    <section>
+      <h2>3. Para qué los usamos</h2>
+      <ul>
+        <li>Crear y mantener tu cuenta y permitirte iniciar sesión.</li>
+        <li>Gestionar las reservas entre clientes y barberías: crearlas, confirmarlas, cancelarlas y avisarte dentro de la aplicación de su estado.</li>
+        <li>Mostrar las reseñas de cada barbería.</li>
+        <li>Permitir a cada barbería gestionar su equipo, su agenda y sus servicios.</li>
+      </ul>
+      <p>No enviamos correos ni notificaciones push, no elaboramos perfiles ni tomamos decisiones automatizadas sobre ti.</p>
+    </section>
+
+    <section>
+      <h2>4. Por qué podemos usarlos</h2>
+      <p>
+        Por tu <strong>consentimiento</strong> (artículo 6.1.a del RGPD), que das marcando la casilla al registrarte.
+        Puedes retirarlo en cualquier momento eliminando tu cuenta desde tu perfil.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Quién puede ver tus datos</h2>
+      <ul>
+        <li><strong>La barbería donde reservas</strong> ve tu nombre, tu ciudad y tus citas con ella; el barbero que te atiende, tu nombre y el comentario de la cita.</li>
+        <li><strong>Cualquier visitante</strong> puede ver tus reseñas, que se muestran con tu nombre, apellido y foto de perfil.</li>
+        <li><strong>Proveedores técnicos</strong>, que tratan los datos solo para dar el servicio: MongoDB Atlas (base de datos) y [PROVEEDOR DE HOSTING Y REGIÓN]. La región de la base de datos es [REGIÓN DEL CLÚSTER].</li>
+        <li>La tipografía de la aplicación (Inter) se descarga de Google Fonts, por lo que Google recibe la dirección IP de quien abre la aplicación.</li>
+      </ul>
+      <p>No vendemos ni cedemos tus datos a nadie más.</p>
+    </section>
+
+    <section>
+      <h2>6. Cuánto tiempo los guardamos</h2>
+      <p>
+        Mientras tengas la cuenta. Al ser un proyecto académico, <strong>todos los datos se eliminarán al terminar la evaluación del TFG</strong>
+        ([FECHA PREVISTA DE ELIMINACIÓN]).
+      </p>
+      <p>Si eliminas tu cuenta antes:</p>
+      <ul>
+        <li>Se borran tus datos personales (nombre, usuario, correo, teléfono, ciudad, foto y contraseña).</li>
+        <li>Tus citas futuras se cancelan y el hueco queda libre. Las pasadas se conservan de forma anónima («Cliente eliminado») porque forman parte del registro de la barbería.</li>
+        <li>De tus reseñas solo queda la puntuación, para no alterar la media; el comentario y la imagen se borran.</li>
+        <li>Si eres barbero, se cancelan tus citas futuras (se avisa a los clientes) y se borran tus solicitudes.</li>
+        <li>Si eres dueño, se elimina también tu barbería: sus barberos conservan su cuenta, sin barbería, y se cancelan las citas futuras.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Tus derechos y cómo ejercerlos</h2>
+      <p>Tienes derecho a acceder a tus datos, rectificarlos, suprimirlos, oponerte a su uso, limitarlo y recibirlos en un formato reutilizable (portabilidad).</p>
+      <ul>
+        <li><strong>Ver y corregir:</strong> en tu perfil puedes ver y modificar tu nombre, apellidos, usuario, teléfono, foto y (si eres cliente) tu ciudad, y cambiar tu contraseña.</li>
+        <li><strong>Tu correo electrónico:</strong> lo ves en el perfil, pero no se cambia desde la aplicación. Si necesitas cambiarlo, escribe a {{ correoContacto }}.</li>
+        <li><strong>Eliminar:</strong> en tu perfil, «Eliminar mi cuenta» (te pedirá la contraseña).</li>
+        <li><strong>Otros derechos</strong> (copia de tus datos, oposición, limitación): escribe a {{ correoContacto }}. Responderemos en un máximo de un mes.</li>
+      </ul>
+      <p>
+        Si crees que no hemos tratado bien tus datos, puedes reclamar ante la Agencia Española de Protección de Datos
+        (<a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>).
+      </p>
+    </section>
+
+    <section>
+      <h2>8. Seguridad y menores</h2>
+      <p>
+        Las contraseñas se guardan cifradas y las comunicaciones con el servidor van protegidas. Para usar BarberPlan debes tener al menos
+        <strong>{{ edadMinima }} años</strong>.
+      </p>
+    </section>
+
+    <section>
+      <h2>9. Cambios en esta política</h2>
+      <p>Si el texto cambia, se actualizarán la versión y la fecha que aparecen arriba.</p>
+    </section>
+  </article>
+</ion-content>

@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { ApiService } from '../../../../services/api.service';
+import { MAX_IMAGENES_GALERIA, MENSAJE_GALERIA_LLENA, comprimirImagen } from '../../../../services/imagen.util';
 
 @Component({
   selector: 'app-card-configuration',
@@ -25,6 +26,8 @@ export class CardConfigurationPage implements OnInit {
 
   nuevoTag = '';
   tagError = '';
+  imagenError = '';
+  readonly maxGaleria = MAX_IMAGENES_GALERIA;
   readonly maxTags = 8;
   readonly maxTagLength = 24;
 
@@ -61,46 +64,48 @@ export class CardConfigurationPage implements OnInit {
     }
   }
 
+  // Las imágenes se reducen en el navegador (tamaño y peso máximos por tipo en imagen.util.ts) antes de guardarse
   async onLogoSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      try {
-        const base64 = await this.processImage(file, 400);
-        this.perfilVisualForm.logoUrl = base64;
-      } catch (error) {
-        console.error('Error processing logo', error);
-      }
+      await this.procesar(async () => { this.perfilVisualForm.logoUrl = await comprimirImagen(file, 'logo'); });
     }
+    event.target.value = '';
   }
 
   async onPortadaSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      try {
-        const base64 = await this.processImage(file, 800);
-        this.perfilVisualForm.portadaUrl = base64;
-      } catch (error) {
-        console.error('Error processing cover', error);
-      }
+      await this.procesar(async () => { this.perfilVisualForm.portadaUrl = await comprimirImagen(file, 'portada'); });
     }
+    event.target.value = '';
   }
 
   async onGaleriaSelected(event: any) {
-    const files = event.target.files;
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        try {
-          const base64 = await this.processImage(files[i], 800);
-          this.perfilVisualForm.galeriaTrabajos.push(base64);
-        } catch (error) {
-          console.error('Error processing gallery image', error);
-        }
+    const files: File[] = Array.from(event.target.files ?? []);
+    this.imagenError = '';
+    for (const file of files) {
+      if (this.perfilVisualForm.galeriaTrabajos.length >= this.maxGaleria) {
+        this.imagenError = MENSAJE_GALERIA_LLENA;
+        break;
       }
+      await this.procesar(async () => { this.perfilVisualForm.galeriaTrabajos.push(await comprimirImagen(file, 'galeria')); }, false);
     }
+    event.target.value = '';
   }
 
   removeGaleriaImage(index: number) {
     this.perfilVisualForm.galeriaTrabajos.splice(index, 1);
+    this.imagenError = '';
+  }
+
+  private async procesar(accion: () => Promise<void>, limpiarError = true) {
+    if (limpiarError) this.imagenError = '';
+    try {
+      await accion();
+    } catch (error: any) {
+      this.imagenError = error?.message || 'No se pudo procesar la imagen.';
+    }
   }
 
   addTag() {
@@ -136,46 +141,6 @@ export class CardConfigurationPage implements OnInit {
     this.tagError = '';
   }
 
-  private processImage(file: File, maxSize: number): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxSize) {
-              height = Math.round((height * maxSize) / width);
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width = Math.round((width * maxSize) / height);
-              height = maxSize;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
-          } else {
-            reject(new Error('Could not get canvas context'));
-          }
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = e.target.result;
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
-    });
-  }
-
   async savePerfilVisual() {
     if (!this.barberia?._id) return;
 
@@ -193,9 +158,10 @@ export class CardConfigurationPage implements OnInit {
         color: 'success'
       });
       await toast.present();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al guardar perfil visual:', error);
-      this.barberiaError = 'No se ha podido guardar el perfil visual.';
+      // 400: el servidor rechaza una imagen (formato o peso); su mensaje dice cuál
+      this.barberiaError = error?.status === 400 && error?.error?.error ? error.error.error : 'No se ha podido guardar el perfil visual.';
       
       const toast = await this.toastCtrl.create({
         message: 'Error al guardar perfil visual',

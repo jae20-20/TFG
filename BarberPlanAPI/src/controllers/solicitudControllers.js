@@ -1,3 +1,5 @@
+import { registrarError } from "../utils/registrarError.js";
+import { responderErrorInterno } from "../middleware/errorMiddleware.js";
 import { ObjectId } from "mongodb";
 import { createSolicitud, getSolicitudesByBarbero, getSolicitudesByBarberia, updateSolicitudEstado, deleteSolicitud, getSolicitudById } from "../models/solicitudModel.js";
 import { getUserById, updateUser } from "../models/userModel.js";
@@ -71,8 +73,8 @@ export const createBarberSolicitud = async (req, res) => {
         const result = await createSolicitud(solicitudData);
         res.status(201).json({ message: "Solicitud creada exitosamente", id: result.insertedId });
     } catch (error) {
-        console.error("Error al crear solicitud:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        registrarError("Error al crear solicitud:", error);
+        responderErrorInterno(res, error, "Error interno del servidor");
     }
 };
 
@@ -82,8 +84,8 @@ export const getMisSolicitudes = async (req, res) => {
         const solicitudes = await getSolicitudesByBarbero(req.user.id);
         res.json({ solicitudes });
     } catch (error) {
-        console.error("Error al obtener solicitudes:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        registrarError("Error al obtener solicitudes:", error);
+        responderErrorInterno(res, error, "Error interno del servidor");
     }
 };
 
@@ -107,8 +109,8 @@ export const getSolicitudesEquipo = async (req, res) => {
 
         res.json({ solicitudes: populatedSolicitudes });
     } catch (error) {
-        console.error("Error al obtener solicitudes del equipo:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        registrarError("Error al obtener solicitudes del equipo:", error);
+        responderErrorInterno(res, error, "Error interno del servidor");
     }
 };
 
@@ -198,8 +200,8 @@ export const responderSolicitud = async (req, res) => {
 
         res.json({ message: "Solicitud respondida exitosamente" });
     } catch (error) {
-        console.error("Error al responder solicitud:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        registrarError("Error al responder solicitud:", error);
+        responderErrorInterno(res, error, "Error interno del servidor");
     }
 };
 
@@ -220,7 +222,7 @@ export const eliminarSolicitud = async (req, res) => {
         await deleteSolicitud(id);
         res.json({ message: "Solicitud eliminada exitosamente" });
     } catch (error) {
-        console.error("Error al eliminar solicitud:", error);
-        res.status(500).json({ error: "Error interno del servidor" });
+        registrarError("Error al eliminar solicitud:", error);
+        responderErrorInterno(res, error, "Error interno del servidor");
     }
 };

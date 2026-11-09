@@ -1,3 +1,4 @@
+import { registrarError } from "../utils/registrarError.js";
 import { db } from "./connection.js";
 
 // Índices de la base de datos. Cada uno responde a una restricción de unicidad o a una consulta real.
@@ -25,7 +26,7 @@ export const crearIndices = async () => {
     try {
       await db.collection(coleccion).createIndex(clave, opciones);
     } catch (error) {
-      console.error(`No se pudo crear el índice ${coleccion}.${opciones.name}:`, error.message);
+      registrarError(`No se pudo crear el índice ${coleccion}.${opciones.name}`, error);
       if (opciones.unique) erroresUnicos.push(`${coleccion}.${opciones.name}`);
     }
   }

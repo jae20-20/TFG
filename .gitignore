@@ -2,6 +2,10 @@
 BarberPlanApp/node_modules/
 BarberPlanAPI/node_modules/
 BarberPlanAPI/postman/node_modules/
+BarberPlanAPI/tests/medidas/node_modules/
+
+# Prueba de carga: el informe final (resultados/carga.json) se versiona; los resultados intermedios de autocannon, no
+BarberPlanAPI/tests/medidas/resultados/intermedios/
 
 # Builds de Ionic/Angular
 BarberPlanApp/www/
@@ -16,6 +20,7 @@ BarberPlanAPI/dist/
 .env
 BarberPlanApp/.env
 BarberPlanAPI/.env
+BarberPlanAPI/.env.example
 
 # Sistema
 .DS_Store

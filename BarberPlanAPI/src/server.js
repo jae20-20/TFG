@@ -1,9 +1,11 @@
+import { registrarError } from "./utils/registrarError.js";
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
+import "./comprobarEntorno.js";
+import { config } from "./config.js";
 import { connectDB } from "./db/connection.js";
 import { crearIndices } from "./db/indices.js";
 import { iniciarTareasCitas } from "./jobs/citaJobs.js";
@@ -17,37 +19,26 @@ import solicitudRoutes from "./routes/solicitudRoutes.js";
 import barberoRoutes from "./routes/barberoRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
-dotenv.config(); // Cargar variables de entorno
-
-const PORT = process.env.PORT || 5050;
 const app = express();
 
-// Orígenes permitidos: navegador en desarrollo (ng serve / ionic serve) y
-// WebViews de Capacitor (Android: http://localhost, iOS: capacitor://localhost).
-// En producción se definen en .env con CORS_ORIGINS separados por comas.
-const DEFAULT_CORS_ORIGINS = [
-  "http://localhost:4200",
-  "http://localhost:8100",
-  "http://localhost",
-  "capacitor://localhost",
-  "ionic://localhost"
-];
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean)
-  : DEFAULT_CORS_ORIGINS;
+// Detrás de un proxy (hosting) la IP real del cliente viene en X-Forwarded-For; sin esto todos
+// compartirían la IP del proxy y el límite de peticiones. Se activa con TRUST_PROXY
+if (config.trustProxy) {
+  app.set("trust proxy", config.trustProxy);
+}
 
 // Middleware
 app.use(helmet());
-app.use(cors({ origin: allowedOrigins }));
-app.use(express.json({ limit: "20mb" }));
-app.use(express.urlencoded({ limit: "20mb", extended: true }));
+app.use(cors({ origin: config.origenesCors }));
+// 4 MB: lo más grande que se envía es la galería de la barbería (hasta 6 imágenes de ~160 KB, ver validateMiddleware.js)
+app.use(express.json({ limit: "4mb" }));
+app.use(express.urlencoded({ limit: "4mb", extended: true }));
 app.use(mongoSanitize);
 
 //linite solictudes por IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  // RATE_LIMIT_MAX solo se sube en las pruebas de integración, que lanzan cientos de peticiones desde una IP
-  max: Number(process.env.RATE_LIMIT_MAX) || 100,
+  max: config.limiteGlobal,
   message: { error: "Demasiadas peticiones, inténtalo más tarde" }
 });
 
@@ -80,15 +71,15 @@ app.use(rutaNoEncontrada);
 app.use(manejadorErrores);
 
 // Conectar a la base de datos, asegurar los índices y luego iniciar el servidor
-connectDB().then(crearIndices).then(() => {
-  app.listen(PORT, () => {
-    console.log(`¡Éxito!, Servidor corriendo en http://localhost:${PORT}`);
-  });
-  // TAREAS_CITAS=off arranca sin tareas periódicas (pruebas que no deben escribir en la BD)
-  if (process.env.TAREAS_CITAS !== "off") {
-    iniciarTareasCitas();
+connectDB().then(crearIndices).then(async () => {
+  // Primero se ponen al día las citas vencidas y después se abre el puerto (ver citaJobs.js)
+  if (config.tareasCitas) {
+    await iniciarTareasCitas();
   }
+  app.listen(config.puerto, () => {
+    console.log(`¡Éxito!, Servidor corriendo en el puerto ${config.puerto} (${config.entorno})`);
+  });
 }).catch(err => {
-  console.error("GG, Error al iniciar el servidor:", err);
+  registrarError("GG, Error al iniciar el servidor:", err);
   process.exit(1);
 });

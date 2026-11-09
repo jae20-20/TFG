@@ -188,6 +188,11 @@
             </div>
           </div>
 
+          <label class="auth-consent">
+            <input type="checkbox" [(ngModel)]="aceptaPrivacidad" name="aceptaPrivacidad" />
+            <span>He leído y acepto la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a> y tengo {{ edadMinima }} años o más.</span>
+          </label>
+
           <!-- Botones de acción -->
           <div class="auth-actions-row">
             <button

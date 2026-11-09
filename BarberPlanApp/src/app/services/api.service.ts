@@ -2,14 +2,17 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { ESPERA_MAXIMA_ARRANQUE_MS } from './arranque-servidor.util';
 import { AccionEstadoCita } from './cita-estado.util';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:5050';
+  // La URL de la API sale del entorno (environment.ts / environment.prod.ts)
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private storage: Storage) {}
 
@@ -22,6 +25,13 @@ export class ApiService {
     }
 
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
+  }
+
+  // Estado de la API (GET /, sin base de datos). Sirve para despertar la instancia si está dormida y esperar su respuesta
+  async comprobarEstado() {
+    return await firstValueFrom(
+      this.http.get<{ message: string }>(`${this.apiUrl}/`).pipe(timeout(ESPERA_MAXIMA_ARRANQUE_MS))
+    );
   }
 
   // Método para login
@@ -273,11 +283,42 @@ export class ApiService {
     );
   }
 
-  // Cambiar la contraseña del usuario autenticado
+  // Cambiar la contraseña del usuario autenticado. Las sesiones anteriores al cambio dejan de valer en el
+  // servidor, que devuelve un token nuevo: se guarda para que esta sesión siga funcionando
   async cambiarPassword(currentPassword: string, newPassword: string) {
     const headers = await this.getAuthHeaders();
-    return await firstValueFrom(
+    const respuesta = await firstValueFrom(
       this.http.post<any>(`${this.apiUrl}/usuarios/cambiar-contrasena`, { currentPassword, newPassword }, { headers })
+    );
+    if (respuesta?.token) {
+      const storage = await this.storage.create();
+      await storage.set('token', respuesta.token);
+    }
+    return respuesta;
+  }
+
+  // Qué se borraría al eliminar la cuenta (para el aviso previo): el dueño recibe los datos de su barbería
+  async getResumenEliminacion() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<{ rol: 'cliente' | 'barbero' | 'admin'; barberiaNombre?: string; citasFuturas?: number; barberos?: number }>(
+        `${this.apiUrl}/usuarios/perfil/eliminacion`, { headers })
+    );
+  }
+
+  // Eliminar la cuenta del usuario autenticado (pide la contraseña). confirmarBarberia: el dueño acepta que su barbería se elimina con la cuenta
+  async eliminarMiCuenta(pw: string, confirmarBarberia = false) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/usuarios/perfil`, { headers, body: { pw, ...(confirmarBarberia && { confirmarBarberia: true }) } })
+    );
+  }
+
+  // El cliente da por vistos los avisos de sus citas (RF12)
+  async marcarAvisosLeidos() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<{ avisosLeidos: number }>(`${this.apiUrl}/citas/avisos/leidos`, {}, { headers })
     );
   }
 

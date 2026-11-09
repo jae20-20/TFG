@@ -10,6 +10,8 @@ import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/th
 import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
 import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
 import { CambiarPasswordModalComponent } from '../../../components/cambiar-password-modal/cambiar-password-modal.component';
+import { EliminarCuentaModalComponent } from '../../../components/eliminar-cuenta-modal/eliminar-cuenta-modal.component';
+import { comprimirImagen } from '../../../services/imagen.util';
 
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutline, checkmarkOutline, closeOutline, cameraOutline } from 'ionicons/icons';
@@ -19,7 +21,7 @@ import { homeOutline, calendarOutline, personOutline, logOutOutline, pencilOutli
   templateUrl: './client-profile.page.html',
   styleUrls: ['./client-profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent, EliminarCuentaModalComponent]
 })
 export class ClientProfilePage implements OnInit {
   // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior
@@ -33,6 +35,7 @@ export class ClientProfilePage implements OnInit {
   clientEditForm: any = null;
   isEditingClient = false;
   isPasswordModalOpen = false;
+  isEliminarCuentaOpen = false;
   savingClient = false;
   clientProfileError = '';
   ciudades = ['Madrid', 'Valencia', 'Sevilla'];
@@ -151,45 +154,9 @@ export class ClientProfilePage implements OnInit {
     }
   }
 
+  // Reduce y comprime a JPEG (256 px, calidad 0,7, máx. 40 KB): ver services/imagen.util.ts
   private readAndCompressImage(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxDim = 400;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDim) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            }
-          } else {
-            if (height > maxDim) {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
-          } else {
-            resolve(e.target.result);
-          }
-        };
-        img.onerror = () => reject('Error loading image');
-        img.src = e.target.result;
-      };
-      reader.onerror = () => reject('Error reading file');
-      reader.readAsDataURL(file);
-    });
+    return comprimirImagen(file, 'avatar');
   }
 
   async saveClientProfile() {
@@ -243,6 +210,10 @@ export class ClientProfilePage implements OnInit {
       this.savingClient = false;
       this.cdr.detectChanges();
     }
+  }
+
+  verPrivacidad() {
+    this.router.navigateByUrl('/privacidad');
   }
 
   getInitials() {

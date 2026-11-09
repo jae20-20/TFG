@@ -1,0 +1,54 @@
+@use '../../pages/shared/field-group' as fg;
+
+.password-field-group {
+  @include fg.field-group;
+  margin-top: 14px;
+}
+
+.eliminar-aviso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
+  color: var(--custom-danger-light);
+  font-size: 13px;
+  font-weight: 600;
+
+  p {
+    margin: 0;
+  }
+}
+
+.eliminar-aviso-icono {
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.eliminar-lista {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--custom-text-muted);
+
+  strong {
+    color: var(--custom-text-primary);
+  }
+}
+
+.eliminar-spinner {
+  display: block;
+  margin: 24px auto;
+}
+
+.eliminar-btn {
+  --border-radius: 12px;
+  text-transform: none;
+  font-weight: 700;
+  height: 44px;
+}

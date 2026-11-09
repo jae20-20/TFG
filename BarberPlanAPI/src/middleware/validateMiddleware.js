@@ -52,6 +52,14 @@ export const validarCorreo = (correo) => {
     return null;
 };
 
+// ==================== CONSENTIMIENTO (RGPD) ====================
+
+export const MENSAJE_SIN_CONSENTIMIENTO = "Debes aceptar la política de privacidad para registrarte";
+
+// El registro exige aceptaPrivacidad === true (booleano estricto: "true", 1 u objetos no valen).
+// Devuelve el mensaje de error o null
+export const errorConsentimiento = (body) => (body?.aceptaPrivacidad === true ? null : MENSAJE_SIN_CONSENTIMIENTO);
+
 // ==================== DATOS PERSONALES ====================
 // Perfil propio (PUT /usuarios/perfil) y datos personales del barbero (PUT /barberos/:id).
 
@@ -71,6 +79,38 @@ export const errorCamposTexto = (body, campos) => {
 
     const vacio = campos.find((campo) => CAMPOS_TEXTO_OBLIGATORIOS.includes(campo) && body[campo] !== undefined && body[campo].trim() === "");
     return vacio ? `El campo ${vacio} no puede estar vacío` : null;
+};
+
+// ==================== IMÁGENES ====================
+// Las imágenes (logo, portada, galería, avatar y foto de reseña) se guardan como data URL en base64 dentro de la BD.
+// La app las reduce antes de enviarlas (BarberPlanApp/src/app/services/imagen.util.ts, que repite estos límites);
+// el servidor no se fía: solo admite data URL de imagen, con un tamaño máximo por tipo y un máximo de fotos en la galería.
+
+// Peso máximo de cada imagen en KB (ya decodificada); en base64 ocupa un tercio más
+export const LIMITES_IMAGEN_KB = { logo: 60, avatar: 40, portada: 150, galeria: 120, resena: 120 };
+export const MAX_IMAGENES_GALERIA = 6;
+
+const NOMBRES_IMAGEN = { logo: "el logo", avatar: "el avatar", portada: "la portada", galeria: "las imágenes de la galería", resena: "la imagen de la reseña" };
+const RE_IMAGEN_DATA_URL = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+// 23 caracteres de cabecera («data:image/jpeg;base64,») más el contenido en base64
+const maxCaracteresImagen = (tipo) => 32 + Math.ceil((LIMITES_IMAGEN_KB[tipo] * 1024 * 4) / 3);
+
+export const esImagenValida = (valor, tipo) =>
+    typeof valor === "string" && valor.length <= maxCaracteresImagen(tipo) && RE_IMAGEN_DATA_URL.test(valor);
+
+// Mensaje de error para una imagen suelta o null si es válida. Vacía («» o null) vale: sirve para quitarla
+export const errorImagen = (valor, tipo) => {
+    if (valor === undefined || valor === null || valor === "") return null;
+    return esImagenValida(valor, tipo)
+        ? null
+        : `Imagen no válida: ${NOMBRES_IMAGEN[tipo]} debe ser una imagen JPEG, PNG o WebP de hasta ${LIMITES_IMAGEN_KB[tipo]} KB`;
+};
+
+// Lista de imágenes de la galería: un array de hasta MAX_IMAGENES_GALERIA imágenes válidas
+export const errorGaleria = (valor) => {
+    if (!Array.isArray(valor)) return "La galería debe ser una lista de imágenes";
+    if (valor.length > MAX_IMAGENES_GALERIA) return `La galería admite como máximo ${MAX_IMAGENES_GALERIA} imágenes`;
+    return valor.map((imagen) => (imagen === "" || imagen === null ? "Imagen no válida: hay una imagen vacía en la galería" : errorImagen(imagen, "galeria"))).find(Boolean) ?? null;
 };
 
 // Respuesta 409 de cada campo con índice único en Usuarios; la comprobación previa y el error 11000 dan el mismo mensaje

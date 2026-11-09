@@ -75,6 +75,11 @@
               </div>
             </div>
 
+            <label class="auth-consent" *ngIf="rol === 'cliente'">
+              <input type="checkbox" [(ngModel)]="aceptaPrivacidad" name="aceptaPrivacidadCliente" />
+              <span>He leído y acepto la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a> y tengo {{ edadMinima }} años o más.</span>
+            </label>
+
             <button type="submit" class="auth-submit-btn" *ngIf="rol === 'cliente'" [disabled]="registrando">
               <ion-spinner *ngIf="registrando" name="crescent" style="width:18px;height:18px;"></ion-spinner>
               <span *ngIf="!registrando">Crear Cuenta</span>
@@ -164,6 +169,11 @@
                   <input type="password" [(ngModel)]="confirmPw" name="confirmPwBarbero" placeholder="Repite contraseña" [required]="rol === 'barbero'" class="auth-input" />
                 </div>
               </div>
+
+              <label class="auth-consent">
+                <input type="checkbox" [(ngModel)]="aceptaPrivacidad" name="aceptaPrivacidadBarbero" />
+                <span>He leído y acepto la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a> y tengo {{ edadMinima }} años o más.</span>
+              </label>
 
               <div class="auth-actions-row">
                 <button type="button" (click)="backToCodeStep()" class="auth-secondary-btn">← Cambiar código</button>

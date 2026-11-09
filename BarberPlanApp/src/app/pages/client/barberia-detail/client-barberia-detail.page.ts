@@ -108,14 +108,15 @@ export class ClientBarberiaDetailPage implements OnInit {
   getClienteNombreResena(resena: any): string {
     const nombre = resena?.cliente?.nombre || '';
     const apellido = resena?.cliente?.apellido || '';
-    return `${nombre} ${apellido}`.trim() || 'Cliente';
+    // Sin usuario (cuenta eliminada) la reseña conserva solo el nombre anónimo de la cita
+    return `${nombre} ${apellido}`.trim() || resena?.clienteNombre || 'Cliente';
   }
 
   getClienteInicialesResena(resena: any): string {
     const nombre = (resena?.cliente?.nombre || '').trim();
     const apellido = (resena?.cliente?.apellido || '').trim();
     const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
-    return iniciales.toUpperCase() || 'CL';
+    return iniciales.toUpperCase() || (resena?.clienteNombre ? 'CE' : 'CL');
   }
 
   getEntityId(entity: any): string {

@@ -1,0 +1,42 @@
+# Blueprint de Render para la API (el repositorio es un monorepo: la API vive en BarberPlanAPI/).
+# Los valores sin `sync: false` van aquí; los secretos se piden en el panel al crear el servicio y NUNCA se escriben en este archivo.
+# Guía completa: docs/DESPLIEGUE.md
+services:
+  - type: web
+    name: barberplan-api
+    runtime: node
+    # Frankfurt: la misma región que el clúster de Atlas (AWS eu-central-1) para que cada consulta tarde pocos ms
+    region: frankfurt
+    plan: free
+    rootDir: BarberPlanAPI
+    buildCommand: npm ci
+    startCommand: npm start
+    # GET / responde 200 sin tocar la base de datos
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Con NODE_ENV=production el servidor se niega a arrancar si falta alguna de las variables obligatorias
+      - key: NODE_ENV
+        value: production
+      # --- Secretos: se rellenan en el panel de Render ---
+      - key: ATLAS_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      # Origen de la web en Vercel (sin barra final). Al principio: un valor provisional; ver la guía
+      - key: CORS_ORIGINS
+        sync: false
+      # --- Valores no secretos ---
+      - key: DB_NAME
+        value: BarberPlan_prod
+      # Render pone un proxy delante de la API: 1 para ver la IP real de cada usuario (límite de peticiones por IP)
+      - key: TRUST_PROXY
+        value: "1"
+      # Límites por IP cada 15 minutos para los días de prueba (varios testers comparten IP). Valores normales: 300, 10 y 15
+      - key: RATE_LIMIT_MAX
+        value: "1000"
+      - key: AUTH_RATE_LIMIT_MAX
+        value: "100"
+      - key: INVITATION_RATE_LIMIT_MAX
+        value: "100"

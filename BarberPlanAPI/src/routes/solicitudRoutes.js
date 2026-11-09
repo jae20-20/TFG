@@ -7,19 +7,19 @@ import {
     responderSolicitud, 
     eliminarSolicitud 
 } from "../controllers/solicitudControllers.js";
-import { verifyToken, isBarbero, isAdmin } from "../middleware/authMiddleware.js";
+import { authEscritura, verifyToken, isBarbero, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 router.param("id", validarObjectIdParam);
 
 
 // Rutas para Barbero
-router.post("/", verifyToken, isBarbero, createBarberSolicitud);
+router.post("/", authEscritura, isBarbero, createBarberSolicitud);
 router.get("/mis-solicitudes", verifyToken, isBarbero, getMisSolicitudes);
-router.delete("/:id", verifyToken, isBarbero, eliminarSolicitud);
+router.delete("/:id", authEscritura, isBarbero, eliminarSolicitud);
 
 // Rutas para Admin
 router.get("/equipo", verifyToken, isAdmin, getSolicitudesEquipo);
-router.put("/:id/responder", verifyToken, isAdmin, responderSolicitud);
+router.put("/:id/responder", authEscritura, isAdmin, responderSolicitud);
 
 export default router;

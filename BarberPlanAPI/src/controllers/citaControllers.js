@@ -1,4 +1,6 @@
 //manejar http request - Citas
+import { registrarError } from "../utils/registrarError.js";
+import { responderErrorInterno } from "../middleware/errorMiddleware.js";
 import {
     createCita,
     getCitaById,
@@ -10,12 +12,13 @@ import {
     getCitasByClienteId,
     getClientesConCitasAnteriores,
     getResenasByBarberiaId,
+    quitarAvisosCliente,
     setResenaCita,
     transicionarCita,
     updateCitaPago
 } from "../models/citaModel.js";
 
-import { esObjectIdValido } from "../middleware/validateMiddleware.js";
+import { errorImagen, esObjectIdValido } from "../middleware/validateMiddleware.js";
 import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { barberoActivo, getUserById } from "../models/userModel.js";
 
@@ -368,8 +371,8 @@ export const crearCita = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al crear cita:", error);
-        res.status(500).json({ error: "Error al crear cita" });
+        registrarError("Error al crear cita:", error);
+        responderErrorInterno(res, error, "Error al crear cita");
     }
 };
 
@@ -465,8 +468,8 @@ export const crearCitaManual = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Error al crear cita manual:", error);
-        res.status(500).json({ error: "Error al crear cita manual" });
+        registrarError("Error al crear cita manual:", error);
+        responderErrorInterno(res, error, "Error al crear cita manual");
     }
 };
 
@@ -479,8 +482,8 @@ export const getMisCitas = async (req, res) => {
         const citas = await getCitasByClienteId(clienteId);
         res.json(citas);
     } catch (error) {
-        console.error("Error al obtener citas:", error);
-        res.status(500).json({ error: "Error al obtener citas" });
+        registrarError("Error al obtener citas:", error);
+        responderErrorInterno(res, error, "Error al obtener citas");
     }
 };
 
@@ -494,8 +497,8 @@ export const getCitasBarbero = async (req, res) => {
         const citas = await getCitasByBarberoId(barberoId, barbero.barberiaId);
         res.json(citas);
     } catch (error) {
-        console.error("Error al obtener citas:", error);
-        res.status(500).json({ error: "Error al obtener citas" });
+        registrarError("Error al obtener citas:", error);
+        responderErrorInterno(res, error, "Error al obtener citas");
     }
 };
 
@@ -514,8 +517,8 @@ export const getCitasBarberia = async (req, res) => {
         const citas = await getCitasByBarberiaId(barberiaId);
         res.json(citas);
     } catch (error) {
-        console.error("Error al obtener citas de barbería:", error);
-        res.status(500).json({ error: "Error al obtener citas" });
+        registrarError("Error al obtener citas de barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener citas");
     }
 };
 
@@ -536,8 +539,8 @@ export const getCita = async (req, res) => {
 
         res.json(cita);
     } catch (error) {
-        console.error("Error al obtener cita:", error);
-        res.status(500).json({ error: "Error al obtener cita" });
+        registrarError("Error al obtener cita:", error);
+        responderErrorInterno(res, error, "Error al obtener cita");
     }
 };
 
@@ -546,7 +549,10 @@ export const getCita = async (req, res) => {
 const describirEstado = (estado) => NOMBRE_ESTADO[estado] || estado;
 
 // Acciones reservadas al barbero asignado o al admin de la barbería de la cita
-const accionDelPersonal = ({ origenes, destino, verbo, campos = {}, comprobarMomento, mensaje }) => async (req, res) => {
+// Aviso para el cliente (RF12) cuando el personal cambia el estado de su reserva; las citas manuales no tienen cliente
+const avisoPara = (cita, tipo) => (tipo && cita.clienteId ? { avisoCliente: { tipo, creadoEn: new Date() } } : {});
+
+const accionDelPersonal = ({ origenes, destino, verbo, campos = {}, aviso, comprobarMomento, mensaje }) => async (req, res) => {
     try {
         const { id } = req.params;
         const cita = await getCitaById(id);
@@ -568,15 +574,15 @@ const accionDelPersonal = ({ origenes, destino, verbo, campos = {}, comprobarMom
             return res.status(409).json({ error: motivo });
         }
 
-        const citaActualizada = await transicionarCita(id, [cita.estado], destino, campos);
+        const citaActualizada = await transicionarCita(id, [cita.estado], destino, { ...campos, ...avisoPara(cita, aviso) });
         if (!citaActualizada) {
             return res.status(409).json({ error: "La cita ha cambiado mientras tanto. Recarga e inténtalo de nuevo" });
         }
 
         res.json({ message: mensaje, cita: citaActualizada });
     } catch (error) {
-        console.error(`Error al ${verbo} cita:`, error);
-        res.status(500).json({ error: `Error al ${verbo} cita` });
+        registrarError(`Error al ${verbo} cita:`, error);
+        responderErrorInterno(res, error, `Error al ${verbo} cita`);
     }
 };
 
@@ -591,6 +597,7 @@ export const confirmarCita = accionDelPersonal({
     origenes: TRANSICIONES.confirmada,
     destino: "confirmada",
     verbo: "aceptar",
+    aviso: "confirmada",
     comprobarMomento: reservaCaducada,
     mensaje: "Reserva aceptada"
 });
@@ -601,6 +608,7 @@ export const rechazarCita = accionDelPersonal({
     destino: "cancelada",
     verbo: "rechazar",
     campos: { motivoCancelacion: "rechazada" },
+    aviso: "rechazada",
     mensaje: "Reserva rechazada"
 });
 
@@ -645,8 +653,10 @@ export const cancelarCita = async (req, res) => {
             return res.status(409).json({ error: "La cita ya ha empezado. Si necesitas cancelarla, contacta con la barbería" });
         }
 
+        // Solo se avisa al cliente cuando la cancelación no la hace él mismo
         const citaActualizada = await transicionarCita(id, [cita.estado], "cancelada", {
-            motivoCancelacion: esPersonal ? "barberia" : "cliente"
+            motivoCancelacion: esPersonal ? "barberia" : "cliente",
+            ...(esPersonal && avisoPara(cita, "cancelada"))
         });
         if (!citaActualizada) {
             return res.status(409).json({ error: "La cita ha cambiado mientras tanto. Recarga e inténtalo de nuevo" });
@@ -654,8 +664,19 @@ export const cancelarCita = async (req, res) => {
 
         res.json({ message: "Cita cancelada correctamente", cita: citaActualizada });
     } catch (error) {
-        console.error("Error al cancelar cita:", error);
-        res.status(500).json({ error: "Error al cancelar cita" });
+        registrarError("Error al cancelar cita:", error);
+        responderErrorInterno(res, error, "Error al cancelar cita");
+    }
+};
+
+// El cliente da por vistos todos sus avisos. El filtro usa el id del token, nunca uno recibido en la petición
+export const marcarAvisosLeidos = async (req, res) => {
+    try {
+        const { modifiedCount } = await quitarAvisosCliente(req.user.id);
+        res.json({ message: "Avisos marcados como leídos", avisosLeidos: modifiedCount });
+    } catch (error) {
+        registrarError("Error al marcar los avisos como leídos:", error);
+        responderErrorInterno(res, error, "Error al marcar los avisos como leídos");
     }
 };
 
@@ -693,13 +714,11 @@ export const crearResena = async (req, res) => {
 
         const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, 500) : "";
 
-        let imagenLimpia = null;
-        if (typeof imagen === "string" && imagen.length > 0) {
-            if (!imagen.startsWith("data:image/") || imagen.length > 4_000_000) {
-                return res.status(400).json({ error: "Imagen no válida" });
-            }
-            imagenLimpia = imagen;
+        const errorFoto = errorImagen(imagen, "resena");
+        if (errorFoto) {
+            return res.status(400).json({ error: errorFoto });
         }
+        const imagenLimpia = imagen || null;
 
         const resena = {
             valoracion: valoracionNum,
@@ -715,8 +734,8 @@ export const crearResena = async (req, res) => {
         res.status(201).json({ message: "Reseña guardada correctamente", resena });
 
     } catch (error) {
-        console.error("Error al crear reseña:", error);
-        res.status(500).json({ error: "Error al crear reseña" });
+        registrarError("Error al crear reseña:", error);
+        responderErrorInterno(res, error, "Error al crear reseña");
     }
 };
 
@@ -740,8 +759,8 @@ export const getResenasBarberia = async (req, res) => {
         const resenas = await getResenasByBarberiaId(barberia._id.toString());
         res.json(resenas);
     } catch (error) {
-        console.error("Error al obtener reseñas de la barbería:", error);
-        res.status(500).json({ error: "Error al obtener reseñas" });
+        registrarError("Error al obtener reseñas de la barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener reseñas");
     }
 };
 
@@ -770,19 +789,22 @@ export const getDiasDisponibles = async (req, res) => {
             return res.status(400).json({ error: "Mes fuera del rango de reservas" });
         }
 
-        const barberia = await getBarbershopById(barberiaId);
+        const [anio, numeroMes] = mes.split("-").map(Number);
+        const ultimoDia = new Date(Date.UTC(anio, numeroMes, 0)).getUTCDate();
+        // Lecturas independientes: se lanzan a la vez y se validan después, en el orden de siempre
+        const [barberia, barbero, citasDelMes] = await Promise.all([
+            getBarbershopById(barberiaId),
+            getUserById(barberoId),
+            getCitasByBarberoEnRango(barberoId, `${mes}-01`, `${mes}-${String(ultimoDia).padStart(2, "0")}`)
+        ]);
         if (!barberia) {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
         // Un barbero desactivado no se ofrece para reservar: se responde igual que si no estuviera en la barbería
-        const barbero = await getUserById(barberoId);
         if (!barbero || barbero.barberiaId?.toString() !== barberiaId || !barberoActivo(barbero)) {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
-        const [anio, numeroMes] = mes.split("-").map(Number);
-        const ultimoDia = new Date(Date.UTC(anio, numeroMes, 0)).getUTCDate();
-        const citasDelMes = await getCitasByBarberoEnRango(barberoId, `${mes}-01`, `${mes}-${String(ultimoDia).padStart(2, "0")}`);
         const citasPorDia = new Map();
         for (const cita of citasDelMes) {
             citasPorDia.set(cita.fecha, [...(citasPorDia.get(cita.fecha) || []), cita]);
@@ -798,8 +820,8 @@ export const getDiasDisponibles = async (req, res) => {
 
         res.json({ mes, barberoId, dias });
     } catch (error) {
-        console.error("Error al obtener días disponibles:", error);
-        res.status(500).json({ error: "Error al obtener días disponibles" });
+        registrarError("Error al obtener días disponibles:", error);
+        responderErrorInterno(res, error, "Error al obtener días disponibles");
     }
 };
 
@@ -823,20 +845,21 @@ export const getDisponibilidad = async (req, res) => {
             return res.status(400).json({ error: "Formato de fecha no válido" });
         }
 
-        // Obtener barbería para conocer horario base
-        const barberia = await getBarbershopById(barberiaId);
+        // Las tres lecturas no dependen entre sí: se lanzan a la vez (una ida y vuelta a la BD en lugar de tres) y las
+        // validaciones se hacen después, en el mismo orden de siempre. Con un 404 la lectura de citas sobra, pero es barata
+        const [barberia, barbero, citasOcupadas] = await Promise.all([
+            getBarbershopById(barberiaId),                  // horario base de la barbería
+            getUserById(barberoId),                         // horario personal, excepciones y días libres
+            getCitasByBarberoAndFecha(barberoId, fecha)     // citas del barbero ese día
+        ]);
         if (!barberia) {
             return res.status(404).json({ error: "Barbería no encontrada" });
         }
-
-        // Obtener barbero para conocer su horario personal, excepciones y días libres (los desactivados no se ofrecen)
-        const barbero = await getUserById(barberoId);
+        // Los barberos desactivados no se ofrecen
         if (!barbero || barbero.barberiaId?.toString() !== barberiaId || !barberoActivo(barbero)) {
             return res.status(404).json({ error: "Barbero no encontrado en esta barbería" });
         }
 
-        // Obtener citas del barbero en esa fecha
-        const citasOcupadas = await getCitasByBarberoAndFecha(barberoId, fecha);
         const { estado, horariosDisponibles } = calcularDisponibilidad(barberia, barbero, fecha, citasOcupadas, { incluirEnCurso, duracion });
 
         res.json({
@@ -847,8 +870,8 @@ export const getDisponibilidad = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al obtener disponibilidad:", error);
-        res.status(500).json({ error: "Error al obtener disponibilidad" });
+        registrarError("Error al obtener disponibilidad:", error);
+        responderErrorInterno(res, error, "Error al obtener disponibilidad");
     }
 };
 
@@ -901,8 +924,8 @@ export const actualizarPagoCita = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al actualizar pago de cita:", error);
-        res.status(500).json({ error: "Error al actualizar pago de cita" });
+        registrarError("Error al actualizar pago de cita:", error);
+        responderErrorInterno(res, error, "Error al actualizar pago de cita");
     }
 };
 
@@ -1181,7 +1204,7 @@ export const getAnaliticasBarberia = async (req, res) => {
             topServicios: calcularTopServicios(citas)
         });
     } catch (error) {
-        console.error("Error al obtener analíticas de barbería:", error);
-        res.status(500).json({ error: "Error al obtener analíticas" });
+        registrarError("Error al obtener analíticas de barbería:", error);
+        responderErrorInterno(res, error, "Error al obtener analíticas");
     }
 };

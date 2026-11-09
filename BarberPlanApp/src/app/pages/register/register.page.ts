@@ -6,6 +6,7 @@ import { IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { EDAD_MINIMA, MENSAJE_SIN_CONSENTIMIENTO } from '../../services/privacidad.util';
 import { validarCorreo, validarPasswordNueva } from '../../services/validacion-credenciales.util';
 
 type Rol = 'cliente' | 'barbero';
@@ -32,6 +33,10 @@ export class RegisterPage implements AfterViewInit {
   correo = '';
   pw = '';
   confirmPw = '';
+
+  // Aceptación de la política de privacidad (obligatoria; el servidor también la exige)
+  aceptaPrivacidad = false;
+  readonly edadMinima = EDAD_MINIMA;
 
   // Solo cliente
   ciudad = '';
@@ -169,6 +174,11 @@ export class RegisterPage implements AfterViewInit {
       return;
     }
 
+    if (!this.aceptaPrivacidad) {
+      await this.showToast(MENSAJE_SIN_CONSENTIMIENTO, 'danger');
+      return;
+    }
+
     const data: any = {
       nombre: this.nombre,
       apellido: this.apellido,
@@ -176,6 +186,7 @@ export class RegisterPage implements AfterViewInit {
       correo: this.correo,
       pw: this.pw,
       rol: this.rol,
+      aceptaPrivacidad: true,
     };
 
     if (this.rol === 'cliente') {

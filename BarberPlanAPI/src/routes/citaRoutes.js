@@ -17,10 +17,12 @@ import {
     getMisCitas,
     getResenasBarberia,
     actualizarPagoCita,
+    marcarAvisosLeidos,
     marcarNoPresentada,
     rechazarCita
 } from "../controllers/citaControllers.js";
 import {
+    authEscritura,
     isAdmin,
     isAdminOrBarbero,
     isBarbero,
@@ -39,9 +41,11 @@ router.get("/disponibilidad/:barberoId/mes/:mes", getDiasDisponibles);
 router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);
 
 // ==================== RUTAS DE CREACIÓN ====================
-router.post("/manual", verifyToken, isAdminOrBarbero, crearCitaManual);
-router.post("/", verifyToken, isCliente, crearCita);
+router.post("/manual", authEscritura, isAdminOrBarbero, crearCitaManual);
+router.post("/", authEscritura, isCliente, crearCita);
 router.get("/mis-citas", verifyToken, isCliente, getMisCitas);
+// El cliente da por vistos sus avisos (RF12): solo toca las citas del propio cliente autenticado
+router.put("/avisos/leidos", authEscritura, isCliente, marcarAvisosLeidos);
 
 // ==================== RUTAS DE BARBERO ====================
 router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);
@@ -55,12 +59,12 @@ router.get("/resenas/barberia", verifyToken, isAdminOrBarbero, getResenasBarberi
 
 // ==================== RUTAS COMPARTIDAS ====================
 router.get("/:id", verifyToken, getCita);
-router.put("/:id/confirmar", verifyToken, isAdminOrBarbero, confirmarCita);
-router.put("/:id/rechazar", verifyToken, isAdminOrBarbero, rechazarCita);
-router.put("/:id/completar", verifyToken, isAdminOrBarbero, completarCita);
-router.put("/:id/no-presentada", verifyToken, isAdminOrBarbero, marcarNoPresentada);
-router.put("/:id/pago", verifyToken, isAdminOrBarbero, actualizarPagoCita);
-router.put("/:id/cancelar", verifyToken, cancelarCita);
-router.post("/:id/resena", verifyToken, isCliente, crearResena);
+router.put("/:id/confirmar", authEscritura, isAdminOrBarbero, confirmarCita);
+router.put("/:id/rechazar", authEscritura, isAdminOrBarbero, rechazarCita);
+router.put("/:id/completar", authEscritura, isAdminOrBarbero, completarCita);
+router.put("/:id/no-presentada", authEscritura, isAdminOrBarbero, marcarNoPresentada);
+router.put("/:id/pago", authEscritura, isAdminOrBarbero, actualizarPagoCita);
+router.put("/:id/cancelar", authEscritura, cancelarCita);
+router.post("/:id/resena", authEscritura, isCliente, crearResena);
 
 export default router;

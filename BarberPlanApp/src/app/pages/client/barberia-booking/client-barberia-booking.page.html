@@ -47,13 +47,6 @@
         </div>
       </div>
 
-      <!-- <div class="booking-progress-card">
-        <div class="booking-progress-bars">
-          <span *ngFor="let step of [1, 2, 3]" class="progress-bar" [class.active]="reservaPaso >= step"></span>
-        </div>
-        <p class="booking-progress-label">Paso {{ reservaPaso }} de 3: {{ getStepLabel(reservaPaso) }}</p>
-      </div> -->
-
       <div class="booking-summary-grid" *ngIf="reservaPaso >= 2">
         <div class="summary-box" *ngIf="reservaForm.servicioIds.length">
           <p>{{ reservaForm.servicioIds.length === 1 ? 'Servicio' : 'Servicios' }}</p>

@@ -11,6 +11,11 @@ export const campoDuplicado = (error) => {
     return ["correo", "usuario"].find((campo) => error.keyPattern && campo in error.keyPattern) ?? null;
 };
 
+// Lo mínimo para comprobar una sesión: existencia de la cuenta y fecha del último cambio de contraseña
+export const getSesionUsuario = async (id) => {
+    return await db.collection("Usuarios").findOne({ _id: new ObjectId(id) }, { projection: { passwordChangedAt: 1 } });
+};
+
 export const getAllUsers = async () => {
     return await db.collection("Usuarios").find().toArray();
 };
@@ -112,10 +117,11 @@ export const updateUserProfile = async (id, profileData) => {
     );
 };
 
-// Actualizar contraseña
+// Actualizar contraseña. passwordChangedAt invalida los tokens anteriores en las rutas de escritura
 export const updateUserPassword = async (id, hashedPassword) => {
+    const ahora = new Date();
     return await db.collection("Usuarios").updateOne(
         { _id: new ObjectId(id) },
-        { $set: { pw: hashedPassword, updatedAt: new Date() } }
+        { $set: { pw: hashedPassword, passwordChangedAt: ahora, updatedAt: ahora } }
     );
 };
