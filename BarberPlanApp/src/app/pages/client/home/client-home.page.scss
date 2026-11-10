@@ -76,6 +76,93 @@ ion-content.client-premium-content {
 	font-weight: 800;
 }
 
+/* --- Avisos del resultado de las reservas (RF12): mismos tokens que el aviso de citas próximas --- */
+.avisos-cliente {
+	display: grid;
+	gap: 8px;
+	margin-bottom: 14px;
+	padding: 12px;
+	border-radius: var(--bp-radius-md);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
+	background: var(--custom-card-bg);
+}
+
+.avisos-cliente-cabecera {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--bp-fs-body);
+	font-weight: 800;
+	color: var(--custom-text-primary);
+}
+
+.avisos-cliente-icono {
+	font-size: 18px;
+	color: var(--custom-gold-light);
+}
+
+.aviso-item {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: var(--bp-radius-sm);
+	border: 1px solid var(--aviso-color, var(--custom-gold));
+	background: color-mix(in srgb, var(--aviso-color, var(--custom-gold)) 12%, transparent);
+	color: var(--custom-text-primary);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+
+	&.aviso-confirmada {
+		--aviso-color: var(--ion-color-success);
+	}
+
+	&.aviso-rechazada,
+	&.aviso-cancelada {
+		--aviso-color: var(--ion-color-danger);
+	}
+
+	&.aviso-expirada {
+		--aviso-color: var(--ion-color-warning);
+	}
+}
+
+.aviso-item-icono {
+	font-size: 20px;
+	flex-shrink: 0;
+	color: var(--aviso-color, var(--custom-gold-light));
+}
+
+.aviso-item-texto {
+	flex: 1;
+	font-size: var(--bp-fs-body);
+	font-weight: 600;
+}
+
+.aviso-item-ir {
+	flex-shrink: 0;
+	color: var(--custom-text-muted);
+}
+
+.avisos-cliente-entendido {
+	justify-self: end;
+	padding: 6px 16px;
+	border-radius: var(--bp-radius-sm);
+	border: 1px solid rgba(var(--ion-color-primary-rgb), 0.35);
+	background: transparent;
+	color: var(--custom-gold-light);
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: default;
+	}
+}
+
 /* --- Barra de búsqueda + acceso a filtros --- */
 .filter-bar {
 	display: flex;

@@ -25,6 +25,29 @@
     </span>
   </section>
 
+  <!-- Resultado de tus reservas (aceptada, rechazada, expirada o cancelada) -->
+  <section class="avisos-cliente" *ngIf="avisos.length > 0" aria-live="polite">
+    <div class="avisos-cliente-cabecera">
+      <ion-icon name="notifications-outline" class="avisos-cliente-icono"></ion-icon>
+      <span>Novedades de tus citas</span>
+    </div>
+
+    <button type="button" class="aviso-item" *ngFor="let aviso of avisos" [ngClass]="'aviso-' + aviso.tipo" (click)="verMisCitas()">
+      <ion-icon [name]="iconoAviso(aviso.tipo)" class="aviso-item-icono"></ion-icon>
+      <span class="aviso-item-texto">{{ aviso.texto }}</span>
+      <ion-icon name="chevron-forward-outline" class="aviso-item-ir"></ion-icon>
+    </button>
+
+    <button type="button" class="avisos-cliente-entendido" (click)="descartarAvisos()" [disabled]="descartandoAvisos">Entendido</button>
+  </section>
+
+  <!-- Recordatorio de la próxima cita (si es en las próximas 24 h) -->
+  <button type="button" class="citas-aviso" *ngIf="recordatorio" (click)="verMisCitas()">
+    <ion-icon name="time-outline" class="citas-aviso-icono"></ion-icon>
+    <span class="citas-aviso-texto">{{ recordatorio.texto }}</span>
+    <ion-icon name="chevron-forward-outline" class="citas-aviso-icono"></ion-icon>
+  </button>
+
   <button type="button" class="citas-aviso" *ngIf="citasProximas > 0" (click)="verCitasProximas()">
     <ion-icon name="calendar-outline" class="citas-aviso-icono"></ion-icon>
     <span class="citas-aviso-texto">

@@ -1,21 +1,31 @@
 //manejar http request - Usuarios
+import { registrarError } from "../utils/registrarError.js";
+import { responderErrorInterno } from "../middleware/errorMiddleware.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { POLITICA_VERSION, config } from "../config.js";
 import {
     CAMPOS_TEXTO_PERSONA,
     MENSAJES_CREDENCIALES,
     MENSAJES_DUPLICADO,
     errorCamposTexto,
+    errorConsentimiento,
     errorCuerpoNoObjeto,
+    errorImagen,
     validarCorreo,
     validarPasswordNueva
 } from "../middleware/validateMiddleware.js";
+import {
+    eliminarCuentaAdmin,
+    eliminarCuentaBarbero,
+    eliminarCuentaCliente,
+    resumenBarberiaDelDuenio
+} from "../models/cuentaModel.js";
 
 import {
     addBarberoToBarberia,
     getBarberiaByAdminId,
-    isUserAdminOfBarberia,
-    removeBarberoFromBarberia
+    isUserAdminOfBarberia
 } from "../models/barbershopModel.js";
 import {
     consumeInvitacion,
@@ -47,6 +57,18 @@ const CAMPOS_SOLO_ADMIN = ["horarioPersonal", "diasLibres", "vacaciones", "servi
 
 const esTextoNoVacio = (valor) => typeof valor === "string" && valor.trim().length > 0;
 
+// Fecha "YYYY-MM-DD" y hora "HH:MM" actuales en Madrid (las citas se guardan en esa zona)
+const momentoMadrid = (ahora) => ({
+    fecha: ahora.toLocaleDateString("en-CA", { timeZone: "Europe/Madrid" }),
+    hora: ahora.toLocaleTimeString("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", hour12: false })
+});
+
+const firmarToken = (user) => jwt.sign(
+    { id: user._id, correo: user.correo, rol: user.rol, barberiaId: user.barberiaId || null },
+    config.jwtSecret,
+    { expiresIn: config.jwtExpiracion }
+);
+
 // Admin de la barbería a la que pertenece el usuario objetivo (comprobado en BD, no en el JWT)
 const esAdminDeLaBarberiaDe = async (reqUser, usuarioObjetivo) => {
     if (reqUser.rol !== "admin" || !usuarioObjetivo.barberiaId) return false;
@@ -66,8 +88,8 @@ export const getUsers = async (req, res) => {
         const users = await getUsersByBarberiaId(barberia._id);
         res.json(users);
     } catch (error) {
-        console.error("Error al obtener usuarios:", error);
-        res.status(500).json({ error: "Error al obtener usuarios" });
+        registrarError("Error al obtener usuarios:", error);
+        responderErrorInterno(res, error, "Error al obtener usuarios");
     }
 };
 
@@ -91,8 +113,8 @@ export const getUser = async (req, res) => {
         const { pw, ...userWithoutPw } = user;
         res.json(userWithoutPw);
     } catch (error) {
-        console.error("Error al obtener usuario:", error);
-        res.status(500).json({ error: "Error al obtener usuario" });
+        registrarError("Error al obtener usuario:", error);
+        responderErrorInterno(res, error, "Error al obtener usuario");
     }
 };
 
@@ -108,8 +130,8 @@ export const getProfile = async (req, res) => {
         const { pw, ...userWithoutPw } = user;
         res.json(userWithoutPw);
     } catch (error) {
-        console.error("Error al obtener perfil:", error);
-        res.status(500).json({ error: "Error al obtener perfil" });
+        registrarError("Error al obtener perfil:", error);
+        responderErrorInterno(res, error, "Error al obtener perfil");
     }
 };
 
@@ -133,7 +155,7 @@ export const addUser = async (req, res) => {
 
         const correo = normalizarCorreo(req.body.correo);
 
-        const errorCredenciales = validarCorreo(correo) || validarPasswordNueva(pw);
+        const errorCredenciales = validarCorreo(correo) || validarPasswordNueva(pw) || errorConsentimiento(req.body);
         if (errorCredenciales) {
             return res.status(400).json({ error: errorCredenciales });
         }
@@ -168,7 +190,7 @@ export const addUser = async (req, res) => {
         }
 
         // Encriptar contraseña
-        const salt = await bcrypt.genSalt(10);
+        const salt = await bcrypt.genSalt(config.bcryptRondas);
         const hashedPassword = await bcrypt.hash(pw, salt);
 
         // El puesto ("cargo") nunca lo decide quien se registra: siempre viene
@@ -183,6 +205,8 @@ export const addUser = async (req, res) => {
             ciudad: rol === "cliente" ? ciudad : null,
             cargo: rol === "barbero" ? invitacion.cargo : null,
             barberiaId: invitacion ? invitacion.barberiaId : null,
+            // Qué texto de la política se aceptó y cuándo (la versión la fija el servidor, no el cliente)
+            consentimiento: { aceptadoEn: new Date(), version: POLITICA_VERSION },
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -208,8 +232,8 @@ export const addUser = async (req, res) => {
         if (duplicado) {
             return res.status(409).json({ error: MENSAJES_DUPLICADO[duplicado] });
         }
-        console.error("Error al crear usuario:", error);
-        res.status(500).json({ error: "Error al crear usuario" });
+        registrarError("Error al crear usuario:", error);
+        responderErrorInterno(res, error, "Error al crear usuario");
     }
 };
 
@@ -233,21 +257,9 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({ error: "Correo o contraseña incorrectos" });
         }
 
-        // Generar el token JWT
-        const token = jwt.sign(
-            { 
-                id: user._id,
-                correo: user.correo,
-                rol: user.rol,
-                barberiaId: user.barberiaId || null
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
-
         res.json({
             message: "Login exitoso",
-            token,
+            token: firmarToken(user),
             user: { 
                 id: user._id,
                 correo: user.correo,
@@ -261,8 +273,8 @@ export const loginUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error en loginUser:", error);
-        res.status(500).json({ error: "Error al iniciar sesión" });
+        registrarError("Error en loginUser:", error);
+        responderErrorInterno(res, error, "Error al iniciar sesión");
     }
 };
 
@@ -288,6 +300,10 @@ export const editProfile = async (req, res) => {
         if (usuario !== undefined && !esTextoNoVacio(usuario)) {
             return res.status(400).json({ error: "Nombre de usuario no válido" });
         }
+        const errorAvatar = errorImagen(avatar, "avatar");
+        if (errorAvatar) {
+            return res.status(400).json({ error: errorAvatar });
+        }
 
         // Comprobación previa solo para responder rápido: la garantía real es el índice único (ver catch)
         if (usuario) {
@@ -307,8 +323,8 @@ export const editProfile = async (req, res) => {
         if (campoDuplicado(error) === "usuario") {
             return res.status(409).json({ error: MENSAJES_DUPLICADO.usuario });
         }
-        console.error("Error al actualizar perfil:", error);
-        res.status(500).json({ error: "Error al actualizar perfil" });
+        registrarError("Error al actualizar perfil:", error);
+        responderErrorInterno(res, error, "Error al actualizar perfil");
     }
 };
 
@@ -343,20 +359,24 @@ export const changePassword = async (req, res) => {
             return res.status(400).json({ error: MENSAJES_CREDENCIALES.pwIgualActual });
         }
 
-        const salt = await bcrypt.genSalt(10);
+        const salt = await bcrypt.genSalt(config.bcryptRondas);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
         await updateUserPassword(userId, hashedPassword);
 
-        res.json({ message: "Contraseña actualizada correctamente" });
+        // Las sesiones anteriores al cambio dejan de valer en las rutas de escritura: se devuelve un token
+        // nuevo para que quien cambia la contraseña siga con su sesión
+        res.json({ message: "Contraseña actualizada correctamente", token: firmarToken(user) });
     } catch (error) {
-        console.error("Error al cambiar contraseña:", error);
-        res.status(500).json({ error: "Error al cambiar contraseña" });
+        registrarError("Error al cambiar contraseña:", error);
+        responderErrorInterno(res, error, "Error al cambiar contraseña");
     }
 };
 
 // ELIMINAR USUARIO
 
+// DELETE /usuarios/:id solo sirve para que el admin dé de baja a un barbero de su equipo.
+// Cada persona elimina su propia cuenta con DELETE /usuarios/perfil (que pide la contraseña)
 export const deleteUserAccount = async (req, res) => {
     try {
         const { id } = req.params;
@@ -366,28 +386,82 @@ export const deleteUserAccount = async (req, res) => {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        // El propio usuario, o el admin de su barbería (nunca sobre otro admin)
-        const esDuenio = user._id.toString() === req.user.id;
-        const esAdminDeSuBarberia = user.rol !== "admin" && await esAdminDeLaBarberiaDe(req.user, user);
+        if (user._id.toString() === req.user.id) {
+            return res.status(403).json({ error: "Elimina tu propia cuenta desde tu perfil" });
+        }
 
-        if (!esDuenio && !esAdminDeSuBarberia) {
+        // Comprobado en la BD: solo el admin de la barbería a la que pertenece el barbero
+        if (user.rol !== "barbero" || !(await esAdminDeLaBarberiaDe(req.user, user))) {
             return res.status(403).json({ error: "No tienes permiso para eliminar este usuario" });
         }
 
-        // Borrar al admin dejaría su barbería sin nadie que pueda gestionarla
-        if (user.rol === "admin" && await getBarberiaByAdminId(id)) {
-            return res.status(409).json({ error: "No puedes eliminar la cuenta mientras administres una barbería" });
-        }
-
-        if (user.rol === "barbero" && user.barberiaId) {
-            await removeBarberoFromBarberia(user.barberiaId, user._id);
-        }
-
-        await deleteUser(id);
-        res.json({ message: "Usuario eliminado correctamente" });
+        const ahora = new Date();
+        const { citasCanceladas } = await eliminarCuentaBarbero(id, ahora, momentoMadrid(ahora));
+        res.json({ message: "Usuario eliminado correctamente", citasCanceladas });
     } catch (error) {
-        console.error("Error al eliminar usuario:", error);
-        res.status(500).json({ error: "Error al eliminar usuario" });
+        registrarError("Error al eliminar usuario:", error);
+        responderErrorInterno(res, error, "Error al eliminar usuario");
+    }
+};
+
+// Resumen de lo que se borraría al eliminar la cuenta (para el aviso previo de la app). Solo el dueño de una barbería
+// tiene algo que avisar; el resto de roles recibe un resumen vacío
+export const getResumenEliminacion = async (req, res) => {
+    try {
+        const user = await getUserById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+        const barberia = user.rol === "admin" ? await getBarberiaByAdminId(user._id) : null;
+        res.json({ rol: user.rol, ...(barberia ? await resumenBarberiaDelDuenio(barberia, momentoMadrid(new Date())) : {}) });
+    } catch (error) {
+        registrarError("Error al preparar la eliminación de la cuenta:", error);
+        responderErrorInterno(res, error, "Error al preparar la eliminación de la cuenta");
+    }
+};
+
+// ELIMINAR MI CUENTA (RGPD, derecho de supresión). Pide la contraseña actual
+// - Cliente: cancela sus citas futuras, anonimiza las pasadas y deja solo la puntuación de sus reseñas
+// - Barbero: cancela sus citas futuras (avisando al cliente) y se le retira de la barbería
+// - Dueño: elimina también su barbería; exige confirmarBarberia: true tras el aviso de la app
+export const deleteMyAccount = async (req, res) => {
+    try {
+        const { pw, confirmarBarberia } = req.body ?? {};
+        // Solo texto: un objeto como {"$ne": ""} no llega a bcrypt ni a ninguna consulta
+        if (!esTextoNoVacio(pw)) {
+            return res.status(400).json({ error: "Debes indicar tu contraseña actual" });
+        }
+
+        const user = await getUserById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        if (!(await bcrypt.compare(pw, user.pw))) {
+            return res.status(401).json({ error: "Contraseña incorrecta" });
+        }
+
+        const ahora = new Date();
+        const momento = momentoMadrid(ahora);
+
+        if (user.rol === "admin") {
+            const barberia = await getBarberiaByAdminId(user._id);
+            if (barberia && confirmarBarberia !== true) {
+                return res.status(400).json({ error: "Eliminar tu cuenta también elimina tu barbería. Confirma que lo entiendes" });
+            }
+            const resultado = barberia
+                ? await eliminarCuentaAdmin(user._id, barberia, ahora, momento)
+                : await eliminarCuentaBarbero(user._id, ahora, momento);
+            return res.json({ message: "Cuenta eliminada correctamente", ...resultado });
+        }
+
+        const resultado = user.rol === "barbero"
+            ? await eliminarCuentaBarbero(user._id, ahora, momento)
+            : await eliminarCuentaCliente(user._id, ahora, momento);
+        res.json({ message: "Cuenta eliminada correctamente", ...resultado });
+    } catch (error) {
+        registrarError("Error al eliminar la cuenta:", error);
+        responderErrorInterno(res, error, "Error al eliminar la cuenta");
     }
 };
 
@@ -415,6 +489,11 @@ export const updateBarberoHorario = async (req, res) => {
         }
         const { horarioPersonal, diasLibres, vacaciones, nombre, apellido, telefono, avatar, serviciosBloqueados, cargo } = req.body;
 
+        const errorAvatar = errorImagen(avatar, "avatar");
+        if (errorAvatar) {
+            return res.status(400).json({ error: errorAvatar });
+        }
+
         // Horario, ausencias, servicios y cargo los decide el admin: el barbero
         // los pide mediante solicitudes, no puede aprobárselos a sí mismo.
         if (!esAdminDeSuBarberia && CAMPOS_SOLO_ADMIN.some((campo) => req.body[campo] !== undefined)) {
@@ -437,8 +516,8 @@ export const updateBarberoHorario = async (req, res) => {
 
         res.json({ message: "Datos del barbero actualizados exitosamente" });
     } catch (error) {
-        console.error("Error al actualizar horario del barbero:", error);
-        res.status(500).json({ error: "Error al actualizar horario del barbero" });
+        registrarError("Error al actualizar horario del barbero:", error);
+        responderErrorInterno(res, error, "Error al actualizar horario del barbero");
     }
 };
 
@@ -456,7 +535,7 @@ export const desbloquearMiServicio = async (req, res) => {
             serviciosBloqueados: barbero.serviciosBloqueados || []
         });
     } catch (error) {
-        console.error("Error al desbloquear servicio:", error);
-        res.status(500).json({ error: "Error al desbloquear el servicio" });
+        registrarError("Error al desbloquear servicio:", error);
+        responderErrorInterno(res, error, "Error al desbloquear el servicio");
     }
 };

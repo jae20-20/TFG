@@ -1,0 +1,558 @@
+{
+  "fecha": "2026-11-09T17:41:56.893Z",
+  "requisito": "RNF14: 100 usuarios simultáneos sin pérdida apreciable de rendimiento",
+  "condiciones": {
+    "modoBD": "atlas",
+    "baseDeDatos": "MongoDB Atlas 8.0.37 (plan gratuito (M0)), BD desechable BarberPlan_carga_test",
+    "servidorYCliente": "API (Node.js) y autocannon en el mismo equipo: compiten por la CPU",
+    "equipo": "AMD Ryzen 7 5800H with Radeon Graphics (16 hilos), 15 GB RAM, win32 10.0.26200",
+    "node": "v22.19.0",
+    "conexionesSimultaneas": 100,
+    "duracionPorMedidaS": 30,
+    "calentamientoS": 3,
+    "limiteDePeticionesDeLaApi": "RATE_LIMIT_MAX subido a 1000000000 (el valor real, 100 por 15 min y por IP, cortaría la prueba)",
+    "tareasPeriodicas": "desactivadas (TAREAS_CITAS=off)",
+    "datos": {
+      "barberias": 20,
+      "barberos": 60,
+      "clientes": 40,
+      "citas": 1500,
+      "citasDelClienteDePrueba": 60
+    }
+  },
+  "escenarios": [
+    {
+      "id": "normal",
+      "nombre": "Uso normal",
+      "detalle": "100 usuarios, 1 petición cada 5 s",
+      "reqPorSegundo": 20,
+      "criterio": true
+    },
+    {
+      "id": "intenso",
+      "nombre": "Uso intenso",
+      "detalle": "100 usuarios, 1 petición cada 2 s",
+      "reqPorSegundo": 50,
+      "criterio": true
+    },
+    {
+      "id": "saturacion",
+      "nombre": "Saturación",
+      "detalle": "100 conexiones sin pausa (capacidad máxima)",
+      "reqPorSegundo": null,
+      "criterio": false
+    }
+  ],
+  "criterio": {
+    "p99MaxMs": 1000,
+    "maxErroresNo2xx": 0,
+    "maxErroresRed": 0,
+    "maxTimeouts": 0,
+    "cargaMinimaAplicada": 0.9,
+    "seAplicaA": [
+      "normal",
+      "intenso"
+    ]
+  },
+  "resultados": [
+    {
+      "ruta": "control",
+      "descripcion": "GET / (control: sin base de datos)",
+      "control": true,
+      "escenarios": {
+        "saturacion": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 88138,
+          "peticionesPorSegundo": 2938.3,
+          "latenciaMediaMs": 33.5,
+          "latenciaP50Ms": 32,
+          "latenciaP99Ms": 73,
+          "latenciaMaxMs": 121,
+          "respuestas2xx": 88138,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 3493137
+        }
+      }
+    },
+    {
+      "ruta": "listado",
+      "descripcion": "GET /barberias (listado público)",
+      "escenarios": {
+        "normal": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 566,
+          "peticionesPorSegundo": 18.9,
+          "latenciaMediaMs": 724.9,
+          "latenciaP50Ms": 177,
+          "latenciaP99Ms": 4020,
+          "latenciaMaxMs": 5328,
+          "respuestas2xx": 566,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 408986,
+          "objetivoReqPorSegundo": 20,
+          "valoracion": {
+            "cargaAplicada": 0.95,
+            "comprobaciones": {
+              "p99": false,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": true
+            },
+            "cumple": false
+          }
+        },
+        "intenso": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1342,
+          "peticionesPorSegundo": 44.7,
+          "latenciaMediaMs": 929.1,
+          "latenciaP50Ms": 323,
+          "latenciaP99Ms": 4827,
+          "latenciaMaxMs": 6527,
+          "respuestas2xx": 1342,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 969756,
+          "objetivoReqPorSegundo": 50,
+          "valoracion": {
+            "cargaAplicada": 0.89,
+            "comprobaciones": {
+              "p99": false,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": false
+            },
+            "cumple": false
+          }
+        },
+        "saturacion": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 3620,
+          "peticionesPorSegundo": 120.7,
+          "latenciaMediaMs": 819.7,
+          "latenciaP50Ms": 772,
+          "latenciaP99Ms": 1596,
+          "latenciaMaxMs": 4742,
+          "respuestas2xx": 3620,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 2616218
+        }
+      }
+    },
+    {
+      "ruta": "ficha",
+      "descripcion": "GET /barberias/:id (ficha de una barbería)",
+      "escenarios": {
+        "normal": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 600,
+          "peticionesPorSegundo": 20,
+          "latenciaMediaMs": 119.8,
+          "latenciaP50Ms": 45,
+          "latenciaP99Ms": 605,
+          "latenciaMaxMs": 643,
+          "respuestas2xx": 600,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 40400,
+          "objetivoReqPorSegundo": 20,
+          "valoracion": {
+            "cargaAplicada": 1,
+            "comprobaciones": {
+              "p99": true,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": true
+            },
+            "cumple": true
+          }
+        },
+        "intenso": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1500,
+          "peticionesPorSegundo": 50,
+          "latenciaMediaMs": 87.7,
+          "latenciaP50Ms": 47,
+          "latenciaP99Ms": 490,
+          "latenciaMaxMs": 829,
+          "respuestas2xx": 1500,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 101024,
+          "objetivoReqPorSegundo": 50,
+          "valoracion": {
+            "cargaAplicada": 1,
+            "comprobaciones": {
+              "p99": true,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": true
+            },
+            "cumple": true
+          }
+        },
+        "saturacion": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 4214,
+          "peticionesPorSegundo": 140.5,
+          "latenciaMediaMs": 691.6,
+          "latenciaP50Ms": 914,
+          "latenciaP99Ms": 1149,
+          "latenciaMaxMs": 3996,
+          "respuestas2xx": 4214,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 283732
+        }
+      }
+    },
+    {
+      "ruta": "disponibilidad",
+      "descripcion": "GET /citas/disponibilidad/:barbero/:fecha (huecos de un día)",
+      "escenarios": {
+        "normal": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 600,
+          "peticionesPorSegundo": 20,
+          "latenciaMediaMs": 108.4,
+          "latenciaP50Ms": 64,
+          "latenciaP99Ms": 864,
+          "latenciaMaxMs": 1347,
+          "respuestas2xx": 600,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 25016,
+          "objetivoReqPorSegundo": 20,
+          "valoracion": {
+            "cargaAplicada": 1,
+            "comprobaciones": {
+              "p99": true,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": true
+            },
+            "cumple": true
+          }
+        },
+        "intenso": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1324,
+          "peticionesPorSegundo": 44.1,
+          "latenciaMediaMs": 612.9,
+          "latenciaP50Ms": 552,
+          "latenciaP99Ms": 2532,
+          "latenciaMaxMs": 4012,
+          "respuestas2xx": 1324,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 55213,
+          "objetivoReqPorSegundo": 50,
+          "valoracion": {
+            "cargaAplicada": 0.88,
+            "comprobaciones": {
+              "p99": false,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": false
+            },
+            "cumple": false
+          }
+        },
+        "saturacion": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1473,
+          "peticionesPorSegundo": 49.1,
+          "latenciaMediaMs": 2001.3,
+          "latenciaP50Ms": 1999,
+          "latenciaP99Ms": 3000,
+          "latenciaMaxMs": 5798,
+          "respuestas2xx": 1473,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 61419
+        }
+      },
+      "medidaAnterior": {
+        "fecha": "2026-11-09T14:33:06.197Z",
+        "escenarios": {
+          "normal": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 600,
+            "peticionesPorSegundo": 20,
+            "latenciaMediaMs": 55.2,
+            "latenciaP50Ms": 54,
+            "latenciaP99Ms": 128,
+            "latenciaMaxMs": 176,
+            "respuestas2xx": 600,
+            "respuestasNo2xx": 0,
+            "erroresRed": 0,
+            "timeouts": 0,
+            "bytesPorSegundo": 25016,
+            "objetivoReqPorSegundo": 20,
+            "valoracion": {
+              "cargaAplicada": 1,
+              "comprobaciones": {
+                "p99": true,
+                "no2xx": true,
+                "errores": true,
+                "timeouts": true,
+                "cargaAplicada": true
+              },
+              "cumple": true
+            }
+          },
+          "intenso": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 1221,
+            "peticionesPorSegundo": 40.7,
+            "latenciaMediaMs": 654.1,
+            "latenciaP50Ms": 600,
+            "latenciaP99Ms": 1865,
+            "latenciaMaxMs": 2007,
+            "respuestas2xx": 1221,
+            "respuestasNo2xx": 0,
+            "erroresRed": 0,
+            "timeouts": 0,
+            "bytesPorSegundo": 50915,
+            "objetivoReqPorSegundo": 50,
+            "valoracion": {
+              "cargaAplicada": 0.81,
+              "comprobaciones": {
+                "p99": false,
+                "no2xx": true,
+                "errores": true,
+                "timeouts": true,
+                "cargaAplicada": false
+              },
+              "cumple": false
+            }
+          },
+          "saturacion": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 1462,
+            "peticionesPorSegundo": 48.7,
+            "latenciaMediaMs": 2016.7,
+            "latenciaP50Ms": 1995,
+            "latenciaP99Ms": 3028,
+            "latenciaMaxMs": 3074,
+            "respuestas2xx": 1462,
+            "respuestasNo2xx": 0,
+            "erroresRed": 0,
+            "timeouts": 0,
+            "bytesPorSegundo": 60964
+          }
+        }
+      }
+    },
+    {
+      "ruta": "mis-citas",
+      "descripcion": "GET /citas/mis-citas (con sesión: citas del cliente)",
+      "escenarios": {
+        "normal": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 600,
+          "peticionesPorSegundo": 20,
+          "latenciaMediaMs": 300.2,
+          "latenciaP50Ms": 266,
+          "latenciaP99Ms": 889,
+          "latenciaMaxMs": 1106,
+          "respuestas2xx": 600,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 1006293,
+          "objetivoReqPorSegundo": 20,
+          "valoracion": {
+            "cargaAplicada": 1,
+            "comprobaciones": {
+              "p99": true,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": true
+            },
+            "cumple": true
+          }
+        },
+        "intenso": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1299,
+          "peticionesPorSegundo": 43.3,
+          "latenciaMediaMs": 734.5,
+          "latenciaP50Ms": 554,
+          "latenciaP99Ms": 4897,
+          "latenciaMaxMs": 8557,
+          "respuestas2xx": 1299,
+          "respuestasNo2xx": 0,
+          "erroresRed": 0,
+          "timeouts": 0,
+          "bytesPorSegundo": 2178527,
+          "objetivoReqPorSegundo": 50,
+          "valoracion": {
+            "cargaAplicada": 0.87,
+            "comprobaciones": {
+              "p99": false,
+              "no2xx": true,
+              "errores": true,
+              "timeouts": true,
+              "cargaAplicada": false
+            },
+            "cumple": false
+          }
+        },
+        "saturacion": {
+          "conexiones": 100,
+          "duracionS": 30,
+          "peticiones": 1880,
+          "peticionesPorSegundo": 62.7,
+          "latenciaMediaMs": 1518.7,
+          "latenciaP50Ms": 1002,
+          "latenciaP99Ms": 7525,
+          "latenciaMaxMs": 9851,
+          "respuestas2xx": 1880,
+          "respuestasNo2xx": 0,
+          "erroresRed": 6,
+          "timeouts": 6,
+          "bytesPorSegundo": 3152640
+        }
+      },
+      "medidaAnterior": {
+        "fecha": "2026-11-09T14:33:06.197Z",
+        "escenarios": {
+          "normal": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 597,
+            "peticionesPorSegundo": 19.9,
+            "latenciaMediaMs": 312.1,
+            "latenciaP50Ms": 287,
+            "latenciaP99Ms": 900,
+            "latenciaMaxMs": 1626,
+            "respuestas2xx": 597,
+            "respuestasNo2xx": 0,
+            "erroresRed": 0,
+            "timeouts": 0,
+            "bytesPorSegundo": 2098005,
+            "objetivoReqPorSegundo": 20,
+            "valoracion": {
+              "cargaAplicada": 0.99,
+              "comprobaciones": {
+                "p99": true,
+                "no2xx": true,
+                "errores": true,
+                "timeouts": true,
+                "cargaAplicada": true
+              },
+              "cumple": true
+            }
+          },
+          "intenso": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 955,
+            "peticionesPorSegundo": 31.8,
+            "latenciaMediaMs": 1340.5,
+            "latenciaP50Ms": 764,
+            "latenciaP99Ms": 6883,
+            "latenciaMaxMs": 9101,
+            "respuestas2xx": 955,
+            "respuestasNo2xx": 0,
+            "erroresRed": 2,
+            "timeouts": 2,
+            "bytesPorSegundo": 3357094,
+            "objetivoReqPorSegundo": 50,
+            "valoracion": {
+              "cargaAplicada": 0.64,
+              "comprobaciones": {
+                "p99": false,
+                "no2xx": true,
+                "errores": false,
+                "timeouts": false,
+                "cargaAplicada": false
+              },
+              "cumple": false
+            }
+          },
+          "saturacion": {
+            "conexiones": 100,
+            "duracionS": 30,
+            "peticiones": 894,
+            "peticionesPorSegundo": 29.8,
+            "latenciaMediaMs": 2705,
+            "latenciaP50Ms": 1812,
+            "latenciaP99Ms": 9245,
+            "latenciaMaxMs": 9957,
+            "respuestas2xx": 894,
+            "respuestasNo2xx": 0,
+            "erroresRed": 44,
+            "timeouts": 44,
+            "bytesPorSegundo": 3142507
+          }
+        }
+      }
+    }
+  ],
+  "cumpleRNF14": false,
+  "condicionesPrimeraMedida": {
+    "baseDeDatos": "MongoDB Atlas (plan [POR CONFIRMAR]), BD desechable BarberPlan_carga",
+    "servidorYCliente": "API (Node.js) y autocannon en el mismo equipo: compiten por la CPU",
+    "equipo": "AMD Ryzen 7 5800H with Radeon Graphics (16 hilos), 15 GB RAM, win32 10.0.26200",
+    "node": "v22.19.0",
+    "conexionesSimultaneas": 100,
+    "duracionPorMedidaS": 30,
+    "calentamientoS": 3,
+    "limiteDePeticionesDeLaApi": "RATE_LIMIT_MAX subido a 1000000000 (el valor real, 100 por 15 min y por IP, cortaría la prueba)",
+    "tareasPeriodicas": "desactivadas (TAREAS_CITAS=off)",
+    "datos": {
+      "barberias": 20,
+      "barberos": 60,
+      "clientes": 40,
+      "citas": 1500,
+      "citasDelClienteDePrueba": 60
+    }
+  },
+  "actualizaciones": [
+    {
+      "fecha": "2026-11-09T17:41:56.893Z",
+      "rutas": [
+        "disponibilidad",
+        "mis-citas"
+      ],
+      "baseDeDatos": "MongoDB Atlas 8.0.37 (plan gratuito (M0)), BD desechable BarberPlan_carga_test"
+    }
+  ]
+}

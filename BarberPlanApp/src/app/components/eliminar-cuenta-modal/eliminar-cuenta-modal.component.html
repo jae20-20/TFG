@@ -1,0 +1,77 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="cerrar()" class="premium-modal compact-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Eliminar mi cuenta</ion-title>
+        <ion-buttons slot="end">
+          <ion-button class="modal-close-btn" (click)="cerrar()">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <div class="compact-modal-body">
+      <div class="eliminar-aviso">
+        <ion-icon name="warning-outline" class="eliminar-aviso-icono"></ion-icon>
+        <p>Esta acción es definitiva y no se puede deshacer.</p>
+      </div>
+
+      <ion-spinner *ngIf="cargandoResumen" name="crescent" class="eliminar-spinner"></ion-spinner>
+
+      <ng-container *ngIf="!cargandoResumen">
+        <!-- Qué ocurre con tus datos, según el tipo de cuenta -->
+        <ul class="eliminar-lista" *ngIf="rol === 'cliente'">
+          <li>Se borran tu cuenta y tus datos personales (nombre, usuario, correo, teléfono, ciudad y foto).</li>
+          <li>Tus citas futuras se cancelan y el hueco queda libre para otros clientes.</li>
+          <li>Tus citas pasadas se conservan de forma anónima en la barbería, como «Cliente eliminado».</li>
+          <li>De tus reseñas solo se mantiene la puntuación: se borran el comentario y la imagen.</li>
+        </ul>
+
+        <ul class="eliminar-lista" *ngIf="rol === 'barbero'">
+          <li>Se borran tu cuenta y tus datos personales, y dejas de formar parte de la barbería.</li>
+          <li>Tus citas futuras se cancelan y se avisa a los clientes en la aplicación.</li>
+          <li>Se borran tus solicitudes. Tus citas pasadas se conservan en el historial de los clientes.</li>
+        </ul>
+
+        <ng-container *ngIf="rol === 'admin' && resumen">
+          <ul class="eliminar-lista" *ngIf="esDuenio">
+            <li>Se elimina tu cuenta <strong>y la barbería «{{ resumen.barberiaNombre }}»</strong>, con sus servicios, horarios, invitaciones y solicitudes.</li>
+            <li>Se cancelan <strong>{{ resumen.citasFuturas }}</strong> {{ resumen.citasFuturas === 1 ? 'cita futura' : 'citas futuras' }} y se avisa a los clientes.</li>
+            <li>
+              <strong>{{ resumen.barberos }}</strong> {{ resumen.barberos === 1 ? 'barbero queda' : 'barberos quedan' }}
+              sin barbería: conservan su cuenta, pero no podrán trabajar hasta que se les asigne otra.
+            </li>
+            <li>Las citas pasadas se conservan en el historial de los clientes con el nombre de la barbería.</li>
+          </ul>
+          <ul class="eliminar-lista" *ngIf="!esDuenio">
+            <li>Se borran tu cuenta y tus datos personales.</li>
+          </ul>
+        </ng-container>
+
+        <div class="password-field-group" *ngIf="esDuenio">
+          <label>Escribe el nombre de tu barbería para confirmar</label>
+          <ion-input class="field-input" type="text" autocomplete="off" [placeholder]="resumen?.barberiaNombre || ''" [(ngModel)]="nombreConfirmado"></ion-input>
+        </div>
+
+        <div class="password-field-group">
+          <label>Contraseña actual</label>
+          <ion-input class="field-input" type="password" autocomplete="current-password" [(ngModel)]="pw">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+        </div>
+      </ng-container>
+
+      <p *ngIf="error" class="auth-error-hint" role="alert">{{ error }}</p>
+    </div>
+
+    <ion-footer>
+      <ion-toolbar>
+        <ion-button expand="block" color="danger" class="eliminar-btn ion-margin" (click)="eliminar()" [disabled]="!puedeEliminar">
+          <ion-spinner *ngIf="eliminando" name="crescent"></ion-spinner>
+          <span *ngIf="!eliminando">Eliminar mi cuenta definitivamente</span>
+        </ion-button>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

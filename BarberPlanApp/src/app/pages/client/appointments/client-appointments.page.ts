@@ -13,6 +13,7 @@ import { ReviewImageComponent } from '../../../components/review-image/review-im
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline, hourglassOutline, informationCircleOutline } from 'ionicons/icons';
 import { esCitaProxima, esPendiente, etiquetaEstadoCita, limiteRespuesta } from '../../../services/cita-estado.util';
+import { comprimirImagen } from '../../../services/imagen.util';
 
 type FiltroCitas = 'proximas' | 'anteriores' | 'canceladas' | 'todas';
 const FILTROS_CITAS: FiltroCitas[] = ['proximas', 'anteriores', 'canceladas', 'todas'];
@@ -45,6 +46,7 @@ export class ClientAppointmentsPage implements OnInit {
   resenaForm: ResenaForm = { valoracion: 0, comentario: '', imagen: null };
   enviandoResena = false;
   procesandoImagenResena = false;
+  errorImagenResena = '';
 
   constructor(
     private apiService: ApiService,
@@ -274,48 +276,19 @@ export class ClientAppointmentsPage implements OnInit {
     }
 
     this.procesandoImagenResena = true;
+    this.errorImagenResena = '';
     try {
-      this.resenaForm.imagen = await this.processImage(file, 800);
-    } catch (error) {
-      console.error('Error al procesar la imagen:', error);
+      this.resenaForm.imagen = await comprimirImagen(file, 'resena');
+    } catch (error: any) {
+      this.errorImagenResena = error?.message || 'No se pudo procesar la imagen.';
     } finally {
       this.procesandoImagenResena = false;
+      event.target.value = '';
     }
   }
 
   quitarImagenResena() {
     this.resenaForm.imagen = null;
-  }
-
-  private processImage(file: File, maxSize: number): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let { width, height } = img;
-
-          if (width > height && width > maxSize) {
-            height = Math.round((height * maxSize) / width);
-            width = maxSize;
-          } else if (height > maxSize) {
-            width = Math.round((width * maxSize) / height);
-            height = maxSize;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8));
-        };
-        img.onerror = reject;
-        img.src = reader.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   }
 
   async enviarResena() {

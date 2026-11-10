@@ -59,11 +59,13 @@
         </div>
 
         <div class="preview-gallery-uploader">
-          <label class="gallery-upload-tile">
+          <label class="gallery-upload-tile" *ngIf="perfilVisualForm.galeriaTrabajos.length < maxGaleria">
             <input type="file" accept="image/*" multiple (change)="onGaleriaSelected($event)" />
             <ion-icon name="images-outline"></ion-icon>
-            <span>Añadir fotos</span>
+            <span>Añadir fotos ({{ perfilVisualForm.galeriaTrabajos.length }}/{{ maxGaleria }})</span>
           </label>
+          <p class="tags-editor-hint" *ngIf="perfilVisualForm.galeriaTrabajos.length >= maxGaleria">Galería completa ({{ maxGaleria }} fotos). Quita alguna para añadir otra.</p>
+          <p class="field-note-danger" *ngIf="imagenError" role="alert">{{ imagenError }}</p>
         </div>
 
         <div class="tags-editor-section">

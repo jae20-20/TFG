@@ -1,33 +1,42 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
 import { PhoneInputComponent } from '../../../components/phone-input/phone-input.component';
 import { PhoneDisplayPipe } from '../../../components/phone-input/phone-display.pipe';
 import { CambiarPasswordModalComponent } from '../../../components/cambiar-password-modal/cambiar-password-modal.component';
+import { EliminarCuentaModalComponent } from '../../../components/eliminar-cuenta-modal/eliminar-cuenta-modal.component';
+import { comprimirImagen } from '../../../services/imagen.util';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent]
+  imports: [IonicModule, CommonModule, FormsModule, PhoneInputComponent, PhoneDisplayPipe, CambiarPasswordModalComponent, EliminarCuentaModalComponent]
 })
 export class ProfilePage implements OnInit {
   user: any = null;
   adminEditForm: any = null;
   isEditingAdmin = false;
   isPasswordModalOpen = false;
+  isEliminarCuentaOpen = false;
   savingAdmin = false;
   profileError = '';
 
   constructor(
     private apiService: ApiService,
     private storage: Storage,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private router: Router
   ) { }
+
+  verPrivacidad() {
+    this.router.navigateByUrl('/privacidad');
+  }
 
   async ngOnInit() {
     await this.storage.create();
@@ -102,43 +111,9 @@ export class ProfilePage implements OnInit {
     this.adminEditForm.avatar = '';
   }
 
+  // Reduce y comprime a JPEG (256 px, calidad 0,7, máx. 40 KB): ver services/imagen.util.ts
   private readAndCompressImage(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const maxDim = 400;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDim) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            }
-          } else {
-            if (height > maxDim) {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          const compressed = canvas.toDataURL('image/jpeg', 0.8);
-          resolve(compressed);
-        };
-        img.onerror = (err) => reject(err);
-        img.src = e.target.result;
-      };
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
-    });
+    return comprimirImagen(file, 'avatar');
   }
 
   getInitials() {

@@ -1,6 +1,9 @@
 //middlewares para seguridad y control de acceso
 
 import jwt from "jsonwebtoken";
+import { config } from "../config.js";
+import { getSesionUsuario } from "../models/userModel.js";
+import { esObjectIdValido } from "./validateMiddleware.js";
 
 // ======== VERIFICAR TOKEN
 
@@ -10,7 +13,7 @@ export const verifyToken = (req, res, next) => {
                 return res.status(401).json({ error: "Acceso denegado. Token no proporcionado" });
         }
         try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verificar el token
+                const decoded = jwt.verify(token, config.jwtSecret); // Verificar el token
                 req.user = decoded; // Guardar los datos del usuario en la solicitud
                 next();
         } catch (error) {
@@ -25,13 +28,34 @@ export const optionalAuth = (req, res, next) => {
         const token = req.headers.authorization?.split(" ")[1];
         if (token) {
                 try {
-                        req.user = jwt.verify(token, process.env.JWT_SECRET);
+                        req.user = jwt.verify(token, config.jwtSecret);
                 } catch {
                         req.user = undefined;
                 }
         }
         next();
 };
+
+// Para las rutas que escriben: el JWT es válido 24 h, pero la cuenta puede haberse eliminado o haber cambiado
+// de contraseña desde que se emitió. Una sola lectura (solo _id y fecha del último cambio de contraseña)
+// comprueba las dos cosas; las lecturas no la hacen, para no añadir una consulta a cada GET.
+export const verificarCuenta = async (req, res, next) => {
+        if (!esObjectIdValido(req.user?.id)) {
+                return res.status(401).json({ error: "Token inválido o expirado" });
+        }
+        const sesion = await getSesionUsuario(req.user.id);
+        if (!sesion) {
+                return res.status(401).json({ error: "La cuenta ya no existe" });
+        }
+        // iat va en segundos; una sesión anterior al último cambio de contraseña deja de valer
+        if (sesion.passwordChangedAt && Math.floor(sesion.passwordChangedAt.getTime() / 1000) > req.user.iat) {
+                return res.status(401).json({ error: "La contraseña ha cambiado. Inicia sesión de nuevo" });
+        }
+        next();
+};
+
+// Autenticación de las rutas de escritura de cualquier rol: token válido + cuenta vigente
+export const authEscritura = [verifyToken, verificarCuenta];
 
 // ======= VERIFICAR ROLES
 

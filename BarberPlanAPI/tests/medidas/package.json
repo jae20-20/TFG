@@ -1,0 +1,9 @@
+{
+  "name": "barberplanapi-medidas",
+  "private": true,
+  "description": "Dependencias de las medidas (carga e índices): autocannon y, para --bd=local, una réplica de MongoDB en memoria. Separadas de la API para no alterar su árbol de dependencias.",
+  "devDependencies": {
+    "autocannon": "8.0.0",
+    "mongodb-memory-server": "11.3.0"
+  }
+}

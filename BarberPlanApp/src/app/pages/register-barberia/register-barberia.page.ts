@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AlertController, IonicModule, ToastController, IonContent } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { EDAD_MINIMA, MENSAJE_SIN_CONSENTIMIENTO } from '../../services/privacidad.util';
 import { validarCorreo, validarPasswordNueva } from '../../services/validacion-credenciales.util';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input.component';
 
@@ -21,6 +22,10 @@ export class RegisterBarberiaPage implements OnInit {
   isLoading = false;
   showPassword = false;
   confirmPw = '';
+
+  // Aceptación de la política de privacidad (obligatoria; el servidor también la exige)
+  aceptaPrivacidad = false;
+  readonly edadMinima = EDAD_MINIMA;
 
   ciudades = [
     'Madrid',
@@ -72,7 +77,8 @@ export class RegisterBarberiaPage implements OnInit {
       this.formData.correo.trim() &&
       this.formData.pw.trim() &&
       this.confirmPw.trim() &&
-      this.formData.pw === this.confirmPw
+      this.formData.pw === this.confirmPw &&
+      this.aceptaPrivacidad
     );
   }
 
@@ -98,10 +104,15 @@ export class RegisterBarberiaPage implements OnInit {
       return;
     }
 
+    if (!this.aceptaPrivacidad) {
+      await this.showToast(MENSAJE_SIN_CONSENTIMIENTO, 'danger');
+      return;
+    }
+
     this.isLoading = true;
 
     try {
-      await this.authService.registerBarberia(this.formData);
+      await this.authService.registerBarberia({ ...this.formData, aceptaPrivacidad: true });
 
       const alert = await this.alertCtrl.create({
         header: '¡Barbería Registrada!',

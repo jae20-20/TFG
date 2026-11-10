@@ -1,12 +1,18 @@
 // Batería de integración: índices de MongoDB, unicidad de correo y usuario bajo concurrencia,
-// normalización del correo y migración. Levanta su propia API (puerto 5098) sobre la BD desechable
-// BarberPlan_test y la borra al terminar. Se niega a ejecutarse contra la BD de desarrollo.
+// normalización del correo y migración, y (integracion-privacidad.mjs) configuración por entorno,
+// consentimiento, eliminación de cuenta y avisos al cliente, y (integracion-robustez.mjs) el 503 cuando Mongo no
+// está disponible. Levanta su propia API (puerto 5098) sobre la BD
+// desechable BarberPlan_test y la borra al terminar. Se niega a ejecutarse con una base cuyo nombre no termine en _test.
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
+import { pruebasConsultas } from "./integracion-consultas.mjs";
+import { pruebasDespliegue } from "./integracion-despliegue.mjs";
+import { pruebasPrivacidad } from "./integracion-privacidad.mjs";
+import { pruebasRobustez } from "./integracion-robustez.mjs";
 import { sembrarDatos } from "./semilla.mjs";
 
 const { check, terminar } = crearComprobador("integración");
@@ -30,10 +36,10 @@ const MSG_CORREO = "El correo ya está registrado";
 const MSG_USUARIO = "El nombre de usuario ya está en uso";
 
 const registroCliente = (correo, usuario) => req("POST", "/usuarios/registro", {
-    body: { nombre: "Test", apellido: "Prueba", correo, pw: PW, usuario, rol: "cliente", ciudad: "Madrid" }
+    body: { nombre: "Test", apellido: "Prueba", correo, pw: PW, usuario, rol: "cliente", ciudad: "Madrid", aceptaPrivacidad: true }
 });
 const registroBarberia = (correo, usuario, nombreBarberia) => req("POST", "/barberias/registro", {
-    body: { nombreBarberia, direccion: "Calle de prueba 1", ciudad: "Madrid", nombre: "Admin", apellido: "Prueba", correo, pw: PW, usuario }
+    body: { nombreBarberia, direccion: "Calle de prueba 1", ciudad: "Madrid", nombre: "Admin", apellido: "Prueba", correo, pw: PW, usuario, aceptaPrivacidad: true }
 });
 const login = (correo, pw = PW) => req("POST", "/usuarios/login", { body: { correo, pw } });
 const estados = (respuestas) => respuestas.map((r) => r.status).sort((a, b) => a - b);
@@ -49,7 +55,8 @@ const ejecutarMigracion = (...args) => spawnSync(process.execPath, ["scripts/nor
 
 try {
     await connectDB();
-    check("Las pruebas usan la BD desechable, no la de desarrollo", db.databaseName === entorno.nombreBD && db.databaseName !== "BarberPlan", db.databaseName);
+    check("Las pruebas usan una BD desechable cuyo nombre termina en _test, no la de desarrollo ni la de producción",
+        db.databaseName === entorno.nombreBD && /_test$/.test(db.databaseName) && db.databaseName !== "BarberPlan", db.databaseName);
 
     // ==================== Índices creados al arrancar ====================
     for (const { coleccion, clave, opciones } of INDICES) {
@@ -281,8 +288,8 @@ try {
             const creado = await bd.collection("Usuarios").countDocuments({ usuario: body.usuario });
             check(nombre, respuesta.status === 400 && respuesta.data?.error === mensaje && creado === 0, `${respuesta.status} ${JSON.stringify(respuesta.data)}`);
         };
-        const cliente = (usuario, correo, pw) => ({ nombre: "Test", apellido: "Prueba", rol: "cliente", ciudad: "Madrid", usuario, correo, pw });
-        const barberia = (usuario, correo, pw) => ({ nombreBarberia: `Barbería ${usuario}`, direccion: "Calle 1", nombre: "Admin", apellido: "Prueba", usuario, correo, pw });
+        const cliente = (usuario, correo, pw) => ({ nombre: "Test", apellido: "Prueba", rol: "cliente", ciudad: "Madrid", usuario, correo, pw, aceptaPrivacidad: true });
+        const barberia = (usuario, correo, pw) => ({ nombreBarberia: `Barbería ${usuario}`, direccion: "Calle 1", nombre: "Admin", apellido: "Prueba", usuario, correo, pw, aceptaPrivacidad: true });
 
         await rechazado("Registro: correo sin @ -> 400 formato no válido", "/usuarios/registro", cliente("cred_1", "sin-arroba.test", PW), M.correoFormato);
         await rechazado("Registro: correo de más de 254 caracteres -> 400 demasiado largo", "/usuarios/registro",
@@ -555,6 +562,18 @@ try {
     }
     await bd.collection("Citas").deleteMany({ barberoId: barberoCarrera });
     await bd.collection("Usuarios").deleteMany({ $or: [{ _id: barberoCarrera }, { usuario: /^api_cliente_carrera_/ }] });
+
+    // ==================== Configuración, consentimiento, eliminación de cuenta y avisos ====================
+    await pruebasPrivacidad({ check, entorno });
+
+    // ==================== Barrera de pruebas, disponibilidad en paralelo y «Mis citas» recortada ====================
+    await pruebasConsultas({ check, entorno, req });
+
+    // ==================== Despliegue: configuración, límites, registro de errores, arranque, humo y limpieza ====================
+    await pruebasDespliegue({ check, entorno });
+
+    // ==================== Mongo no disponible: 503 en lugar de 500 ====================
+    await pruebasRobustez({ check, entorno, client });
 
     // ==================== Reglas de la app = reglas del servidor ====================
     const constantes = ["PW_MIN_CARACTERES", "PW_MAX_BYTES", "CORREO_MAX_CARACTERES", "CORREO_LOCAL_MAX_CARACTERES"];

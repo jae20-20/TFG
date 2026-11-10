@@ -12,6 +12,19 @@
 @use './theme/variables.scss';
 @use './theme/shared-premium.scss';
 
+/*
+ * Tipografía Inter alojada en el proyecto (antes se descargaba de Google Fonts, que recibía la IP de cada visitante).
+ * Variable (pesos 100 a 900) y solo el subconjunto latino: cubre el español. Licencia SIL OFL 1.1 en assets/fonts.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/assets/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Core CSS required for Ionic components to work properly */
 @tailwind base;
 @tailwind components;
@@ -860,6 +873,53 @@ ion-content.bg-dark-900::part(scroll) {
   font-size: 0.7rem;
   color: var(--custom-text-muted-alt, #64748b);
   margin: 4px 0 0;
+}
+
+/* Aviso de que la API (plan gratuito) está despertando de su suspensión */
+.auth-aviso-servidor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.35);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  color: var(--custom-text-primary, #f8fafc);
+  font-family: var(--ion-font-family);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.auth-aviso-servidor ion-spinner {
+  flex-shrink: 0;
+  color: var(--ion-color-primary);
+}
+
+/* Casilla de aceptación de la política de privacidad (registros de cliente, barbero y barbería) */
+.auth-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--ion-font-family);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--custom-text-muted-alt, #64748b);
+  cursor: pointer;
+}
+
+.auth-consent input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--ion-color-primary);
+  cursor: pointer;
+}
+
+.auth-consent a {
+  color: var(--ion-color-primary);
+  text-decoration: underline;
 }
 
 /* Password wrapper */

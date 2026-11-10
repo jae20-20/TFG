@@ -28,9 +28,12 @@ export class BarbershopDetailsPage implements OnInit {
 
     try {
       this.barberia = await this.apiService.getMyBarberia();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar la barbería en barbero:', error);
-      this.barberiaError = 'No se han podido cargar los datos de la barbería.';
+      // 404: la barbería se eliminó (o te dieron de baja) y la cuenta sigue existiendo sin barbería
+      this.barberiaError = error?.status === 404
+        ? 'Ya no formas parte de ninguna barbería.'
+        : 'No se han podido cargar los datos de la barbería.';
       this.barberia = null;
     } finally {
       this.loadingBarberia = false;

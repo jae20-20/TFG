@@ -1,5 +1,6 @@
 // Ejecuta la colección de Postman (postman/) con newman sobre la BD desechable, en tres pasadas:
-//   1. Carpetas 00 a 07 contra una API con el límite global subido (envían más de 100 peticiones).
+//   1. Carpetas 00 a 07, 10 y 11 contra una API con los límites global y de login/registro subidos (envían más de
+//      100 peticiones y más de 10 intentos de autenticación).
 //   2. Carpeta 08 (RNF5) contra una API recién arrancada con los límites reales.
 //   3. Carpeta 09 (formato de credenciales) contra otra API recién arrancada: usa los 10 intentos de
 //      login y registro por IP, que la pasada 1 ya ha agotado en la suya.
@@ -13,7 +14,7 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { NOMBRE_BD_PRUEBAS, RAIZ_API, lanzarServidor } from "./entorno.mjs";
+import { NOMBRE_BD_PRUEBAS, RAIZ_API, URI_PRUEBAS, exigirBaseDePruebas, lanzarServidor } from "./entorno.mjs";
 import { sembrarPostman } from "./semilla-postman.mjs";
 
 const DIR_POSTMAN = path.join(RAIZ_API, "postman");
@@ -25,14 +26,16 @@ const CARPETA_CREDENCIALES = "09 · Formato de credenciales (registro y login)";
 const PUERTO_PRINCIPAL = 5093;
 const PUERTO_LIMITES = 5092;
 const PUERTO_CREDENCIALES = 5091;
+// Las carpetas 00 a 07 gastan los 10 intentos de login/registro por IP; la 10 necesita 8 más. La pasada 1 los sube
+// (AUTH_RATE_LIMIT_MAX); los límites reales se siguen probando en las pasadas 2 y 3 con los valores por defecto
+const LIMITE_AUTH_PRINCIPAL = { AUTH_RATE_LIMIT_MAX: "1000" };
 
 const argumentos = process.argv.slice(2);
 const mantener = argumentos.includes("--mantener");
 const soloLimpiar = argumentos.includes("--limpiar");
 
-if (NOMBRE_BD_PRUEBAS === "BarberPlan") {
-    throw new Error("La colección no puede ejecutarse contra la base de datos de desarrollo (BarberPlan)");
-}
+// La colección crea, modifica y borra datos y acaba con dropDatabase: solo sobre una base _test
+exigirBaseDePruebas(NOMBRE_BD_PRUEBAS);
 
 // newman vive en postman/node_modules para no alterar las dependencias de la API. Se instala la primera
 // vez, desde la carpeta postman y sin las variables npm_* del script que nos lanza: con ellas, npm añadía
@@ -151,7 +154,7 @@ const informe = (pasadas) => {
     return fallos.length;
 };
 
-const cliente = new MongoClient(process.env.ATLAS_URI);
+const cliente = new MongoClient(URI_PRUEBAS);
 await cliente.connect();
 const bd = cliente.db(NOMBRE_BD_PRUEBAS);
 
@@ -168,8 +171,8 @@ if (soloLimpiar) {
     await bd.dropDatabase();
     const datos = await sembrarPostman(bd);
     const servidores = [];
-    const arrancar = async (puerto, limitesReales) => {
-        const servidor = lanzarServidor({ puerto, nombreBD: NOMBRE_BD_PRUEBAS, limitesReales });
+    const arrancar = async (puerto, limitesReales, variables = {}) => {
+        const servidor = lanzarServidor({ puerto, nombreBD: NOMBRE_BD_PRUEBAS, limitesReales, variables });
         servidores.push(servidor);
         await servidor.listo;
         return servidor;
@@ -181,7 +184,7 @@ if (soloLimpiar) {
 
     if (mantener) {
         try {
-            await arrancar(PUERTO_PRINCIPAL, false);
+            await arrancar(PUERTO_PRINCIPAL, false, LIMITE_AUTH_PRINCIPAL);
             await arrancar(PUERTO_LIMITES, true);
             await arrancar(PUERTO_CREDENCIALES, false);
         } catch (error) {
@@ -217,8 +220,8 @@ if (soloLimpiar) {
         const newman = cargarNewman();
         const pasadas = [];
         try {
-            const principal = await arrancar(PUERTO_PRINCIPAL, false);
-            pasadas.push({ titulo: "Pasada 1 (carpetas 00 a 07, límite global subido)",
+            const principal = await arrancar(PUERTO_PRINCIPAL, false, LIMITE_AUTH_PRINCIPAL);
+            pasadas.push({ titulo: "Pasada 1 (carpetas 00 a 07, 10 y 11, límites global y de login/registro subidos)",
                 resumen: await ejecutarNewman(newman, carpetasPrincipales, crearEntornoPostman(`http://localhost:${PUERTO_PRINCIPAL}`, datos)) });
             await principal.detener();
 

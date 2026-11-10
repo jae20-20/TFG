@@ -80,12 +80,17 @@ export const deleteCita = async (id) => {
 export const getCitasByClienteId = async (clienteId) => {
     return await db.collection("Citas").aggregate([
         { $match: { clienteId: new ObjectId(clienteId) } },
+        // El orden va justo tras el $match para que lo sirva el índice clienteId_fecha (sin ordenar en memoria las citas ya unidas)
+        { $sort: { fecha: -1 } },
         {
+            // Solo lo que muestra «Mis citas» (nombre y dirección) y avisos: sin galería, imágenes, servicios ni horario,
+            // que multiplicaban por 60 citas el peso de la respuesta (~100 KB)
             $lookup: {
                 from: "Barberias",
                 localField: "barberiaId",
                 foreignField: "_id",
-                as: "barberia"
+                as: "barberia",
+                pipeline: [{ $project: { nombre: 1, direccion: 1, ciudad: 1 } }]
             }
         },
         {
@@ -99,13 +104,7 @@ export const getCitasByClienteId = async (clienteId) => {
         },
         { $unwind: { path: "$barberia", preserveNullAndEmptyArrays: true } },
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
-        {
-            $project: {
-                "barberia.adminId": 0,
-                "resena.imagen": 0
-            }
-        },
-        { $sort: { fecha: -1 } }
+        { $project: { "resena.imagen": 0 } }
     ]).toArray();
 };
 
@@ -123,8 +122,10 @@ export const getCitasByBarberoId = async (barberoId, barberiaId) => {
         },
         { $unwind: { path: "$cliente", preserveNullAndEmptyArrays: true } },
         {
+            // La agenda no lleva el avatar del cliente (una copia por cita, ~20 KB cada una): muestra sus iniciales
             $project: {
                 "cliente.pw": 0,
+                "cliente.avatar": 0,
                 "resena.imagen": 0
             }
         },
@@ -157,9 +158,12 @@ export const getCitasByBarberiaId = async (barberiaId) => {
         { $unwind: { path: "$cliente", preserveNullAndEmptyArrays: true } },
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
         {
+            // Sin avatares: se repetirían en cada cita (la agenda del dueño muestra las iniciales del cliente)
             $project: {
                 "cliente.pw": 0,
+                "cliente.avatar": 0,
                 "barbero.pw": 0,
+                "barbero.avatar": 0,
                 "resena.imagen": 0
             }
         },
@@ -177,10 +181,14 @@ export const setResenaCita = async (id, resena) => {
     );
 };
 
-// Obtener las reseñas de una barbería, con datos del cliente, barbero y cita
-export const getResenasByBarberiaId = async (barberiaId) => {
+// Obtener las reseñas de una barbería, con datos del cliente, barbero y cita, de la más reciente a la más antigua.
+// incluirImagen: con false no viaja la foto de la reseña (la ficha pública no la muestra); limite: solo las N más recientes
+export const getResenasByBarberiaId = async (barberiaId, { incluirImagen = true, limite = 0 } = {}) => {
     return await db.collection("Citas").aggregate([
         { $match: { barberiaId: new ObjectId(barberiaId), resena: { $exists: true } } },
+        // Ordenar y limitar antes de unir con Usuarios: solo se buscan los usuarios de las reseñas que se devuelven
+        { $sort: { "resena.createdAt": -1 } },
+        ...(limite > 0 ? [{ $limit: limite }] : []),
         {
             $lookup: {
                 from: "Usuarios",
@@ -205,15 +213,18 @@ export const getResenasByBarberiaId = async (barberiaId) => {
                 horaInicio: 1,
                 servicioNombre: 1,
                 servicioPrecio: 1,
-                resena: 1,
+                ...(incluirImagen
+                    ? { resena: 1 }
+                    : { "resena.valoracion": 1, "resena.comentario": 1, "resena.createdAt": 1 }),
+                // Cliente eliminado: no hay usuario que unir, queda el nombre anónimo de la cita
+                clienteNombre: 1,
                 "cliente.nombre": 1,
                 "cliente.apellido": 1,
                 "cliente.avatar": 1,
                 "barbero.nombre": 1,
                 "barbero.apellido": 1
             }
-        },
-        { $sort: { "resena.createdAt": -1 } }
+        }
     ]).toArray();
 };
 
@@ -225,6 +236,14 @@ export const transicionarCita = async (id, estadosOrigen, estadoDestino, campos 
         { _id: new ObjectId(id), estado: { $in: estadosOrigen } },
         { $set: { ...campos, estado: estadoDestino, updatedAt: new Date() } },
         { returnDocument: "after" }
+    );
+};
+
+// Quita el aviso de todas las citas del cliente (RF12). Si no tienen aviso no se tocan
+export const quitarAvisosCliente = async (clienteId) => {
+    return await db.collection("Citas").updateMany(
+        { clienteId: new ObjectId(clienteId), avisoCliente: { $exists: true } },
+        { $unset: { avisoCliente: "" } }
     );
 };
 
@@ -291,7 +310,7 @@ export const cancelarPendientesVencidas = async (ahora, fechaActual, horaActual)
                 { fecha: fechaActual, horaInicio: { $lte: horaActual } }
             ]
         },
-        { $set: { estado: "cancelada", motivoCancelacion: "expirada", updatedAt: ahora } }
+        { $set: { estado: "cancelada", motivoCancelacion: "expirada", avisoCliente: { tipo: "expirada", creadoEn: ahora }, updatedAt: ahora } }
     );
 };
 

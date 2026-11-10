@@ -6,10 +6,12 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./pages/login/login.page').then(m => m.LoginPage) },
   { path: 'register', loadComponent: () => import('./pages/register/register.page').then(m => m.RegisterPage) },
-  { 
-    path: 'register-barberia', 
-    loadComponent: () => import('./pages/register-barberia/register-barberia.page').then(m => m.RegisterBarberiaPage) 
+  {
+    path: 'register-barberia',
+    loadComponent: () => import('./pages/register-barberia/register-barberia.page').then(m => m.RegisterBarberiaPage)
   },
+  // Pública a propósito (sin guard): se enlaza desde los registros, antes de tener cuenta
+  { path: 'privacidad', loadComponent: () => import('./pages/privacidad/privacidad.page').then(m => m.PrivacidadPage) },
   {
     path: 'admin',
     loadChildren: () => import('./pages/admin/admin.routes').then(m => m.adminRoutes),

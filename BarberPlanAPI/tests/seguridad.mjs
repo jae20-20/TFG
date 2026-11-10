@@ -1,21 +1,36 @@
 // Batería de seguridad: autorización entre barberías (IDOR), inyección NoSQL, exposición de datos,
 // validación de entradas y CORS. Levanta su propia API (puerto 5099) sobre la BD desechable
 // BarberPlan_test sembrada con tests/semilla.mjs, y la borra al terminar. Solo hace lecturas o
-// peticiones que el servidor rechaza antes de escribir.
+// peticiones que el servidor rechaza antes de escribir. Las rutas de escritura comprueban que la
+// cuenta del token exista, así que los atacantes de las pruebas son cuentas reales (sembradas aquí):
+// un admin que no administra nada y un cliente.
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { crearCliente, crearComprobador, crearEntorno } from "./entorno.mjs";
-import { sembrarDatos } from "./semilla.mjs";
+import { sembrarDatos, usuarioBase } from "./semilla.mjs";
 
 const { check, terminar } = crearComprobador("seguridad");
-const entorno = await crearEntorno({ puerto: 5099, sembrar: sembrarDatos });
+const ID_ADMIN_AJENO = new ObjectId();
+const ID_CLIENTE_FALSO = new ObjectId();
+const entorno = await crearEntorno({
+    puerto: 5099,
+    sembrar: async (bd) => {
+        await sembrarDatos(bd);
+        await bd.collection("Usuarios").insertMany([
+            usuarioBase({ _id: ID_ADMIN_AJENO, nombre: "Ajeno", apellido: "Admin", correo: "admin.ajeno@prueba.test", usuario: "admin_ajeno", rol: "admin", barberiaId: null }),
+            usuarioBase({ _id: ID_CLIENTE_FALSO, nombre: "Falso", apellido: "Cliente", correo: "cliente.falso@prueba.test", usuario: "cliente_falso", rol: "cliente", ciudad: "Madrid", barberiaId: null })
+        ]);
+    }
+});
 const req = crearCliente(entorno.api);
 const firmar = (payload) => jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "5m" });
 
 try {
     // Admin falso: rol admin pero no administra ninguna barbería (atacante de otro tenant)
-    const adminAjeno = firmar({ id: new ObjectId().toString(), rol: "admin", barberiaId: new ObjectId().toString() });
-    const clienteFalso = firmar({ id: new ObjectId().toString(), rol: "cliente", barberiaId: null });
+    const adminAjeno = firmar({ id: ID_ADMIN_AJENO.toString(), rol: "admin", barberiaId: new ObjectId().toString() });
+    const clienteFalso = firmar({ id: ID_CLIENTE_FALSO.toString(), rol: "cliente", barberiaId: null });
+    // Token válido de una cuenta que no existe (borrada): las rutas de escritura la rechazan
+    const cuentaBorrada = firmar({ id: new ObjectId().toString(), rol: "cliente", barberiaId: null });
 
     // --- NoSQL injection en login
     let r = await req("POST", "/usuarios/login", { body: { correo: { $regex: "^a" }, pw: "x" } });
@@ -207,6 +222,28 @@ try {
     r = await req("PUT", rutaBarberia, { body: { modoConfirmacion: "manual" }, token: adminAjeno });
     check("Cambiar el modo de confirmación de otra barbería -> 403", r.status === 403, `${r.status}`);
 
+    // --- Imágenes de la barbería: solo data URL de imagen y dentro de los límites (se rechazan antes de escribir)
+    for (const [descripcion, cuerpo] of [
+        ["logoUrl con javascript:", { logoUrl: "javascript:alert(1)" }],
+        ["logoUrl con un SVG", { logoUrl: "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" }],
+        ["logoUrl con un enlace externo", { portadaUrl: "https://sitio-externo.example/p.png" }],
+        ["logoUrl con operador $ne", { logoUrl: { $ne: null } }],
+        ["galeriaTrabajos con operador $where", { galeriaTrabajos: { $where: "1" } }],
+        ["galeriaTrabajos con 7 imágenes", { galeriaTrabajos: Array(7).fill("data:image/png;base64,AAAA") }],
+        ["galeriaTrabajos con un elemento que no es imagen", { galeriaTrabajos: ["data:image/png;base64,AAAA", { $gt: "" }] }]
+    ]) {
+        r = await req("PUT", rutaBarberia, { body: cuerpo, token: adminReal });
+        check(`Imágenes: el dueño envía ${descripcion} -> 400`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await req("PUT", rutaBarberia, { body: { logoUrl: "data:image/png;base64,AAAA" }, token: adminAjeno });
+    check("Imágenes: el dueño de otra barbería no puede cambiar el logo (IDOR) -> 403", r.status === 403, `${r.status}`);
+    r = await req("PUT", rutaBarberia, { body: { logoUrl: "data:image/png;base64,AAAA" } });
+    check("Imágenes: sin token -> 401", r.status === 401, `${r.status}`);
+    r = await req("PUT", "/usuarios/perfil", { token: propioToken, body: { avatar: "javascript:alert(1)" } });
+    check("Imágenes: un avatar que no es una imagen -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("GET", "/barberias");
+    check("Listado público: ninguna barbería expone su galería ni su adminId", r.status === 200 && (r.data || []).every((b) => !("galeriaTrabajos" in b) && !("adminId" in b)), `${r.status}`);
+
     r = await req("GET", "/usuarios/", { token: adminReal });
     const ajenos = (r.data || []).filter((u) => u.barberiaId?.toString() !== barberia._id);
     check("Admin propio: GET /usuarios/ solo usuarios de su barbería", r.status === 200 && r.data.length > 0 && ajenos.length === 0 && r.data.every((u) => !("pw" in u)),
@@ -236,8 +273,75 @@ try {
     check("Cambiar contraseña sin token -> 401", r.status === 401, `${r.status}`);
     r = await req("POST", "/usuarios/cambiar-contrasena", { token: propioToken, body: { currentPassword: { $ne: null }, newPassword: "NuevaClave1" } });
     check("Cambiar contraseña con operador Mongo en la actual -> 400", r.status === 400, `${r.status} ${JSON.stringify(r.data)}`);
-    r = await req("POST", "/usuarios/cambiar-contrasena", { token: clienteFalso, body: { currentPassword: "Cualquiera1", newPassword: "NuevaClave1" } });
-    check("Cambiar contraseña con token de un usuario inexistente -> 404", r.status === 404, `${r.status}`);
+    r = await req("POST", "/usuarios/cambiar-contrasena", { token: cuentaBorrada, body: { currentPassword: "Cualquiera1", newPassword: "NuevaClave1" } });
+    check("Cambiar contraseña con token de una cuenta que ya no existe -> 401", r.status === 401 && r.data?.error === "La cuenta ya no existe", `${r.status} ${JSON.stringify(r.data)}`);
+
+    // --- Cuenta eliminada: su token sigue firmado 24 h, pero ninguna ruta de escritura lo acepta
+    const rutasEscritura = [
+        ["POST", "/citas"], ["PUT", "/citas/avisos/leidos"], ["POST", "/citas/manual"], ["PUT", `/citas/${new ObjectId()}/cancelar`],
+        ["PUT", "/usuarios/perfil"], ["DELETE", "/usuarios/perfil"], ["POST", "/solicitudes"], ["PUT", `/barberos/${new ObjectId()}`],
+        ["POST", `/barberias/${new ObjectId()}/servicios`], ["PUT", "/barberias/mi/horario"], ["POST", "/barberias/invitaciones"]
+    ];
+    for (const [metodo, ruta] of rutasEscritura) {
+        r = await req(metodo, ruta, { token: cuentaBorrada, body: {} });
+        check(`Cuenta eliminada: ${metodo} ${ruta.replace(/[a-f0-9]{24}/g, ":id")} -> 401`, r.status === 401 && r.data?.error === "La cuenta ya no existe", `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await req("GET", "/barberias");
+    check("Cuenta eliminada: las lecturas públicas siguen funcionando para todos -> 200", r.status === 200, `${r.status}`);
+
+    // --- Eliminar la propia cuenta (RGPD): se rechaza antes de borrar nada
+    const hayBarbero = async () => Boolean(await entorno.bd.collection("Usuarios").findOne({ _id: new ObjectId(barbero._id) }));
+    r = await req("DELETE", "/usuarios/perfil", { body: { pw: "Cualquiera1" } });
+    check("Eliminar cuenta sin token -> 401", r.status === 401, `${r.status}`);
+    for (const [descripcion, cuerpo] of [
+        ["sin contraseña", {}],
+        ["con contraseña vacía", { pw: "" }],
+        ["con operador $ne en pw", { pw: { $ne: null } }],
+        ["con operador $gt en pw", { pw: { $gt: "" } }],
+        ["con un array en pw", { pw: ["Cualquiera1"] }],
+        ["con un número en pw", { pw: 12345678 }]
+    ]) {
+        r = await req("DELETE", "/usuarios/perfil", { token: propioToken, body: cuerpo });
+        check(`Eliminar cuenta ${descripcion} -> 400 y la cuenta sigue existiendo`, r.status === 400 && await hayBarbero(), `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await req("DELETE", "/usuarios/perfil", { token: propioToken, body: { pw: "no-es-la-mia" } });
+    check("Eliminar cuenta con contraseña incorrecta -> 401 y la cuenta sigue existiendo", r.status === 401 && await hayBarbero(), `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("GET", "/usuarios/perfil/eliminacion");
+    check("Resumen de eliminación sin token -> 401", r.status === 401, `${r.status}`);
+
+    // DELETE /usuarios/:id solo lo usa el admin para dar de baja a un barbero de su equipo
+    r = await req("DELETE", `/usuarios/${barbero._id}`, { token: propioToken });
+    check("DELETE /usuarios/:id sobre uno mismo -> 403 (la cuenta propia se elimina desde el perfil)", r.status === 403 && await hayBarbero(), `${r.status} ${JSON.stringify(r.data)}`);
+    r = await req("DELETE", `/usuarios/${barbero._id}`, { token: clienteFalso });
+    check("DELETE /usuarios/:id de un barbero como cliente -> 403", r.status === 403 && await hayBarbero(), `${r.status}`);
+    r = await req("DELETE", `/usuarios/${barbero._id}`, { token: adminAjeno });
+    check("DELETE /usuarios/:id de un barbero como admin de otra barbería -> 403", r.status === 403 && await hayBarbero(), `${r.status}`);
+    r = await req("DELETE", `/usuarios/${ID_CLIENTE_FALSO}`, { token: adminReal });
+    check("DELETE /usuarios/:id de un cliente como admin -> 403 (solo se da de baja a barberos del equipo)", r.status === 403, `${r.status}`);
+    r = await req("DELETE", `/usuarios/${ID_ADMIN_AJENO}`, { token: adminReal });
+    check("DELETE /usuarios/:id de otro admin -> 403", r.status === 403, `${r.status}`);
+    r = await req("DELETE", `/usuarios/${jwt.decode(adminReal).id}`, { token: adminReal });
+    check("DELETE /usuarios/:id del propio admin -> 403", r.status === 403, `${r.status}`);
+
+    // --- Avisos al cliente (RF12)
+    r = await req("PUT", "/citas/avisos/leidos");
+    check("Marcar avisos como leídos sin token -> 401", r.status === 401, `${r.status}`);
+    r = await req("PUT", "/citas/avisos/leidos", { token: propioToken });
+    check("Marcar avisos como leídos como barbero -> 403", r.status === 403, `${r.status}`);
+    r = await req("PUT", "/citas/avisos/leidos", { token: adminReal });
+    check("Marcar avisos como leídos como admin -> 403", r.status === 403, `${r.status}`);
+
+    // --- Consentimiento en el registro (RGPD): booleano estricto, rechazado antes de tocar la BD
+    const clienteValido = { nombre: "x", apellido: "x", correo: "consent@x.test", pw: "abcdefg1", usuario: "consent_x", rol: "cliente", ciudad: "Madrid" };
+    const MSG_CONSENT = "Debes aceptar la política de privacidad para registrarte";
+    const sinUsuario = async (usuario) => (await entorno.bd.collection("Usuarios").countDocuments({ usuario })) === 0;
+    for (const [descripcion, valor] of [["un operador $ne", { $ne: null }], ["el texto \"true\"", "true"], ["el número 1", 1]]) {
+        r = await req("POST", "/usuarios/registro", { body: { ...clienteValido, aceptaPrivacidad: valor } });
+        check(`Registro con aceptaPrivacidad = ${descripcion} -> 400 y no se crea la cuenta`, r.status === 400 && r.data?.error === MSG_CONSENT && await sinUsuario("consent_x"), `${r.status} ${JSON.stringify(r.data)}`);
+    }
+    r = await req("POST", "/barberias/registro", { body: { nombreBarberia: "Consent", direccion: "x", nombre: "x", apellido: "x", correo: "consent2@x.test", pw: "abcdefg1", usuario: "consent_b", aceptaPrivacidad: { $ne: null } } });
+    check("Registro de barbería con aceptaPrivacidad = operador $ne -> 400 y no se crea nada",
+        r.status === 400 && r.data?.error === MSG_CONSENT && await sinUsuario("consent_b") && await entorno.bd.collection("Barberias").countDocuments({ nombre: "Consent" }) === 0, `${r.status} ${JSON.stringify(r.data)}`);
 
     // --- Edición de perfil (se rechaza antes de escribir)
     r = await req("PUT", "/usuarios/perfil", { body: { nombre: "x" } });
