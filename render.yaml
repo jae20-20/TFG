@@ -1,11 +1,8 @@
-# Blueprint de Render para la API (el repositorio es un monorepo: la API vive en BarberPlanAPI/).
-# Los valores sin `sync: false` van aquí; los secretos se piden en el panel al crear el servicio y NUNCA se escriben en este archivo.
-# Guía completa: docs/DESPLIEGUE.md
+# Blueprint de Render para la API
 services:
   - type: web
     name: barberplan-api
     runtime: node
-    # Frankfurt: la misma región que el clúster de Atlas (AWS eu-central-1) para que cada consulta tarde pocos ms
     region: frankfurt
     plan: free
     rootDir: BarberPlanAPI
