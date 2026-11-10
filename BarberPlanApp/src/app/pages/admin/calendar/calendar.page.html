@@ -1,7 +1,24 @@
 
 
 <ion-content [fullscreen]="true" class="ion-padding admin-premium-content">
-  
+
+  <div class="config-aviso" *ngIf="avisarHorarioVacio" role="status">
+    <ion-icon name="time-outline"></ion-icon>
+    <p>
+      Tu barbería aún no tiene horario. Los clientes no podrán reservar hasta que añadas tus franjas
+      desde el apartado <strong>Horario</strong>.
+    </p>
+    <ion-button size="small" (click)="irA('/admin/configuration/schedule')">Configurar horario</ion-button>
+  </div>
+
+  <div class="config-aviso" *ngIf="avisarSinServicios" role="status">
+    <ion-icon name="cut-outline"></ion-icon>
+    <p>
+      Tu barbería aún no tiene servicios. Los clientes no podrán reservar hasta que crees al menos uno
+      desde el apartado <strong>Servicios</strong>.
+    </p>
+    <ion-button size="small" (click)="irA('/admin/configuration/services')">Añadir servicios</ion-button>
+  </div>
 
   <app-pendientes-aprobacion
     [citas]="pendientes"

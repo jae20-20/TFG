@@ -411,3 +411,34 @@
     }
   }
 }
+
+// Avisos de configuración pendiente (horario y servicios) de una barbería recién registrada
+.config-aviso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.35);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 22px;
+    color: var(--ion-color-primary);
+  }
+
+  p {
+    flex: 1 1 200px;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--custom-text-primary, #f8fafc);
+  }
+
+  ion-button {
+    margin: 0;
+  }
+}

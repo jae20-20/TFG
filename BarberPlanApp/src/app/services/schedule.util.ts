@@ -23,6 +23,20 @@ export function toHHMM(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+/**
+ * Una barbería recién registrada nace con la plantilla semanal vacía: sin franjas no hay huecos que reservar.
+ * Devuelve true si el horario cargado no tiene ninguna franja semanal ni excepción con horario propio.
+ * Con un horario aún sin cargar (null) devuelve false, para no avisar por error.
+ */
+export function horarioSinFranjas(horario: any): boolean {
+  if (!horario) return false;
+  const dias = horario.weeklyTemplate ? Object.values(horario.weeklyTemplate) : [];
+  const hayFranjaSemanal = dias.some((franjas) => Array.isArray(franjas) && franjas.length > 0);
+  const hayExcepcionAbierta = Array.isArray(horario.exceptions)
+    && horario.exceptions.some((ex: any) => ex.type === 'custom' && ex.start && ex.end);
+  return !hayFranjaSemanal && !hayExcepcionAbierta;
+}
+
 function parseDateKeyLocal(dateKey: string): Date {
   const [year, month, day] = dateKey.split('-').map(Number);
   return new Date(year, month - 1, day);

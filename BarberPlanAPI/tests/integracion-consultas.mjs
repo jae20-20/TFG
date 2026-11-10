@@ -273,6 +273,18 @@ export const pruebasConsultas = async ({ check, entorno, req }) => {
         iniciales({ cliente: { nombre: "Ana", apellido: "García" } }) === "AG" && iniciales({ clienteNombre: "Reserva manual" }) === "RM" && iniciales({ clienteNombre: "Cliente eliminado" }) === "CE"
         && iniciales({ cliente: { nombre: "luis" } }) === "L" && iniciales({}) === "CL" && iniciales(null) === "CL");
 
+    const { horarioSinFranjas } = await import(enApp("schedule.util.ts"));
+    const semanaVacia = { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] };
+    check("App: el horario de una barbería recién registrada (plantilla vacía y sin excepciones) activa el aviso",
+        horarioSinFranjas({ timezone: "Europe/Madrid", weeklyTemplate: semanaVacia, exceptions: [] }) === true);
+    check("App: con una sola franja semanal el aviso desaparece",
+        horarioSinFranjas({ weeklyTemplate: { ...semanaVacia, tue: [{ start: "09:00", end: "14:00" }] }, exceptions: [] }) === false);
+    check("App: una excepción con horario propio cuenta como horario; cerrar un día no",
+        horarioSinFranjas({ weeklyTemplate: semanaVacia, exceptions: [{ type: "custom", date: "2026-12-01", start: "10:00", end: "12:00" }] }) === false
+        && horarioSinFranjas({ weeklyTemplate: semanaVacia, exceptions: [{ type: "closed", date: "2026-12-01" }] }) === true);
+    check("App: sin horario cargado (null o sin plantilla definida) no se avisa por error / sin plantilla sí hay aviso",
+        horarioSinFranjas(null) === false && horarioSinFranjas(undefined) === false && horarioSinFranjas({}) === true);
+
     const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const eventos = [];
     const rapida = await arranqueApp.vigilarLentitud(async () => { await esperar(5); return "listo"; }, () => eventos.push("tardar"), () => eventos.push("terminar"), 60);

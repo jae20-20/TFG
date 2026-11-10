@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
@@ -15,7 +16,7 @@ import {
 } from '../../../services/cita-estado.util';
 import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
 import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
-import { resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
+import { horarioSinFranjas, resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
 import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
 import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
 
@@ -52,6 +53,10 @@ export class CalendarPage implements OnInit {
 
   // Horario
   horarioBarberia: any = null;
+  // La barbería no tiene ninguna franja configurada: se avisa al admin hasta que la añada
+  avisarHorarioVacio = false;
+  // La barbería no tiene ningún servicio creado
+  avisarSinServicios = false;
   dayOpenTime: string | null = null;
   dayCloseTime: string | null = null;
   scheduleLimitsText: string | null = null;
@@ -87,7 +92,8 @@ export class CalendarPage implements OnInit {
     private storage: Storage,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
-    private citaAcciones: CitaAccionesService
+    private citaAcciones: CitaAccionesService,
+    private router: Router
   ) { }
 
   readonly etiquetaEstado = etiquetaEstadoCita;
@@ -152,13 +158,7 @@ export class CalendarPage implements OnInit {
       this.citas = Array.isArray(citas) ? citas : [];
       this.pendientes = this.citas.filter(esPendienteVigente);
       
-      // Cargar horario
-      try {
-        const response = await this.apiService.getMyHorario();
-        this.horarioBarberia = response?.horario || response?.schedule || response || null;
-      } catch (err) {
-        console.warn('No se pudo cargar el horario:', err);
-      }
+      await Promise.all([this.cargarHorario(), this.comprobarServicios()]);
 
       this.buildCalendar(this.currentMonthDate);
     } catch (error) {
@@ -170,6 +170,38 @@ export class CalendarPage implements OnInit {
       this.loadingCitas = false;
       this.updateSelectedDayAppointments();
     }
+  }
+
+  private async cargarHorario() {
+    try {
+      const response = await this.apiService.getMyHorario();
+      this.horarioBarberia = response?.horario || response?.schedule || response || null;
+    } catch (err) {
+      console.warn('No se pudo cargar el horario:', err);
+    }
+    this.avisarHorarioVacio = horarioSinFranjas(this.horarioBarberia);
+  }
+
+  // Sin servicios tampoco se puede reservar. Si la consulta falla no se avisa, para no mostrar un aviso falso
+  private async comprobarServicios() {
+    try {
+      const servicios = await this.apiService.getServiciosBarberia(this.user.barberiaId);
+      this.avisarSinServicios = Array.isArray(servicios) && servicios.length === 0;
+    } catch (err) {
+      console.warn('No se pudieron cargar los servicios:', err);
+      this.avisarSinServicios = false;
+    }
+  }
+
+  irA(ruta: string) {
+    this.router.navigateByUrl(ruta);
+  }
+
+  // Al volver de configurar horario o servicios la página sigue en memoria (Ionic): se relee para que los avisos desaparezcan
+  async ionViewWillEnter() {
+    if (!this.horarioBarberia) return;
+    await Promise.all([this.cargarHorario(), this.comprobarServicios()]);
+    this.buildCalendar(this.currentMonthDate);
   }
 
   changeMonth(step: number) {
