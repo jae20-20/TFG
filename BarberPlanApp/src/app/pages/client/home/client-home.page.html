@@ -84,7 +84,7 @@
   </div>
 
   <div class="active-chips" *ngIf="chipsActivos.length > 0">
-    <button type="button" class="active-chip" *ngFor="let chip of chipsActivos" (click)="quitarFiltro(chip)">
+    <button type="button" class="active-chip" *ngFor="let chip of chipsActivos; trackBy: trackByChip" (click)="quitarFiltro(chip)">
       <span>{{ chip.label }}</span>
       <ion-icon name="close-outline"></ion-icon>
     </button>

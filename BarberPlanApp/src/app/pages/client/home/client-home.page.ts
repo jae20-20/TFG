@@ -573,6 +573,12 @@ export class ClientHomePage implements OnInit {
     return this.currentTab === tab;
   }
 
+  // chipsActivos es un getter que crea objetos nuevos en cada detección de cambios. Sin trackBy, el *ngFor recreaba los
+  // botones (y su ion-icon) cada vez; cada ion-icon nuevo dispara otra detección y la página quedaba en un bucle infinito
+  trackByChip(index: number, chip: ChipFiltro) {
+    return `${chip.id}:${chip.label}`;
+  }
+
   trackByBarberia(index: number, barberia: BarberiaPublica) {
     return barberia._id || index;
   }
