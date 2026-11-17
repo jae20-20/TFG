@@ -135,6 +135,7 @@
         </div>
         <p *ngIf="cita.resena.comentario">{{ cita.resena.comentario }}</p>
         <app-review-image *ngIf="cita.resena.imagen" [src]="cita.resena.imagen"></app-review-image>
+        <app-review-reply [respuesta]="cita.resena.respuesta" [barbero]="cita.barbero"></app-review-reply>
       </div>
     </article>
   </div>

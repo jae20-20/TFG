@@ -8,6 +8,8 @@ import {
     crearCita,
     crearCitaManual,
     crearResena,
+    editarRespuesta,
+    eliminarRespuesta,
     getAnaliticasBarberia,
     getCita,
     getCitasBarberia,
@@ -19,7 +21,8 @@ import {
     actualizarPagoCita,
     marcarAvisosLeidos,
     marcarNoPresentada,
-    rechazarCita
+    rechazarCita,
+    responderResena
 } from "../controllers/citaControllers.js";
 import {
     authEscritura,
@@ -66,5 +69,10 @@ router.put("/:id/no-presentada", authEscritura, isAdminOrBarbero, marcarNoPresen
 router.put("/:id/pago", authEscritura, isAdminOrBarbero, actualizarPagoCita);
 router.put("/:id/cancelar", authEscritura, cancelarCita);
 router.post("/:id/resena", authEscritura, isCliente, crearResena);
+// Respuesta a la reseña de la cita :id. El rol solo filtra; el permiso real (dueño de la barbería o barbero que
+// atendió la cita) se comprueba en la BD dentro del controlador
+router.post("/:id/resena/respuesta", authEscritura, isAdminOrBarbero, responderResena);
+router.put("/:id/resena/respuesta", authEscritura, isAdminOrBarbero, editarRespuesta);
+router.delete("/:id/resena/respuesta", authEscritura, isAdminOrBarbero, eliminarRespuesta);
 
 export default router;

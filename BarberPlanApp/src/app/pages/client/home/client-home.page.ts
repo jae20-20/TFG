@@ -83,6 +83,7 @@ import {
   checkmarkCircleOutline,
   closeCircleOutline,
   alertCircleOutline,
+  chatbubbleEllipsesOutline,
   notificationsOutline
 } from 'ionicons/icons';
 import { AvisoCita, RecordatorioCita, TipoAvisoCita, avisosDeCitas, esCitaProxima, recordatorioProximaCita } from '../../../services/cita-estado.util';
@@ -92,7 +93,8 @@ const ICONOS_AVISO: Record<TipoAvisoCita, string> = {
   confirmada: 'checkmark-circle-outline',
   rechazada: 'close-circle-outline',
   expirada: 'time-outline',
-  cancelada: 'alert-circle-outline'
+  cancelada: 'alert-circle-outline',
+  respuesta_resena: 'chatbubble-ellipses-outline'
 };
 
 @Component({
@@ -158,6 +160,7 @@ export class ClientHomePage implements OnInit {
       'checkmark-circle-outline': checkmarkCircleOutline,
       'close-circle-outline': closeCircleOutline,
       'alert-circle-outline': alertCircleOutline,
+      'chatbubble-ellipses-outline': chatbubbleEllipsesOutline,
       'notifications-outline': notificationsOutline
     });
 

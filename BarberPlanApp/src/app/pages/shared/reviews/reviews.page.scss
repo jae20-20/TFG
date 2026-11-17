@@ -108,3 +108,113 @@
     margin-top: 10px;
   }
 }
+
+// ==================== Respuestas ====================
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--bp-radius-sm);
+  border: 1px solid var(--custom-border-subtle);
+  background: transparent;
+  color: var(--ion-color-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  // Botón principal: color de acento del tema (también en modo claro)
+  &.primary {
+    border-color: var(--ion-color-primary);
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast);
+  }
+
+  &.danger {
+    border-color: var(--ion-color-danger);
+    color: var(--ion-color-danger);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.reply-form {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.1);
+
+  .reply-form-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--custom-text-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .reply-form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 84px;
+    padding: 10px 12px;
+    border-radius: var(--bp-radius-sm);
+    border: 1px solid var(--custom-border-subtle);
+    background: var(--custom-surface);
+    color: var(--custom-text-primary);
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    resize: vertical;
+
+    &:focus {
+      outline: none;
+      border-color: var(--ion-color-primary);
+    }
+  }
+
+  .reply-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .reply-form-counter {
+    color: var(--custom-text-muted);
+    font-size: 0.8rem;
+
+    &.limite {
+      color: var(--ion-color-warning);
+    }
+  }
+
+  .reply-form-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .reply-form-error {
+    margin: 8px 0 0;
+    color: var(--ion-color-danger);
+    font-size: 0.85rem;
+  }
+}

@@ -176,11 +176,13 @@ export const pruebasPrivacidad = async ({ check, entorno }) => {
             const futuraPendiente = { ...crearCita({ ...base, barbero: b1, cliente: c1, fecha: fechaRelativa(MOMENTO_FUTURO + 1), horaInicio: "11:00", horaFin: "11:30", estado: "pendiente" }), expiraEn: new Date(Date.now() + 86400000) };
             const pasadaConResena = { ...crearCita({ ...base, barbero: b2, cliente: c1, fecha: fechaRelativa(-5), horaInicio: "12:00", horaFin: "12:30", estado: "completada" }),
                 comentario: "nota privada del cliente",
-                resena: { valoracion: 4, comentario: "Muy buen corte", imagen: "data:image/png;base64,AAAA", createdAt: new Date() } };
+                resena: { valoracion: 4, comentario: "Muy buen corte", imagen: "data:image/png;base64,AAAA", createdAt: new Date(),
+                    respuesta: { texto: "Gracias por venir", autorId: admin._id, autorRol: "admin", createdAt: new Date(), updatedAt: null } } };
             const pasadaCancelada = crearCita({ ...base, barbero: b1, cliente: c1, fecha: fechaRelativa(-3), horaInicio: "09:00", horaFin: "09:30", estado: "cancelada" });
             const ajenaFutura = crearCita({ ...base, barbero: b1, cliente: c2, fecha: fechaRelativa(MOMENTO_FUTURO), horaInicio: "11:00", horaFin: "11:30", estado: "confirmada" });
             const ajenaPasada = { ...crearCita({ ...base, barbero: b2, cliente: c2, fecha: fechaRelativa(-4), horaInicio: "13:00", horaFin: "13:30", estado: "completada" }),
-                resena: { valoracion: 5, comentario: "Genial", imagen: null, createdAt: new Date() } };
+                resena: { valoracion: 5, comentario: "Genial", imagen: null, createdAt: new Date(),
+                    respuesta: { texto: "Te esperamos", autorId: b2._id, autorRol: "barbero", createdAt: new Date(), updatedAt: null } } };
             const todas = [futuraConfirmada, futuraPendiente, pasadaConResena, pasadaCancelada, ajenaFutura, ajenaPasada];
             await usuarios.insertMany([admin, b1, b2, c1, c2]);
             await bd.collection("Barberias").insertOne(barberia);
@@ -223,8 +225,10 @@ export const pruebasPrivacidad = async ({ check, entorno }) => {
         const pasada = await citaDe(e.pasadaConResena);
         check("Cliente eliminado: la cita pasada se conserva anonimizada y sin su nota privada",
             pasada.estado === "completada" && pasada.clienteId === null && pasada.clienteNombre === "Cliente eliminado" && !("comentario" in pasada), JSON.stringify({ c: pasada.clienteNombre, n: pasada.comentario }));
-        check("Cliente eliminado: de la reseña solo queda la puntuación (sin comentario ni imagen)",
-            pasada.resena?.valoracion === 4 && pasada.resena.comentario === "" && pasada.resena.imagen === null, JSON.stringify(pasada.resena));
+        check("Cliente eliminado: de la reseña solo queda la puntuación (sin comentario, imagen ni la respuesta de la barbería)",
+            pasada.resena?.valoracion === 4 && pasada.resena.comentario === "" && pasada.resena.imagen === null && !("respuesta" in pasada.resena), JSON.stringify(pasada.resena));
+        check("Cliente eliminado: la respuesta a la reseña de otro cliente se conserva",
+            (await citaDe(e.ajenaPasada)).resena?.respuesta?.texto === "Te esperamos");
         const resenas = (await req("GET", `/barberias/${e.barberia._id}/resenas`)).data || [];
         const resenaPublica = resenas.find((x) => x._id === e.pasadaConResena._id.toString());
         check("Cliente eliminado: la reseña pública sigue contando y muestra «Cliente eliminado»",

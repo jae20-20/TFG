@@ -31,6 +31,52 @@
         </p>
         <p class="review-comment" *ngIf="resena.resena.comentario">{{ resena.resena.comentario }}</p>
         <app-review-image *ngIf="resena.resena.imagen" [src]="resena.resena.imagen"></app-review-image>
+
+        <app-review-reply *ngIf="!estaEditando(resena)" [respuesta]="resena.resena.respuesta" [barbero]="resena.barbero"></app-review-reply>
+      </div>
+
+      <form class="reply-form" *ngIf="estaEditando(resena)" (ngSubmit)="guardarRespuesta(resena)">
+        <label class="reply-form-label" [attr.for]="'respuesta-' + resena._id">
+          {{ resena.resena.respuesta ? 'Editar respuesta' : 'Responder a ' + getClienteNombre(resena) }}
+        </label>
+        <textarea
+          class="reply-form-textarea"
+          [id]="'respuesta-' + resena._id"
+          name="texto"
+          rows="3"
+          [(ngModel)]="textoRespuesta"
+          [maxlength]="maxCaracteres"
+          placeholder="Escribe una respuesta pública a esta reseña..."
+        ></textarea>
+        <div class="reply-form-footer">
+          <span class="reply-form-counter" [class.limite]="textoRespuesta.length >= maxCaracteres" aria-live="polite">
+            {{ textoRespuesta.length }}/{{ maxCaracteres }}
+          </span>
+          <div class="reply-form-actions">
+            <button type="button" class="reply-btn secondary" (click)="cancelarRespuesta()" [disabled]="guardandoRespuesta">Cancelar</button>
+            <button type="submit" class="reply-btn primary" [disabled]="!textoRespuestaValido || guardandoRespuesta">
+              {{ guardandoRespuesta ? 'Guardando...' : 'Publicar' }}
+            </button>
+          </div>
+        </div>
+        <p class="reply-form-error" *ngIf="errorRespuesta" role="alert">{{ errorRespuesta }}</p>
+      </form>
+
+      <div class="review-actions" *ngIf="!estaEditando(resena) && (puedeResponder(resena) || puedeGestionarRespuesta(resena))">
+        <button type="button" class="reply-btn primary" *ngIf="puedeResponder(resena)" (click)="abrirRespuesta(resena)">
+          <ion-icon name="chatbubble-outline"></ion-icon>
+          Responder
+        </button>
+        <ng-container *ngIf="puedeGestionarRespuesta(resena)">
+          <button type="button" class="reply-btn secondary" (click)="abrirRespuesta(resena)">
+            <ion-icon name="create-outline"></ion-icon>
+            Editar respuesta
+          </button>
+          <button type="button" class="reply-btn danger" (click)="confirmarEliminarRespuesta(resena)">
+            <ion-icon name="trash-outline"></ion-icon>
+            Eliminar
+          </button>
+        </ng-container>
       </div>
     </div>
   </div>

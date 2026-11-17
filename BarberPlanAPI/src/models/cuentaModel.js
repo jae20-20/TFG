@@ -33,7 +33,8 @@ const enTransaccion = async (trabajo) => {
 };
 
 // Cliente: cancela sus citas futuras (el hueco queda libre porque cancelada no lo ocupa), anonimiza el resto
-// (la barbería conserva su registro de servicios y cobros) y de las reseñas solo queda la puntuación
+// (la barbería conserva su registro de servicios y cobros) y de las reseñas solo queda la puntuación. La respuesta
+// de la barbería también se borra: iba dirigida a esa persona y puede nombrarla
 export const eliminarCuentaCliente = async (clienteId, ahora, { fecha, hora }) => {
     const id = new ObjectId(clienteId);
     return await enTransaccion(async (session) => {
@@ -45,7 +46,7 @@ export const eliminarCuentaCliente = async (clienteId, ahora, { fecha, hora }) =
         );
         await citas.updateMany(
             { clienteId: id, resena: { $exists: true } },
-            { $set: { "resena.comentario": "", "resena.imagen": null } },
+            { $set: { "resena.comentario": "", "resena.imagen": null }, $unset: { "resena.respuesta": "" } },
             { session }
         );
         await citas.updateMany(

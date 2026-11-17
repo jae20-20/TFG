@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import { ThemeHeaderBtnComponent } from '../../../components/theme-header-btn/theme-header-btn.component';
 import { StarRatingComponent } from '../../../components/star-rating/star-rating.component';
 import { ReviewImageComponent } from '../../../components/review-image/review-image.component';
+import { ReviewReplyComponent } from '../../../components/review-reply/review-reply.component';
 
 import { addIcons } from 'ionicons';
 import { homeOutline, calendarOutline, personOutline, cutOutline, timeOutline, logOutOutline, closeOutline, starOutline, imageOutline, trashOutline, chatbubbleEllipsesOutline, hourglassOutline, informationCircleOutline } from 'ionicons/icons';
@@ -29,7 +30,7 @@ interface ResenaForm {
   templateUrl: './client-appointments.page.html',
   styleUrls: ['./client-appointments.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, StarRatingComponent, ReviewImageComponent]
+  imports: [IonicModule, CommonModule, FormsModule, ThemeHeaderBtnComponent, StarRatingComponent, ReviewImageComponent, ReviewReplyComponent]
 })
 export class ClientAppointmentsPage implements OnInit {
   // Al cerrar sesión, navigateRoot destruye las pantallas abiertas: la siguiente sesión empieza sin el estado de la anterior

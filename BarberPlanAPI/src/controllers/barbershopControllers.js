@@ -436,7 +436,7 @@ export const getResenasPublicas = async (req, res) => {
     try {
         const { id } = req.params;
         // Público: sin la foto de cada reseña (hasta 120 KB cada una) y solo las más recientes
-        const resenas = await getResenasByBarberiaId(id, { incluirImagen: false, limite: LIMITE_RESENAS_PUBLICAS });
+        const resenas = await getResenasByBarberiaId(id, { publica: true, limite: LIMITE_RESENAS_PUBLICAS });
         res.json(resenas);
     } catch (error) {
         registrarError("Error al obtener reseñas:", error);

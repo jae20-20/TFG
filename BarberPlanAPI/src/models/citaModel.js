@@ -6,6 +6,9 @@ import { client, db } from "../db/connection.js";
 // libera el hueco para registrar a otro cliente (p. ej. uno que llega sin reserva)
 export const ESTADOS_OCUPAN_HUECO = ["pendiente", "confirmada", "completada"];
 
+// Tipo de avisoCliente (RF12) que se deja cuando el personal responde la reseña del cliente
+export const AVISO_RESPUESTA_RESENA = "respuesta_resena";
+
 // ==================== FUNCIONES BÁSICAS ====================
 
 // Crea la cita solo si el barbero no tiene otra que ocupe hueco (ESTADOS_OCUPAN_HUECO) y se solape.
@@ -104,7 +107,7 @@ export const getCitasByClienteId = async (clienteId) => {
         },
         { $unwind: { path: "$barberia", preserveNullAndEmptyArrays: true } },
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
-        { $project: { "resena.imagen": 0 } }
+        { $project: { "resena.imagen": 0, "resena.respuesta.autorId": 0 } }
     ]).toArray();
 };
 
@@ -126,7 +129,8 @@ export const getCitasByBarberoId = async (barberoId, barberiaId) => {
             $project: {
                 "cliente.pw": 0,
                 "cliente.avatar": 0,
-                "resena.imagen": 0
+                "resena.imagen": 0,
+                "resena.respuesta.autorId": 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -164,7 +168,8 @@ export const getCitasByBarberiaId = async (barberiaId) => {
                 "cliente.avatar": 0,
                 "barbero.pw": 0,
                 "barbero.avatar": 0,
-                "resena.imagen": 0
+                "resena.imagen": 0,
+                "resena.respuesta.autorId": 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -181,9 +186,18 @@ export const setResenaCita = async (id, resena) => {
     );
 };
 
+// Campos de la respuesta que puede ver cualquiera: sin autorId (el id del dueño no se publica)
+const CAMPOS_RESPUESTA_PUBLICA = {
+    "resena.respuesta.texto": 1,
+    "resena.respuesta.autorRol": 1,
+    "resena.respuesta.createdAt": 1,
+    "resena.respuesta.updatedAt": 1
+};
+
 // Obtener las reseñas de una barbería, con datos del cliente, barbero y cita, de la más reciente a la más antigua.
-// incluirImagen: con false no viaja la foto de la reseña (la ficha pública no la muestra); limite: solo las N más recientes
-export const getResenasByBarberiaId = async (barberiaId, { incluirImagen = true, limite = 0 } = {}) => {
+// publica: sin la foto de la reseña (la ficha pública no la muestra), sin barberoId y sin el autor de la respuesta;
+// el personal recibe ambos para decidir quién puede responder. limite: solo las N más recientes
+export const getResenasByBarberiaId = async (barberiaId, { publica = false, limite = 0 } = {}) => {
     return await db.collection("Citas").aggregate([
         { $match: { barberiaId: new ObjectId(barberiaId), resena: { $exists: true } } },
         // Ordenar y limitar antes de unir con Usuarios: solo se buscan los usuarios de las reseñas que se devuelven
@@ -213,9 +227,9 @@ export const getResenasByBarberiaId = async (barberiaId, { incluirImagen = true,
                 horaInicio: 1,
                 servicioNombre: 1,
                 servicioPrecio: 1,
-                ...(incluirImagen
-                    ? { resena: 1 }
-                    : { "resena.valoracion": 1, "resena.comentario": 1, "resena.createdAt": 1 }),
+                ...(publica
+                    ? { "resena.valoracion": 1, "resena.comentario": 1, "resena.createdAt": 1, ...CAMPOS_RESPUESTA_PUBLICA }
+                    : { resena: 1, barberoId: 1 }),
                 // Cliente eliminado: no hay usuario que unir, queda el nombre anónimo de la cita
                 clienteNombre: 1,
                 "cliente.nombre": 1,
@@ -226,6 +240,62 @@ export const getResenasByBarberiaId = async (barberiaId, { incluirImagen = true,
             }
         }
     ]).toArray();
+};
+
+// ==================== RESPUESTAS A RESEÑAS ====================
+
+// Guarda la respuesta solo si la reseña existe y aún no tiene respuesta (dos respuestas a la vez: una gana).
+// aviso: el aviso al cliente (RF12) que se deja en la cita a la vez. Devuelve true si se guardó
+export const crearRespuestaResena = async (id, respuesta, aviso = {}) => {
+    const { modifiedCount } = await db.collection("Citas").updateOne(
+        { _id: new ObjectId(id), resena: { $exists: true }, "resena.respuesta": { $exists: false } },
+        { $set: { "resena.respuesta": { ...respuesta, autorId: new ObjectId(respuesta.autorId) }, ...aviso, updatedAt: new Date() } }
+    );
+    return modifiedCount === 1;
+};
+
+// Filtro de una respuesta existente; con autorId, solo si la escribió ese usuario (el barbero solo toca las suyas)
+const filtroRespuesta = (id, autorId) => ({
+    _id: new ObjectId(id),
+    "resena.respuesta": { $exists: true },
+    ...(autorId ? { "resena.respuesta.autorId": new ObjectId(autorId) } : {})
+});
+
+// Cambia el texto de la respuesta; quien edita pasa a ser el autor. Devuelve la respuesta nueva o null si ya no existe
+export const editarRespuestaResena = async (id, { texto, autorId, autorRol }, { soloDeAutor } = {}) => {
+    const ahora = new Date();
+    const cita = await db.collection("Citas").findOneAndUpdate(
+        filtroRespuesta(id, soloDeAutor),
+        {
+            $set: {
+                "resena.respuesta.texto": texto,
+                "resena.respuesta.autorId": new ObjectId(autorId),
+                "resena.respuesta.autorRol": autorRol,
+                "resena.respuesta.updatedAt": ahora,
+                updatedAt: ahora
+            }
+        },
+        { returnDocument: "after", projection: { "resena.respuesta": 1 } }
+    );
+    return cita?.resena?.respuesta ?? null;
+};
+
+// Borra la respuesta y, si el cliente aún no había visto el aviso de esa respuesta, también el aviso.
+// Devuelve true si se borró
+export const eliminarRespuestaResena = async (id, { soloDeAutor } = {}) => {
+    const { modifiedCount } = await db.collection("Citas").updateOne(
+        filtroRespuesta(id, soloDeAutor),
+        [
+            { $unset: "resena.respuesta" },
+            {
+                $set: {
+                    avisoCliente: { $cond: [{ $eq: ["$avisoCliente.tipo", AVISO_RESPUESTA_RESENA] }, "$$REMOVE", "$avisoCliente"] },
+                    updatedAt: "$$NOW"
+                }
+            }
+        ]
+    );
+    return modifiedCount === 1;
 };
 
 // ==================== FUNCIONES DE ESTADO ====================

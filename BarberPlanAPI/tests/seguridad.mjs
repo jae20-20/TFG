@@ -1,17 +1,38 @@
 // Batería de seguridad: autorización entre barberías (IDOR), inyección NoSQL, exposición de datos,
 // validación de entradas y CORS. Levanta su propia API (puerto 5099) sobre la BD desechable
 // BarberPlan_test sembrada con tests/semilla.mjs, y la borra al terminar. Solo hace lecturas o
-// peticiones que el servidor rechaza antes de escribir. Las rutas de escritura comprueban que la
+// peticiones que el servidor rechaza antes de escribir (también las de respuesta a reseñas). Las rutas de escritura comprueban que la
 // cuenta del token exista, así que los atacantes de las pruebas son cuentas reales (sembradas aquí):
 // un admin que no administra nada y un cliente.
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { crearCliente, crearComprobador, crearEntorno } from "./entorno.mjs";
-import { sembrarDatos, usuarioBase } from "./semilla.mjs";
+import { crearCita, fechaRelativa, sembrarDatos, usuarioBase } from "./semilla.mjs";
 
 const { check, terminar } = crearComprobador("seguridad");
 const ID_ADMIN_AJENO = new ObjectId();
 const ID_CLIENTE_FALSO = new ObjectId();
+// Reseñas para las rutas de respuesta: una del barbero A1 sin respuesta y otra del barbero A2 ya respondida
+const ID_RESENA_A1 = new ObjectId();
+const ID_RESENA_A2_RESPONDIDA = new ObjectId();
+
+// Las dos citas completadas con reseña de la Barbería A. Se siembran aquí para que la batería siga sin escribir
+const sembrarResenas = async (bd) => {
+    const usuario = (nombre) => bd.collection("Usuarios").findOne({ usuario: nombre });
+    const [adminA, barberoA1, barberoA2, cliente] = await Promise.all(["admin_a", "barbero_a1", "barbero_a2", "cliente_1"].map(usuario));
+    const barberia = await bd.collection("Barberias").findOne({ adminId: adminA._id });
+    const servicio = barberia.servicios[0];
+    const completada = (_id, barbero, dias, resena) => ({
+        ...crearCita({ barberia, barbero, cliente, servicio, fecha: fechaRelativa(dias), horaInicio: "13:00", horaFin: "13:30", estado: "completada" }),
+        _id, resena: { valoracion: 5, comentario: "Muy bien", imagen: null, createdAt: new Date(), ...resena }
+    });
+    await bd.collection("Citas").insertMany([
+        completada(ID_RESENA_A1, barberoA1, -6),
+        completada(ID_RESENA_A2_RESPONDIDA, barberoA2, -7, {
+            respuesta: { texto: "Gracias", autorId: barberoA2._id, autorRol: "barbero", createdAt: new Date(), updatedAt: null }
+        })
+    ]);
+};
 const entorno = await crearEntorno({
     puerto: 5099,
     sembrar: async (bd) => {
@@ -20,6 +41,7 @@ const entorno = await crearEntorno({
             usuarioBase({ _id: ID_ADMIN_AJENO, nombre: "Ajeno", apellido: "Admin", correo: "admin.ajeno@prueba.test", usuario: "admin_ajeno", rol: "admin", barberiaId: null }),
             usuarioBase({ _id: ID_CLIENTE_FALSO, nombre: "Falso", apellido: "Cliente", correo: "cliente.falso@prueba.test", usuario: "cliente_falso", rol: "cliente", ciudad: "Madrid", barberiaId: null })
         ]);
+        await sembrarResenas(bd);
     }
 });
 const req = crearCliente(entorno.api);
@@ -456,6 +478,95 @@ try {
     check("Días del mes con operador en barberiaId -> 400", r.status === 400, `${r.status}`);
     r = await req("GET", `/citas/disponibilidad/abc/mes/${mesActualTexto}?barberiaId=${barberia._id}`);
     check("Días del mes con barbero mal formado -> 400", r.status === 400, `${r.status}`);
+
+    // --- Respuestas a reseñas: permisos por recurso (en la BD), validación del texto y conflictos. Todo se rechaza antes de escribir
+    {
+        const usuario = (nombre) => entorno.bd.collection("Usuarios").findOne({ usuario: nombre });
+        const [adminA, adminB, barberoA1, barberoA2, barberoB, clienteSemilla] = await Promise.all(
+            ["admin_a", "admin_b", "barbero_a1", "barbero_a2", "barbero_b", "cliente_1"].map(usuario));
+        const token = (u) => firmar({ id: u._id.toString(), rol: u.rol, barberiaId: u.barberiaId?.toString() ?? null });
+        const tAdminA = token(adminA), tAdminB = token(adminB), tA1 = token(barberoA1), tA2 = token(barberoA2), tB = token(barberoB);
+        const ruta = (id) => `/citas/${id}/resena/respuesta`;
+        const respuestaEnBD = async (id) => (await entorno.bd.collection("Citas").findOne({ _id: id })).resena.respuesta;
+
+        r = await req("POST", ruta(ID_RESENA_A1), { token: tA2, body: { texto: "Respondo la de mi compañero" } });
+        check("Respuesta: barbero que responde la reseña de otro barbero -> 403", r.status === 403 && typeof r.data?.error === "string", `${r.status}`);
+        r = await req("POST", ruta(ID_RESENA_A1), { token: tAdminB, body: { texto: "Soy dueño de otra barbería" } });
+        check("Respuesta: dueño de otra barbería -> 403", r.status === 403, `${r.status}`);
+        r = await req("POST", ruta(ID_RESENA_A1), { token: tB, body: { texto: "Barbero de otra barbería" } });
+        check("Respuesta: barbero de otra barbería -> 403", r.status === 403, `${r.status}`);
+        r = await req("POST", ruta(ID_RESENA_A1), { token: adminAjeno, body: { texto: "Admin sin barbería" } });
+        check("Respuesta: admin que no administra ninguna barbería -> 403", r.status === 403, `${r.status}`);
+        // El token dice que es de la Barbería A, pero en la BD no la administra
+        r = await req("POST", ruta(ID_RESENA_A1), { token: firmar({ id: adminB._id.toString(), rol: "admin", barberiaId: adminA.barberiaId.toString() }), body: { texto: "Token manipulado" } });
+        check("Respuesta: la barbería del token no da permiso (se comprueba en la BD) -> 403", r.status === 403, `${r.status}`);
+        r = await req("POST", ruta(ID_RESENA_A1), { token: token(clienteSemilla), body: { texto: "Me respondo a mí mismo" } });
+        check("Respuesta: el cliente autor de la reseña intenta responder -> 403", r.status === 403, `${r.status}`);
+        for (const metodo of ["POST", "PUT", "DELETE"]) {
+            r = await req(metodo, ruta(ID_RESENA_A1), { body: { texto: "Sin token" } });
+            check(`Respuesta: ${metodo} sin token -> 401`, r.status === 401, `${r.status}`);
+        }
+        r = await req("POST", ruta(ID_RESENA_A1), { token: firmar({ id: new ObjectId().toString(), rol: "barbero", barberiaId: null }), body: { texto: "Cuenta borrada" } });
+        check("Respuesta: token de una cuenta que ya no existe -> 401", r.status === 401, `${r.status}`);
+
+        const invalidos = [
+            ["texto vacío", { texto: "" }],
+            ["solo espacios", { texto: "    " }],
+            ["501 caracteres", { texto: "a".repeat(501) }],
+            ["número", { texto: 123 }],
+            ["objeto", { texto: { a: "b" } }],
+            ["operador $ne", { texto: { $ne: "" } }],
+            ["array", { texto: ["hola"] }],
+            ["sin campo texto", { comentario: "hola" }],
+            ["operador $set en el cuerpo", { $set: { "resena.respuesta": { texto: "x" } } }]
+        ];
+        for (const [nombre, body] of invalidos) {
+            r = await req("POST", ruta(ID_RESENA_A1), { token: tA1, body });
+            check(`Respuesta con ${nombre} -> 400`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+        r = await req("POST", ruta(ID_RESENA_A1), { token: tA1 });
+        check("Respuesta sin cuerpo -> 400", r.status === 400, `${r.status}`);
+        r = await req("PUT", ruta(ID_RESENA_A2_RESPONDIDA), { token: tA2, body: { texto: "b".repeat(501) } });
+        check("Editar con 501 caracteres -> 400 y la respuesta no cambia", r.status === 400 && (await respuestaEnBD(ID_RESENA_A2_RESPONDIDA)).texto === "Gracias", `${r.status}`);
+        check("Ninguna petición rechazada ha creado una respuesta", !(await respuestaEnBD(ID_RESENA_A1)));
+
+        r = await req("POST", ruta(ID_RESENA_A2_RESPONDIDA), { token: tA2, body: { texto: "Otra más" } });
+        check("Segunda respuesta (barbero autor) -> 409", r.status === 409, `${r.status}`);
+        r = await req("POST", ruta(ID_RESENA_A2_RESPONDIDA), { token: tAdminA, body: { texto: "Otra del dueño" } });
+        check("Segunda respuesta (dueño) -> 409", r.status === 409, `${r.status}`);
+        r = await req("PUT", ruta(ID_RESENA_A2_RESPONDIDA), { token: tA1, body: { texto: "Edito la de mi compañero" } });
+        check("Editar la respuesta de otro barbero -> 403", r.status === 403, `${r.status}`);
+        r = await req("DELETE", ruta(ID_RESENA_A2_RESPONDIDA), { token: tA1 });
+        check("Borrar la respuesta de otro barbero -> 403", r.status === 403, `${r.status}`);
+        r = await req("PUT", ruta(ID_RESENA_A2_RESPONDIDA), { token: tAdminB, body: { texto: "Edito la de otra barbería" } });
+        check("Editar una respuesta de otra barbería (dueño ajeno) -> 403", r.status === 403, `${r.status}`);
+        r = await req("DELETE", ruta(ID_RESENA_A2_RESPONDIDA), { token: tAdminB });
+        check("Borrar una respuesta de otra barbería (dueño ajeno) -> 403 y sigue en la BD", r.status === 403 && (await respuestaEnBD(ID_RESENA_A2_RESPONDIDA))?.texto === "Gracias", `${r.status}`);
+        r = await req("PUT", ruta(ID_RESENA_A1), { token: tA1, body: { texto: "Edito algo que no existe" } });
+        check("Editar una reseña que no tiene respuesta -> 404", r.status === 404, `${r.status}`);
+        r = await req("DELETE", ruta(ID_RESENA_A1), { token: tA1 });
+        check("Borrar una reseña que no tiene respuesta -> 404", r.status === 404, `${r.status}`);
+
+        r = await req("POST", ruta(new ObjectId()), { token: tA1, body: { texto: "Reseña inexistente" } });
+        check("Respuesta a una reseña inexistente -> 404", r.status === 404, `${r.status}`);
+        const citaSinResena = (await entorno.bd.collection("Citas").findOne({ barberoId: barberoA1._id, resena: { $exists: false } }))._id;
+        r = await req("POST", ruta(citaSinResena), { token: tA1, body: { texto: "Cita sin reseña" } });
+        check("Respuesta a una cita sin reseña -> 404", r.status === 404, `${r.status}`);
+        for (const metodo of ["POST", "PUT", "DELETE"]) {
+            r = await req(metodo, ruta("abc"), { token: tA1, body: { texto: "Id mal formado" } });
+            check(`Respuesta (${metodo}) con id mal formado -> 400`, r.status === 400, `${r.status}`);
+        }
+
+        r = await req("GET", `/barberias/${adminA.barberiaId}/resenas`);
+        const respondida = (r.data || []).find((x) => x._id === ID_RESENA_A2_RESPONDIDA.toString());
+        check("Ficha pública: la respuesta se ve, pero sin autorId ni barberoId",
+            respondida?.resena?.respuesta?.texto === "Gracias" && !JSON.stringify(r.data).includes("autorId") && !("barberoId" in respondida), JSON.stringify(respondida?.resena));
+        r = await req("GET", "/citas/resenas/barberia", { token: tA1 });
+        const propia = (r.data || []).find((x) => x._id === ID_RESENA_A1.toString());
+        const ajenaA2 = (r.data || []).find((x) => x._id === ID_RESENA_A2_RESPONDIDA.toString());
+        check("Reseñas del personal (barbero A1): puedeResponder solo en las suyas y sin autorId",
+            propia?.puedeResponder === true && ajenaA2?.puedeResponder === false && !JSON.stringify(r.data).includes("autorId"), `${propia?.puedeResponder} ${ajenaA2?.puedeResponder}`);
+    }
 
     // --- CORS
     r = await req("GET", "/barberias", { origin: "https://evil.example" });

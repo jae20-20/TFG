@@ -122,6 +122,7 @@
             <app-review-image *ngIf="resena.resena.imagen" [src]="resena.resena.imagen" [size]="60"></app-review-image>
           </div>
           <p class="review-public-comment" *ngIf="resena.resena.comentario">{{ resena.resena.comentario }}</p>
+          <app-review-reply [respuesta]="resena.resena.respuesta" [barbero]="resena.barbero"></app-review-reply>
         </article>
       </div>
       <ng-template #emptyResenas>

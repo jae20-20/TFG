@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d71528f7-3c08-437e-9a73-d763dffc6061",
     "name": "BarberPlan API",
-    "description": "Colección de pruebas de la API REST de BarberPlan (57 endpoints). Para cada ruta incluye el caso correcto y los casos de error que le aplican (sin token, rol incorrecto, recurso ajeno, recurso inexistente, datos no válidos y conflictos), cada uno con su prueba automática en la pestaña Tests.\n\nREQUISITOS\n1. Importar también el entorno «BarberPlan - Local» y seleccionarlo.\n2. Ajustar `baseUrl` al puerto real del servidor y rellenar las credenciales de tres cuentas de prueba (`adminCorreo`/`adminPw`, `barberoCorreo`/`barberoPw`, `clienteCorreo`/`clientePw`). El barbero debe pertenecer a la barbería del dueño. Para ejecutar la colección completa a mano hacen falta además `clienteUsuario`, `barberoExtraId` (un segundo barbero del equipo, que el dueño borra en U8), `citaPasadaId` y `citaNoPresentadaId` (citas confirmadas cuya hora ya haya pasado; si están vacías, sus peticiones se saltan); `npm run test:postman` crea todo eso.\n3. Usar una base de datos de pruebas: la colección crea, modifica y borra datos (usuarios, servicios, invitaciones, citas, solicitudes y una segunda barbería).\n\nORDEN\nLas carpetas 00 a 07 deben ejecutarse juntas y en orden (Collection Runner, de arriba abajo), porque cada una guarda en el entorno los identificadores que usa la siguiente. La primera petición de «01 · Usuarios» inicia sesión y guarda los tokens. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 11 (imágenes y listados ligeros) usa las cuentas y la barbería de las carpetas 00 a 07 (deja la barbería sin logo ni galería) y se ejecuta después de la 10. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. Las carpetas 08 y 09 se ejecutan aparte, cada una sola y contra una API recién arrancada (ver LÍMITES).\n\nEJECUCIÓN RECOMENDADA\n`npm run test:postman` (en BarberPlanAPI) crea una base de datos desechable, la siembra, arranca la API y ejecuta la colección con newman en tres pasadas: carpetas 00 a 07 y 10 con el límite global y el de inicio de sesión y registro subidos (RATE_LIMIT_MAX y AUTH_RATE_LIMIT_MAX), carpeta 08 contra una API nueva con los límites reales y carpeta 09 contra otra API nueva. Al terminar borra la base de datos. Con `-- --mantener` deja las APIs y la base levantadas e imprime los valores del entorno para lanzar el Runner a mano.\n\nLÍMITES\nEl limitador global admite 100 peticiones cada 15 minutos por IP y las carpetas 00 a 07 envían más de 300, así que la API debe arrancarse con RATE_LIMIT_MAX alto (lo hace el script). El inicio de sesión y el registro de usuarios (U1 y U2) comparten un límite de 10 peticiones cada 15 minutos por IP: las carpetas 00 a 07 usan los 10 (siete en la carpeta 01, dos en la 02 y el inicio de sesión del barbero invitado en la 04), la carpeta 10 usa otros 8 (4 registros y 4 inicios de sesión; el script sube AUTH_RATE_LIMIT_MAX para las carpetas 00 a 07 y 10) y la carpeta 09 usa otros 10, por eso va sola, contra otra API recién arrancada. Si se ejecuta dos veces seguidas contra la misma API aparecerá un 429: hay que esperar 15 minutos o reiniciar el servidor. Los 429 se prueban en la carpeta 08, que debe ejecutarse sola contra una API recién arrancada con los límites por defecto.\n\nNO CUBIERTO\n- Aprobar solicitudes de vacaciones, horas puntuales y bloqueo de servicio: aquí solo se aprueba una de día libre (añade ese día a los días libres del barbero, así que hay que usar una base de datos de pruebas). Los cuatro tipos los cubre la batería de integración (`npm test`).\n- El identificador mal formado no se repite en todas las rutas: en usuarios, barberías, citas y barberos el mismo validador (`router.param`) se comprueba en otras rutas de su router; en solicitudes no hay ningún caso.\n- El 429 de validar invitaciones y el de registrar barberías.\n- La caducidad automática de las reservas pendientes y las demás tareas periódicas (`TAREAS_CITAS=off` en las pruebas).\n- La concurrencia (dos peticiones simultáneas con el mismo correo, usuario o hueco): la cubren las baterías automáticas (`npm test`).\n- Las imágenes de reseñas y avatares.\n- El 503 cuando MongoDB no está disponible (conexión caída o tiempo agotado): no se puede provocar por HTTP desde esta colección; lo cubre la batería de integración (`npm test`), que corta la conexión con un proxy.",
+    "description": "Colección de pruebas de la API REST de BarberPlan (60 endpoints). Para cada ruta incluye el caso correcto y los casos de error que le aplican (sin token, rol incorrecto, recurso ajeno, recurso inexistente, datos no válidos y conflictos), cada uno con su prueba automática en la pestaña Tests.\n\nREQUISITOS\n1. Importar también el entorno «BarberPlan - Local» y seleccionarlo.\n2. Ajustar `baseUrl` al puerto real del servidor y rellenar las credenciales de tres cuentas de prueba (`adminCorreo`/`adminPw`, `barberoCorreo`/`barberoPw`, `clienteCorreo`/`clientePw`). El barbero debe pertenecer a la barbería del dueño. Para ejecutar la colección completa a mano hacen falta además `clienteUsuario`, `barberoExtraId` (un segundo barbero del equipo, que el dueño borra en U8), `citaPasadaId` y `citaNoPresentadaId` (citas confirmadas cuya hora ya haya pasado; si están vacías, sus peticiones se saltan); `npm run test:postman` crea todo eso.\n3. Usar una base de datos de pruebas: la colección crea, modifica y borra datos (usuarios, servicios, invitaciones, citas, solicitudes y una segunda barbería).\n\nORDEN\nLas carpetas 00 a 07 deben ejecutarse juntas y en orden (Collection Runner, de arriba abajo), porque cada una guarda en el entorno los identificadores que usa la siguiente. La primera petición de «01 · Usuarios» inicia sesión y guarda los tokens. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 11 (imágenes y listados ligeros) usa las cuentas y la barbería de las carpetas 00 a 07 (deja la barbería sin logo ni galería) y se ejecuta después de la 10. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. Las carpetas 08 y 09 se ejecutan aparte, cada una sola y contra una API recién arrancada (ver LÍMITES).\n\nEJECUCIÓN RECOMENDADA\n`npm run test:postman` (en BarberPlanAPI) crea una base de datos desechable, la siembra, arranca la API y ejecuta la colección con newman en tres pasadas: carpetas 00 a 07 y 10 con el límite global y el de inicio de sesión y registro subidos (RATE_LIMIT_MAX y AUTH_RATE_LIMIT_MAX), carpeta 08 contra una API nueva con los límites reales y carpeta 09 contra otra API nueva. Al terminar borra la base de datos. Con `-- --mantener` deja las APIs y la base levantadas e imprime los valores del entorno para lanzar el Runner a mano.\n\nLÍMITES\nEl limitador global admite 100 peticiones cada 15 minutos por IP y las carpetas 00 a 07 envían más de 300, así que la API debe arrancarse con RATE_LIMIT_MAX alto (lo hace el script). El inicio de sesión y el registro de usuarios (U1 y U2) comparten un límite de 10 peticiones cada 15 minutos por IP: las carpetas 00 a 07 usan los 10 (siete en la carpeta 01, dos en la 02 y el inicio de sesión del barbero invitado en la 04), la carpeta 10 usa otros 8 (4 registros y 4 inicios de sesión; el script sube AUTH_RATE_LIMIT_MAX para las carpetas 00 a 07 y 10) y la carpeta 09 usa otros 10, por eso va sola, contra otra API recién arrancada. Si se ejecuta dos veces seguidas contra la misma API aparecerá un 429: hay que esperar 15 minutos o reiniciar el servidor. Los 429 se prueban en la carpeta 08, que debe ejecutarse sola contra una API recién arrancada con los límites por defecto.\n\nNO CUBIERTO\n- Aprobar solicitudes de vacaciones, horas puntuales y bloqueo de servicio: aquí solo se aprueba una de día libre (añade ese día a los días libres del barbero, así que hay que usar una base de datos de pruebas). Los cuatro tipos los cubre la batería de integración (`npm test`).\n- El identificador mal formado no se repite en todas las rutas: en usuarios, barberías, citas y barberos el mismo validador (`router.param`) se comprueba en otras rutas de su router; en solicitudes no hay ningún caso.\n- El 429 de validar invitaciones y el de registrar barberías.\n- La caducidad automática de las reservas pendientes y las demás tareas periódicas (`TAREAS_CITAS=off` en las pruebas).\n- La concurrencia (dos peticiones simultáneas con el mismo correo, usuario o hueco): la cubren las baterías automáticas (`npm test`).\n- Las imágenes de reseñas y avatares.\n- El 503 cuando MongoDB no está disponible (conexión caída o tiempo agotado): no se puede provocar por HTTP desde esta colección; lo cubre la batería de integración (`npm test`), que corta la conexión con un proxy.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "25829622",
     "_collection_link": "https://go.postman.co/collection/25829622-d71528f7-3c08-437e-9a73-d763dffc6061?source=collection_link"
@@ -11315,6 +11315,1173 @@
             }
           ],
           "description": "Token + cliente de la cita. Valora una cita completada, una sola vez."
+        },
+        {
+          "name": "C18 · POST|PUT|DELETE /citas/:id/resena/respuesta",
+          "description": "Token + dueño de la barbería de la reseña o barbero que atendió la cita (y sigue activo en la barbería), comprobado en la BD. Una respuesta por reseña; la editan o borran quien la escribió o el dueño (que al editar pasa a figurar como autor). Texto de 1 a 500 caracteres tras recortar. Requiere la reseña creada en C17 sobre citaPasadaId.",
+          "item": [
+            {
+              "name": "Sin token (401)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"¡Gracias por tu visita! Te esperamos pronto.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Rol incorrecto: cliente (403)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenCliente}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"¡Gracias por tu visita! Te esperamos pronto.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Texto vacío (400)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"   \"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Texto con operador de Mongo (400)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": { \"$ne\": \"\" }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Texto de más de 500 caracteres (400)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }",
+                      "pm.variables.set('textoRespuestaLargo', 'a'.repeat(501));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"{{textoRespuestaLargo}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recurso inexistente (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 404\", function () { pm.response.to.have.status(404); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/000000000000000000000000/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "000000000000000000000000",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"¡Gracias por tu visita! Te esperamos pronto.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Identificador no válido (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/abc/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "abc",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"¡Gracias por tu visita! Te esperamos pronto.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Correcto: barbero que atendió la cita (201)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 201\", function () { pm.response.to.have.status(201); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Devuelve la respuesta recortada y firmada por el barbero\", function () { const j = pm.response.json(); pm.expect(j.respuesta.texto).to.eql(\"¡Gracias por tu visita! Te esperamos pronto.\"); pm.expect(j.respuesta.autorRol).to.eql(\"barbero\"); });",
+                      "pm.test(\"No expone el id del autor\", function () { pm.expect(pm.response.text()).to.not.include(\"autorId\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"  ¡Gracias por tu visita! Te esperamos pronto.  \"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Repetir: ya tiene respuesta (409)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 409\", function () { pm.response.to.have.status(409); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Otra respuesta\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "La respuesta aparece en la ficha pública (B15)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"La reseña lleva la respuesta del barbero\", function () { const r = pm.response.json().find(x => x._id === pm.environment.get(\"citaPasadaId\")); pm.expect(r, \"reseña de la cita\").to.exist; pm.expect(r.resena.respuesta.texto).to.eql(\"¡Gracias por tu visita! Te esperamos pronto.\"); pm.expect(r.resena.respuesta.autorRol).to.eql(\"barbero\"); });",
+                      "pm.test(\"No expone el id del autor\", function () { pm.expect(pm.response.text()).to.not.include(\"autorId\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barberias/{{barberiaId}}/resenas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "barberias",
+                    "{{barberiaId}}",
+                    "resenas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "El barbero puede gestionarla desde sus reseñas (C9)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"puedeResponder en su reseña\", function () { const r = pm.response.json().find(x => x._id === pm.environment.get(\"citaPasadaId\")); pm.expect(r.puedeResponder).to.eql(true); });",
+                      "pm.test(\"No expone el id del autor\", function () { pm.expect(pm.response.text()).to.not.include(\"autorId\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/resenas/barberia",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "resenas",
+                    "barberia"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar: barbero autor (200)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Texto nuevo y fecha de edición\", function () { const j = pm.response.json(); pm.expect(j.respuesta.texto).to.eql(\"Gracias de nuevo, nos alegra que te gustara.\"); pm.expect(j.respuesta.updatedAt).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Gracias de nuevo, nos alegra que te gustara.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar: texto vacío (400)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar: dueño de la barbería (200)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Pasa a ser respuesta de la barbería\", function () { pm.expect(pm.response.json().respuesta.autorRol).to.eql(\"admin\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Gracias de parte de todo el equipo.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Editar: el barbero ya no es el autor (403)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Vuelvo a editar\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Borrar: el barbero ya no es el autor (403)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Borrar: sin token (401)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Borrar: dueño de la barbería (200)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Confirma el borrado\", function () { pm.expect(pm.response.json().message).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Borrar otra vez: ya no hay respuesta (404)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 404\", function () { pm.response.to.have.status(404); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaPasadaId}}/resena/respuesta",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaPasadaId}}",
+                    "resena",
+                    "respuesta"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Tras borrarla ya no aparece en la ficha pública (B15)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (!pm.environment.get('citaPasadaId')) { pm.execution.skipRequest(); }"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La reseña sigue, sin respuesta\", function () { const r = pm.response.json().find(x => x._id === pm.environment.get(\"citaPasadaId\")); pm.expect(r, \"reseña de la cita\").to.exist; pm.expect(r.resena).to.not.have.property(\"respuesta\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/barberias/{{barberiaId}}/resenas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "barberias",
+                    "{{barberiaId}}",
+                    "resenas"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ],
       "description": "RF4 a RF11. Flujo: se consulta la disponibilidad (C1, C2), se reserva como cliente (C4, C3), se confirma o rechaza (C11, C12), se cobra (C15), se consulta (C5 a C10) y se cancela (C16). Las peticiones marcadas «requiere citaPasadaId» o «requiere citaNoPresentadaId» necesitan una cita confirmada cuya hora de inicio ya haya pasado; se saltan solas si esa variable del entorno está vacía."

@@ -2,7 +2,11 @@
 import { registrarError } from "../utils/registrarError.js";
 import { responderErrorInterno } from "../middleware/errorMiddleware.js";
 import {
+    AVISO_RESPUESTA_RESENA,
     createCita,
+    crearRespuestaResena,
+    editarRespuestaResena,
+    eliminarRespuestaResena,
     getCitaById,
     getCitasBarberiaEnRango,
     getCitasByBarberiaId,
@@ -18,7 +22,7 @@ import {
     updateCitaPago
 } from "../models/citaModel.js";
 
-import { errorImagen, esObjectIdValido } from "../middleware/validateMiddleware.js";
+import { MAX_CARACTERES_RESENA, errorCuerpoNoObjeto, errorImagen, errorTextoRespuesta, esObjectIdValido } from "../middleware/validateMiddleware.js";
 import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
 import { barberoActivo, getUserById } from "../models/userModel.js";
 
@@ -537,7 +541,7 @@ export const getCita = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para ver esta cita" });
         }
 
-        res.json(cita);
+        res.json(sinAutorRespuesta(cita));
     } catch (error) {
         registrarError("Error al obtener cita:", error);
         responderErrorInterno(res, error, "Error al obtener cita");
@@ -712,7 +716,7 @@ export const crearResena = async (req, res) => {
             return res.status(400).json({ error: "La valoración debe ser un número entero entre 1 y 5" });
         }
 
-        const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, 500) : "";
+        const comentarioLimpio = typeof comentario === "string" ? comentario.trim().slice(0, MAX_CARACTERES_RESENA) : "";
 
         const errorFoto = errorImagen(imagen, "resena");
         if (errorFoto) {
@@ -739,16 +743,155 @@ export const crearResena = async (req, res) => {
     }
 };
 
-// Obtener las reseñas de la barbería del admin/barbero autenticado
+// RESPUESTAS A RESEÑAS
+
+// El barbero solo cuenta como tal si sigue en esa barbería y está activo (un barbero desactivado no responde)
+const esBarberoActivoDe = (usuario, barberiaId) =>
+    usuario?.rol === "barbero" && usuario.barberiaId?.toString() === barberiaId && barberoActivo(usuario);
+
+// Quién puede escribir la respuesta según la BD: el dueño de la barbería de la reseña, o el barbero que atendió
+// la cita. null si ninguno. No se usan el rol ni la barbería del token
+const autorPermitido = async (userId, cita) => {
+    const barberiaId = cita.barberiaId.toString();
+    if (await isUserAdminOfBarberia(userId, barberiaId)) return "admin";
+    if (cita.barberoId?.toString() !== userId) return null;
+    return esBarberoActivoDe(await getUserById(userId), barberiaId) ? "barbero" : null;
+};
+
+// El barbero solo gestiona sus propias respuestas; el dueño, todas las de su barbería
+const puedeGestionarRespuesta = (autorRol, respuesta, userId) =>
+    autorRol === "admin" || !respuesta || respuesta.autorId?.toString() === userId;
+
+// Respuesta tal como se envía: sin autorId (el id del dueño no se publica)
+const respuestaVisible = ({ texto, autorRol, createdAt, updatedAt }) => ({ texto, autorRol, createdAt, updatedAt });
+
+const sinAutorRespuesta = (cita) => cita?.resena?.respuesta
+    ? { ...cita, resena: { ...cita.resena, respuesta: respuestaVisible(cita.resena.respuesta) } }
+    : cita;
+
+// Comprobaciones comunes a crear, editar y borrar: reseña existente (404) y permiso (403).
+// Devuelve { cita, autorRol } o null si ya ha respondido con el error
+const cargarResenaParaResponder = async (req, res, accion) => {
+    const cita = await getCitaById(req.params.id);
+    if (!cita?.resena) {
+        res.status(404).json({ error: "Reseña no encontrada" });
+        return null;
+    }
+    const autorRol = await autorPermitido(req.user.id, cita);
+    if (!autorRol) {
+        res.status(403).json({ error: `No tienes permiso para ${accion} esta reseña` });
+        return null;
+    }
+    return { cita, autorRol };
+};
+
+// Texto ya validado del cuerpo, o null si ha respondido con el 400
+const leerTextoRespuesta = (req, res) => {
+    const error = errorCuerpoNoObjeto(req.body) || errorTextoRespuesta(req.body.texto);
+    if (error) {
+        res.status(400).json({ error });
+        return null;
+    }
+    return req.body.texto.trim();
+};
+
+// Responder una reseña (dueño de la barbería o barbero que atendió la cita); una sola respuesta por reseña
+export const responderResena = async (req, res) => {
+    try {
+        const texto = leerTextoRespuesta(req, res);
+        if (texto === null) return;
+
+        const cargada = await cargarResenaParaResponder(req, res, "responder");
+        if (!cargada) return;
+        const { cita, autorRol } = cargada;
+
+        if (cita.resena.respuesta) {
+            return res.status(409).json({ error: "Esta reseña ya tiene una respuesta" });
+        }
+
+        const ahora = new Date();
+        const respuesta = { texto, autorId: req.user.id, autorRol, createdAt: ahora, updatedAt: null };
+        const guardada = await crearRespuestaResena(req.params.id, respuesta, avisoPara(cita, AVISO_RESPUESTA_RESENA));
+        if (!guardada) {
+            return res.status(409).json({ error: "Esta reseña ya tiene una respuesta" });
+        }
+        res.status(201).json({ message: "Respuesta publicada", respuesta: respuestaVisible(respuesta) });
+    } catch (error) {
+        registrarError("Error al responder reseña:", error);
+        responderErrorInterno(res, error, "Error al responder la reseña");
+    }
+};
+
+// Editar la respuesta: quien la escribió o el dueño de la barbería (que pasa a figurar como autor)
+export const editarRespuesta = async (req, res) => {
+    try {
+        const texto = leerTextoRespuesta(req, res);
+        if (texto === null) return;
+
+        const cargada = await cargarResenaParaResponder(req, res, "editar la respuesta de");
+        if (!cargada) return;
+        const { cita, autorRol } = cargada;
+
+        const actual = cita.resena.respuesta;
+        if (!actual) {
+            return res.status(404).json({ error: "Esta reseña no tiene respuesta" });
+        }
+        if (!puedeGestionarRespuesta(autorRol, actual, req.user.id)) {
+            return res.status(403).json({ error: "Solo puedes editar tus propias respuestas" });
+        }
+
+        const soloDeAutor = autorRol === "admin" ? undefined : req.user.id;
+        const respuesta = await editarRespuestaResena(req.params.id, { texto, autorId: req.user.id, autorRol }, { soloDeAutor });
+        if (!respuesta) {
+            return res.status(409).json({ error: "La respuesta ha cambiado mientras tanto. Recarga e inténtalo de nuevo" });
+        }
+        res.json({ message: "Respuesta actualizada", respuesta: respuestaVisible(respuesta) });
+    } catch (error) {
+        registrarError("Error al editar respuesta de reseña:", error);
+        responderErrorInterno(res, error, "Error al editar la respuesta");
+    }
+};
+
+// Borrar la respuesta: quien la escribió o el dueño de la barbería
+export const eliminarRespuesta = async (req, res) => {
+    try {
+        const cargada = await cargarResenaParaResponder(req, res, "borrar la respuesta de");
+        if (!cargada) return;
+        const { cita, autorRol } = cargada;
+
+        const actual = cita.resena.respuesta;
+        if (!actual) {
+            return res.status(404).json({ error: "Esta reseña no tiene respuesta" });
+        }
+        if (!puedeGestionarRespuesta(autorRol, actual, req.user.id)) {
+            return res.status(403).json({ error: "Solo puedes borrar tus propias respuestas" });
+        }
+
+        const soloDeAutor = autorRol === "admin" ? undefined : req.user.id;
+        const borrada = await eliminarRespuestaResena(req.params.id, { soloDeAutor });
+        if (!borrada) {
+            return res.status(409).json({ error: "La respuesta ha cambiado mientras tanto. Recarga e inténtalo de nuevo" });
+        }
+        res.json({ message: "Respuesta eliminada" });
+    } catch (error) {
+        registrarError("Error al borrar respuesta de reseña:", error);
+        responderErrorInterno(res, error, "Error al borrar la respuesta");
+    }
+};
+
+// Obtener las reseñas de la barbería del admin/barbero autenticado. Cada una lleva puedeResponder: si este usuario
+// puede responderla (o editar y borrar su respuesta), con las mismas reglas que las rutas de respuesta
 export const getResenasBarberia = async (req, res) => {
     try {
         const userId = req.user.id;
 
         let barberia = await getBarberiaByAdminId(userId);
+        const esAdmin = Boolean(barberia);
+        let usuario = null;
         if (!barberia) {
-            const user = await getUserById(userId);
-            if (user && user.barberiaId) {
-                barberia = await getBarbershopById(user.barberiaId.toString());
+            usuario = await getUserById(userId);
+            if (usuario && usuario.barberiaId) {
+                barberia = await getBarbershopById(usuario.barberiaId.toString());
             }
         }
 
@@ -756,8 +899,14 @@ export const getResenasBarberia = async (req, res) => {
             return res.status(404).json({ error: "No tienes ninguna barbería asociada" });
         }
 
+        const barberoActivoAqui = !esAdmin && esBarberoActivoDe(usuario, barberia._id.toString());
         const resenas = await getResenasByBarberiaId(barberia._id.toString());
-        res.json(resenas);
+        res.json(resenas.map(({ barberoId, ...resena }) => {
+            const respuesta = resena.resena.respuesta;
+            const puedeResponder = esAdmin
+                || (barberoActivoAqui && barberoId?.toString() === userId && puedeGestionarRespuesta("barbero", respuesta, userId));
+            return { ...sinAutorRespuesta(resena), puedeResponder };
+        }));
     } catch (error) {
         registrarError("Error al obtener reseñas de la barbería:", error);
         responderErrorInterno(res, error, "Error al obtener reseñas");

@@ -433,6 +433,28 @@ export class ApiService {
     );
   }
 
+  // Respuesta del dueño o del barbero a la reseña de una cita (una por reseña)
+  async responderResena(citaId: string, texto: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.post<any>(`${this.apiUrl}/citas/${citaId}/resena/respuesta`, { texto }, { headers })
+    );
+  }
+
+  async editarRespuestaResena(citaId: string, texto: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<any>(`${this.apiUrl}/citas/${citaId}/resena/respuesta`, { texto }, { headers })
+    );
+  }
+
+  async eliminarRespuestaResena(citaId: string) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/citas/${citaId}/resena/respuesta`, { headers })
+    );
+  }
+
   // Obtener las reseñas públicas de una barbería
   async getResenasBarberia(barberiaId: string) {
     return await firstValueFrom(

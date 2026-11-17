@@ -1,6 +1,7 @@
 // Batería de integración: índices de MongoDB, unicidad de correo y usuario bajo concurrencia,
 // normalización del correo y migración, y (integracion-privacidad.mjs) configuración por entorno,
-// consentimiento, eliminación de cuenta y avisos al cliente, y (integracion-robustez.mjs) el 503 cuando Mongo no
+// consentimiento, eliminación de cuenta y avisos al cliente, (integracion-respuestas.mjs) las respuestas a las reseñas,
+// y (integracion-robustez.mjs) el 503 cuando Mongo no
 // está disponible. Levanta su propia API (puerto 5098) sobre la BD
 // desechable BarberPlan_test y la borra al terminar. Se niega a ejecutarse con una base cuyo nombre no termine en _test.
 import bcrypt from "bcryptjs";
@@ -12,6 +13,7 @@ import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor 
 import { pruebasConsultas } from "./integracion-consultas.mjs";
 import { pruebasDespliegue } from "./integracion-despliegue.mjs";
 import { pruebasPrivacidad } from "./integracion-privacidad.mjs";
+import { pruebasRespuestas } from "./integracion-respuestas.mjs";
 import { pruebasRobustez } from "./integracion-robustez.mjs";
 import { sembrarDatos } from "./semilla.mjs";
 
@@ -568,6 +570,9 @@ try {
 
     // ==================== Barrera de pruebas, disponibilidad en paralelo y «Mis citas» recortada ====================
     await pruebasConsultas({ check, entorno, req });
+
+    // ==================== Respuestas del dueño y del barbero a las reseñas ====================
+    await pruebasRespuestas({ check, entorno, req });
 
     // ==================== Despliegue: configuración, límites, registro de errores, arranque, humo y limpieza ====================
     await pruebasDespliegue({ check, entorno });

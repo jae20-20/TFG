@@ -81,7 +81,22 @@ export const errorCamposTexto = (body, campos) => {
     return vacio ? `El campo ${vacio} no puede estar vacío` : null;
 };
 
-// ==================== IMÁGENES ====================
+//  RESEÑAS Y RESPUESTAS 
+
+// Mismo límite para el comentario de la reseña y para la respuesta de la barbería
+export const MAX_CARACTERES_RESENA = 500;
+
+// Texto de la respuesta a una reseña: obligatorio, solo cadenas (los objetos, incluidos los que llevaban operadores
+// de Mongo ya vaciados por mongoSanitize, se rechazan) y, ya recortado, entre 1 y MAX_CARACTERES_RESENA caracteres
+export const errorTextoRespuesta = (texto) => {
+    if (typeof texto !== "string") return "El texto de la respuesta debe ser texto";
+    const limpio = texto.trim();
+    if (limpio === "") return "La respuesta no puede estar vacía";
+    if (limpio.length > MAX_CARACTERES_RESENA) return `La respuesta no puede superar los ${MAX_CARACTERES_RESENA} caracteres`;
+    return null;
+};
+
+//  IMÁGENES 
 // Las imágenes (logo, portada, galería, avatar y foto de reseña) se guardan como data URL en base64 dentro de la BD.
 // La app las reduce antes de enviarlas (BarberPlanApp/src/app/services/imagen.util.ts, que repite estos límites);
 // el servidor no se fía: solo admite data URL de imagen, con un tamaño máximo por tipo y un máximo de fotos en la galería.
