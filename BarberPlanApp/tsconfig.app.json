@@ -4,11 +4,10 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [],
-    "baseUrl": "./", // Configuración para rutas relativas
     "paths": {
-      "@app/*": ["src/app/*"], // Alias para acceder a la carpeta app
-      "@assets/*": ["src/assets/*"], // Alias para la carpeta de assets
-      "@environments/*": ["src/environments/*"] // Alias para entornos
+      "@app/*": ["./src/app/*"], // Alias para acceder a la carpeta app
+      "@assets/*": ["./src/assets/*"], // Alias para la carpeta de assets
+      "@environments/*": ["./src/environments/*"] // Alias para entornos
     }
   },
   "files": [
