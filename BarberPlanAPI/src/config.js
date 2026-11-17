@@ -61,6 +61,8 @@ export const config = {
     limiteAutenticacion: entero(env.AUTH_RATE_LIMIT_MAX, 10),
     // Validación de códigos de invitación: intentos cada 15 min por IP
     limiteInvitaciones: entero(env.INVITATION_RATE_LIMIT_MAX, 15),
+    // Citas manuales asignadas a un cliente por su correo: búsquedas cada 15 min por usuario (frena la enumeración de cuentas)
+    limiteBusquedaCliente: entero(env.MANUAL_CLIENT_RATE_LIMIT_MAX, 30),
     // Tiempos de Mongo: pasado este plazo sin respuesta la API contesta 503 en lugar de quedarse esperando
     // (el driver tarda 30 s en rendirse al elegir servidor y no pone límite a una operación ya enviada)
     mongoSeleccionMs: entero(env.MONGO_SERVER_SELECTION_TIMEOUT_MS, 10000),

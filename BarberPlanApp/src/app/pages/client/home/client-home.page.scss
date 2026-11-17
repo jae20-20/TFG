@@ -115,7 +115,8 @@ ion-content.client-premium-content {
 	text-align: left;
 	cursor: pointer;
 
-	&.aviso-confirmada {
+	&.aviso-confirmada,
+	&.aviso-nueva {
 		--aviso-color: var(--ion-color-success);
 	}
 

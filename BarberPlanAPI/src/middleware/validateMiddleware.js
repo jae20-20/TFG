@@ -81,6 +81,20 @@ export const errorCamposTexto = (body, campos) => {
     return vacio ? `El campo ${vacio} no puede estar vacío` : null;
 };
 
+//  CITA MANUAL ASIGNADA A UN CLIENTE 
+
+// Respuesta única cuando el correo no es de un cliente: no distingue «no existe» de «es un barbero o un dueño»
+export const MENSAJE_CLIENTE_NO_ENCONTRADO = "No se ha encontrado un cliente con ese correo";
+export const MAX_CARACTERES_NOMBRE_CLIENTE = 80;
+
+// El correo del cliente es opcional: ausente, null o una cadena en blanco equivalen a no indicarlo.
+// Cualquier otro valor (también los que no son texto) cuenta como indicado y se valida
+export const correoClienteIndicado = (body) => {
+    const valor = body?.correoCliente;
+    if (valor === undefined || valor === null) return false;
+    return typeof valor !== "string" || valor.trim() !== "";
+};
+
 //  RESEÑAS Y RESPUESTAS 
 
 // Mismo límite para el comentario de la reseña y para la respuesta de la barbería

@@ -568,6 +568,60 @@ try {
             propia?.puedeResponder === true && ajenaA2?.puedeResponder === false && !JSON.stringify(r.data).includes("autorId"), `${propia?.puedeResponder} ${ajenaA2?.puedeResponder}`);
     }
 
+    // --- Cita manual asignada por correo: solo personal autorizado (en la BD), validación del correo y 404 genérico
+    // sin enumeración. Todas las peticiones se rechazan antes de escribir
+    {
+        const usuario = (nombre) => entorno.bd.collection("Usuarios").findOne({ usuario: nombre });
+        const [adminA, adminB, barberoA1, barberoA2, clienteSemilla] = await Promise.all(
+            ["admin_a", "admin_b", "barbero_a1", "barbero_a2", "cliente_1"].map(usuario));
+        const token = (u) => firmar({ id: u._id.toString(), rol: u.rol, barberiaId: u.barberiaId?.toString() ?? null });
+        const servicioA = (await entorno.bd.collection("Barberias").findOne({ _id: adminA.barberiaId })).servicios[0]._id.toString();
+        const citasAntes = await entorno.bd.collection("Citas").countDocuments();
+        const asignar = (tok, correoCliente, barberoId = barberoA1._id.toString()) => req("POST", "/citas/manual", {
+            token: tok, body: { barberoId, servicioIds: [servicioA], fecha: fechaRelativa(20), horaInicio: "10:00", correoCliente }
+        });
+
+        r = await asignar(undefined, clienteSemilla.correo);
+        check("Cita manual por correo sin token -> 401", r.status === 401, `${r.status}`);
+        r = await asignar(token(clienteSemilla), clienteSemilla.correo);
+        check("Cita manual por correo con rol cliente -> 403", r.status === 403, `${r.status}`);
+        r = await asignar(token(barberoA2), clienteSemilla.correo);
+        check("Cita manual por correo: un barbero para otro barbero -> 403", r.status === 403, `${r.status}`);
+        r = await asignar(adminAjeno, clienteSemilla.correo);
+        check("Cita manual por correo: admin que no administra ninguna barbería -> 403", r.status === 403, `${r.status}`);
+        // El token dice que es de la Barbería A, pero en la BD administra la B
+        r = await asignar(firmar({ id: adminB._id.toString(), rol: "admin", barberiaId: adminA.barberiaId.toString() }), clienteSemilla.correo);
+        check("Cita manual por correo: la barbería del token no da permiso (se comprueba en la BD) -> 403", r.status === 403, `${r.status}`);
+        // Sin permiso, un correo que existe y otro que no reciben exactamente la misma respuesta: no se puede enumerar
+        const existe = await asignar(token(adminB), clienteSemilla.correo);
+        const noExiste = await asignar(token(adminB), "nadie.en.absoluto@prueba.test");
+        check("Cita manual por correo sin permiso: misma respuesta (403) para un correo que existe y otro que no",
+            existe.status === 403 && JSON.stringify(existe.data) === JSON.stringify(noExiste.data) && noExiste.status === 403, `${existe.status} ${noExiste.status}`);
+
+        const invalidos = [
+            ["un número", 12345],
+            ["un objeto", { a: "b" }],
+            ["el operador $ne", { $ne: null }],
+            ["el operador $regex", { $regex: ".*" }],
+            ["un array", [clienteSemilla.correo]],
+            ["un texto sin formato de correo", "no-es-un-correo"],
+            ["un correo de más de 254 caracteres", `${"a".repeat(60)}@${"b".repeat(200)}.test`]
+        ];
+        for (const [nombre, valor] of invalidos) {
+            r = await asignar(token(adminA), valor);
+            check(`Cita manual con ${nombre} como correo -> 400`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+
+        const respuestas404 = [];
+        for (const [nombre, correo] of [["un correo sin cuenta", "nadie.en.absoluto@prueba.test"], ["el correo de un barbero", barberoA2.correo], ["el correo de un dueño", adminB.correo]]) {
+            r = await asignar(token(adminA), correo);
+            respuestas404.push(JSON.stringify(r.data));
+            check(`Cita manual con ${nombre} -> 404 genérico`, r.status === 404 && r.data?.error === "No se ha encontrado un cliente con ese correo", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+        check("Cita manual: el 404 es idéntico para un correo sin cuenta, de un barbero o de un dueño (sin datos de la cuenta)", new Set(respuestas404).size === 1);
+        check("Cita manual por correo: ninguna petición rechazada ha creado una cita", await entorno.bd.collection("Citas").countDocuments() === citasAntes);
+    }
+
     // --- CORS
     r = await req("GET", "/barberias", { origin: "https://evil.example" });
     check("CORS: origen no permitido sin cabecera ACAO", !r.headers.get("access-control-allow-origin"), `${r.headers.get("access-control-allow-origin")}`);

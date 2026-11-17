@@ -34,6 +34,16 @@ export const getUserByEmail = async (correo) => {
     return await db.collection("Usuarios").findOne({ correo: normalizarCorreo(correo) });
 };
 
+// Id del cliente con ese correo (ya normalizado), o null. Solo rol cliente: una cita nunca se asigna a un barbero
+// o a un dueño. Solo se proyecta el _id: antes de crear la cita no se devuelve ningún dato de la cuenta
+export const getClienteIdPorCorreo = async (correo) => {
+    const cliente = await db.collection("Usuarios").findOne(
+        { correo: normalizarCorreo(correo), rol: "cliente" },
+        { projection: { _id: 1 } }
+    );
+    return cliente?._id ?? null;
+};
+
 // Obtener usuario por nombre de usuario
 export const getUserByUsername = async (usuario) => {
     return await db.collection("Usuarios").findOne({ usuario });

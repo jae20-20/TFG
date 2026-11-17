@@ -22,9 +22,19 @@ import {
     updateCitaPago
 } from "../models/citaModel.js";
 
-import { MAX_CARACTERES_RESENA, errorCuerpoNoObjeto, errorImagen, errorTextoRespuesta, esObjectIdValido } from "../middleware/validateMiddleware.js";
+import {
+    MAX_CARACTERES_NOMBRE_CLIENTE,
+    MAX_CARACTERES_RESENA,
+    MENSAJE_CLIENTE_NO_ENCONTRADO,
+    correoClienteIndicado,
+    errorCuerpoNoObjeto,
+    errorImagen,
+    errorTextoRespuesta,
+    esObjectIdValido,
+    validarCorreo
+} from "../middleware/validateMiddleware.js";
 import { getBarberiaByAdminId, getBarberosByBarberiaId, getBarbershopById, isUserAdminOfBarberia } from "../models/barbershopModel.js";
-import { barberoActivo, getUserById } from "../models/userModel.js";
+import { barberoActivo, getClienteIdPorCorreo, getUserById, normalizarCorreo } from "../models/userModel.js";
 
 const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -380,12 +390,33 @@ export const crearCita = async (req, res) => {
     }
 };
 
+// Nombre libre de la cita manual: opcional, solo texto. Devuelve { nombre } o { error }
+const leerNombreCliente = (valor) => {
+    if (valor === undefined || valor === null) return { nombre: "" };
+    if (typeof valor !== "string") return { error: "El nombre del cliente debe ser texto" };
+    const nombre = valor.trim();
+    return nombre.length > MAX_CARACTERES_NOMBRE_CLIENTE
+        ? { error: `El nombre del cliente no puede superar los ${MAX_CARACTERES_NOMBRE_CLIENTE} caracteres` }
+        : { nombre };
+};
+
+// Correo del cliente al que se asigna la cita, normalizado. Devuelve { correo } (null si no se indicó) o { error }
+const leerCorreoCliente = (body) => {
+    if (!correoClienteIndicado(body)) return { correo: null };
+    if (typeof body.correoCliente !== "string") return { error: "El correo del cliente debe ser texto" };
+    const correo = normalizarCorreo(body.correoCliente);
+    const error = validarCorreo(correo);
+    return error ? { error } : { correo };
+};
+
 // CREAR CITA MANUAL (ADMIN O BARBERO)
+// Con correoCliente la cita queda asignada a esa cuenta de cliente (le aparece en «Mis citas» y recibe un aviso);
+// sin él, es una cita con solo el nombre, como las de quien reserva por teléfono o en persona
 export const crearCitaManual = async (req, res) => {
     try {
         const userId = req.user.id;
         const userRol = req.user.rol;
-        const { barberoId, fecha, horaInicio, clienteNombre } = req.body;
+        const { barberoId, fecha, horaInicio } = req.body;
 
         if (!barberoId || !fecha || !horaInicio) {
             return res.status(400).json({ error: "Barbero, servicio, fecha y hora son obligatorios" });
@@ -397,6 +428,12 @@ export const crearCitaManual = async (req, res) => {
 
         if (!RE_FECHA.test(fecha) || !RE_HORA.test(horaInicio)) {
             return res.status(400).json({ error: "Formato de fecha u hora no válido" });
+        }
+
+        const { nombre: clienteNombre, error: errorNombre } = leerNombreCliente(req.body.clienteNombre);
+        const { correo: correoCliente, error: errorCorreo } = leerCorreoCliente(req.body);
+        if (errorNombre || errorCorreo) {
+            return res.status(400).json({ error: errorNombre || errorCorreo });
         }
 
         const barbero = await getUserById(barberoId);
@@ -441,9 +478,24 @@ export const crearCitaManual = async (req, res) => {
             return res.status(400).json({ error: "Los servicios elegidos no caben en ese día" });
         }
 
+        // La búsqueda va al final, cuando el permiso y el resto de datos ya son válidos: solo el personal autorizado
+        // puede comprobar un correo, y un 404 nunca deja una cita a medias
+        let clienteId = null;
+        if (correoCliente) {
+            clienteId = await getClienteIdPorCorreo(correoCliente);
+            if (!clienteId) {
+                return res.status(404).json({ error: MENSAJE_CLIENTE_NO_ENCONTRADO });
+            }
+        }
+
+        // Asignada a un cliente es como una reserva suya (sin clienteNombre, el nombre sale de su cuenta) y le deja un aviso
+        const datosCliente = clienteId
+            ? { clienteId, avisoCliente: { tipo: "nueva", creadoEn: new Date() } }
+            : { clienteId: null, clienteNombre: clienteNombre || "Reserva manual" };
+
+        // Misma transacción y comprobación de solape que la reserva del cliente (createCita)
         const nuevaCita = await createCita({
-            clienteId: null,
-            clienteNombre: clienteNombre?.trim() || "Reserva manual",
+            ...datosCliente,
             barberoId,
             barberiaId,
             fecha,
@@ -467,7 +519,9 @@ export const crearCitaManual = async (req, res) => {
                 horaFin,
                 servicio: resumen.servicioNombre,
                 precio: resumen.servicioPrecio,
-                clienteNombre: clienteNombre?.trim() || "Reserva manual",
+                // Asignada a una cuenta no se devuelve ningún dato del cliente; solo que quedó vinculada
+                clienteVinculado: Boolean(clienteId),
+                ...(!clienteId && { clienteNombre: datosCliente.clienteNombre }),
                 estado: "confirmada"
             }
         });

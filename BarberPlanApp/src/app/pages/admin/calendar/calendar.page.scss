@@ -231,6 +231,12 @@
           font-weight: 800;
           letter-spacing: 0.02em;
           vertical-align: middle;
+
+          // Cliente con cuenta (reserva propia o cita manual asignada por correo): círculo relleno con el color de acento
+          &.vinculada {
+            background: var(--ion-color-primary);
+            color: var(--ion-color-primary-contrast);
+          }
         }
       }
     }

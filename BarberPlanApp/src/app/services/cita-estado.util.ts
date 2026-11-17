@@ -61,9 +61,10 @@ export function esPendienteVigente(cita: any): boolean {
 
 // ==================== AVISOS AL CLIENTE (RF12) ====================
 // El servidor deja `avisoCliente: { tipo, creadoEn }` en la cita cuando el personal acepta, rechaza o cancela una reserva,
-// cuando caduca sin respuesta o cuando el personal responde la reseña del cliente (respuesta_resena). Solo se muestran dentro de la aplicación (sin push ni correo).
+// cuando caduca sin respuesta, cuando el personal responde la reseña del cliente (respuesta_resena) o cuando le asigna
+// una cita manual a su cuenta (nueva). Solo se muestran dentro de la aplicación (sin push ni correo).
 
-export type TipoAvisoCita = 'confirmada' | 'rechazada' | 'expirada' | 'cancelada' | 'respuesta_resena';
+export type TipoAvisoCita = 'confirmada' | 'rechazada' | 'expirada' | 'cancelada' | 'respuesta_resena' | 'nueva';
 
 export interface AvisoCita {
   citaId: string;
@@ -88,6 +89,8 @@ export function textoAvisoCita(cita: any): string {
       return cita?.motivoCancelacion === 'barberia_eliminada'
         ? `${barberia} ya no está en BarberPlan: se ha cancelado tu cita ${cuando}.`
         : `${barberia} ha cancelado tu cita ${cuando}.`;
+    // Si el cliente ya la canceló, el aviso de la cita nueva deja de tener sentido y no se muestra
+    case 'nueva': return cita?.estado === 'confirmada' ? `Tienes una cita nueva en ${barberia} el ${diaMes(cita?.fecha)} a las ${cita?.horaInicio}.` : '';
     case 'respuesta_resena': return `${barberia} ha respondido a tu reseña de la cita del ${diaMes(cita?.fecha)}.`;
     default: return '';
   }

@@ -1,6 +1,8 @@
 //definicion endpoints - Citas
 import express from "express";
-import { validarObjectIdParam } from "../middleware/validateMiddleware.js";
+import rateLimit from "express-rate-limit";
+import { config } from "../config.js";
+import { correoClienteIndicado, validarObjectIdParam } from "../middleware/validateMiddleware.js";
 import {
     cancelarCita,
     completarCita,
@@ -34,6 +36,16 @@ import {
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+// Asignar una cita manual por correo revela si existe un cliente con ese correo: se limita por usuario (va detrás de
+// authEscritura) y solo cuentan las peticiones que traen correo; las citas manuales con solo el nombre no gastan cupo
+const busquedaClienteLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: config.limiteBusquedaCliente,
+    keyGenerator: (req) => req.user.id,
+    skip: (req) => !correoClienteIndicado(req.body),
+    message: { error: "Demasiadas búsquedas de clientes por correo, inténtalo más tarde" }
+});
 router.param("id", validarObjectIdParam);
 router.param("barberoId", validarObjectIdParam);
 router.param("barberiaId", validarObjectIdParam);
@@ -44,7 +56,7 @@ router.get("/disponibilidad/:barberoId/mes/:mes", getDiasDisponibles);
 router.get("/disponibilidad/:barberoId/:fecha", getDisponibilidad);
 
 // ==================== RUTAS DE CREACIÓN ====================
-router.post("/manual", authEscritura, isAdminOrBarbero, crearCitaManual);
+router.post("/manual", authEscritura, isAdminOrBarbero, busquedaClienteLimiter, crearCitaManual);
 router.post("/", authEscritura, isCliente, crearCita);
 router.get("/mis-citas", verifyToken, isCliente, getMisCitas);
 // El cliente da por vistos sus avisos (RF12): solo toca las citas del propio cliente autenticado

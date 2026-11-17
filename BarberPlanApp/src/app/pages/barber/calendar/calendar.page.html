@@ -75,7 +75,7 @@
                   <div class="cita-header">
                     <span class="cita-time">{{ cita.horaInicio }} - {{ cita.horaFin }}</span>
                     <span class="cita-client">
-                      <span class="cita-client-iniciales" aria-hidden="true">{{ inicialesCliente(cita) }}</span>
+                      <span class="cita-client-iniciales" [class.vinculada]="cita.clienteId" [attr.title]="cita.clienteId ? 'Cliente con cuenta en BarberPlan' : 'Cita manual sin cuenta'" aria-hidden="true">{{ inicialesCliente(cita) }}</span>
                       {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}
                     </span>
                     <span class="appointment-status" [ngClass]="cita.estado" *ngIf="cita.estado !== 'confirmada'">{{ etiquetaEstado(cita) }}</span>
@@ -207,6 +207,13 @@
         <ion-item class="time-item ion-margin-bottom" lines="none">
           <ion-label position="stacked">Nombre del cliente (opcional)</ion-label>
           <ion-input type="text" [(ngModel)]="clienteNombreManual" placeholder="Ej. Cliente Walk-in"></ion-input>
+        </ion-item>
+
+        <ion-item class="time-item ion-margin-bottom" lines="none">
+          <ion-label position="stacked">Correo del cliente (si tiene cuenta)</ion-label>
+          <ion-input type="email" inputmode="email" autocomplete="off" [(ngModel)]="correoClienteManual" (ionInput)="errorCorreoManual = ''" placeholder="cliente@correo.com"></ion-input>
+          <div class="field-note">Opcional. Si lo indicas, la cita le aparecerá en «Mis citas» y recibirá un aviso.</div>
+          <div class="field-note field-note-danger" *ngIf="errorCorreoManual" role="alert">{{ errorCorreoManual }}</div>
         </ion-item>
       </div>
       <ion-footer>

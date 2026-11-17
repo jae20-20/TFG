@@ -85,6 +85,8 @@ export class CalendarPage implements OnInit {
   horasDisponibles: string[] = [];
   loadingHoras = false;
   clienteNombreManual: string = '';
+  correoClienteManual = '';
+  errorCorreoManual = '';
   creandoCita = false;
 
   constructor(
@@ -682,6 +684,8 @@ export class CalendarPage implements OnInit {
     this.selectedServicioIds = [];
     this.selectedHoraInicio = '';
     this.clienteNombreManual = '';
+    this.correoClienteManual = '';
+    this.errorCorreoManual = '';
     this.horasDisponibles = [];
     this.isNewCitaModalOpen = true;
 
@@ -738,21 +742,37 @@ export class CalendarPage implements OnInit {
     }
 
     this.creandoCita = true;
+    this.errorCorreoManual = '';
     try {
       await this.apiService.crearCitaManual({
         barberoId: this.selectedBarberId,
         servicioIds: this.selectedServicioIds,
         fecha: this.selectedDateKey,
         horaInicio: this.selectedHoraInicio,
-        clienteNombre: this.clienteNombreManual?.trim() || undefined
+        clienteNombre: this.clienteNombreManual?.trim() || undefined,
+        correoCliente: this.correoClienteManual?.trim() || undefined
       });
 
-      const toast = await this.toastCtrl.create({ message: 'Cita añadida correctamente.', duration: 2000, color: 'success' });
+      const vinculada = Boolean(this.correoClienteManual?.trim());
+      const toast = await this.toastCtrl.create({
+        message: vinculada ? 'Cita añadida y asignada a la cuenta del cliente.' : 'Cita añadida correctamente.',
+        duration: 2000,
+        color: 'success'
+      });
       toast.present();
       this.isNewCitaModalOpen = false;
       await this.loadBarberiaCitas();
     } catch (e: any) {
       console.error('Error al crear cita:', e);
+      // Correo sin cuenta de cliente: el modal sigue abierto para corregirlo o borrarlo y crear la cita solo con el nombre
+      if (e?.status === 404 && this.correoClienteManual?.trim()) {
+        this.errorCorreoManual = `${e?.error?.error || 'No se ha encontrado un cliente con ese correo'}. Revísalo o déjalo vacío para crear la cita solo con el nombre.`;
+        return;
+      }
+      if (e?.status === 400 && this.correoClienteManual?.trim() && /correo/i.test(e?.error?.error || '')) {
+        this.errorCorreoManual = e.error.error;
+        return;
+      }
       const errMsg = e?.error?.error || 'No se pudo crear la cita.';
       const toast = await this.toastCtrl.create({ message: errMsg, duration: 3000, color: 'danger' });
       toast.present();

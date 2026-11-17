@@ -1,8 +1,8 @@
 // Batería de integración: índices de MongoDB, unicidad de correo y usuario bajo concurrencia,
 // normalización del correo y migración, y (integracion-privacidad.mjs) configuración por entorno,
 // consentimiento, eliminación de cuenta y avisos al cliente, (integracion-respuestas.mjs) las respuestas a las reseñas,
-// y (integracion-robustez.mjs) el 503 cuando Mongo no
-// está disponible. Levanta su propia API (puerto 5098) sobre la BD
+// (integracion-cita-manual.mjs) la cita manual asignada a un cliente por su correo, y (integracion-robustez.mjs) el 503
+// cuando Mongo no está disponible. Levanta su propia API (puerto 5098) sobre la BD
 // desechable BarberPlan_test y la borra al terminar. Se niega a ejecutarse con una base cuyo nombre no termine en _test.
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { RAIZ_API, crearCliente, crearComprobador, crearEntorno, lanzarServidor } from "./entorno.mjs";
+import { pruebasCitaManual } from "./integracion-cita-manual.mjs";
 import { pruebasConsultas } from "./integracion-consultas.mjs";
 import { pruebasDespliegue } from "./integracion-despliegue.mjs";
 import { pruebasPrivacidad } from "./integracion-privacidad.mjs";
@@ -573,6 +574,9 @@ try {
 
     // ==================== Respuestas del dueño y del barbero a las reseñas ====================
     await pruebasRespuestas({ check, entorno, req });
+
+    // ==================== Cita manual asignada a un cliente por su correo ====================
+    await pruebasCitaManual({ check, entorno, req });
 
     // ==================== Despliegue: configuración, límites, registro de errores, arranque, humo y limpieza ====================
     await pruebasDespliegue({ check, entorno });

@@ -178,6 +178,8 @@ export class ApiService {
     fecha: string;
     horaInicio: string;
     clienteNombre?: string;
+    // Correo de un cliente registrado: la cita le aparece en «Mis citas» como si la hubiera reservado él
+    correoCliente?: string;
   }) {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
