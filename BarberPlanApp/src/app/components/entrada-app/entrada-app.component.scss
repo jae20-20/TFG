@@ -1,0 +1,187 @@
+// EXPERIMENTO: animación al entrar en la app tras iniciar sesión, «el corte de navaja».
+// Solo se animan transform y opacity. Todos los tiempos están en este bloque.
+@use '../paleta-animaciones' as paleta;
+
+// ==================== TIEMPOS ====================
+// Fase A (tapar, saludar y cortar) arranca al salir del login. La fase B (separar) empieza cuando han terminado el
+// corte y la navegación, para que debajo ya esté la pantalla nueva: no hay esperas fijas, va al ritmo del router.
+$t-cubre: 0ms;        $d-cubre: 200ms;     // A1. una capa oscura tapa el login
+$t-saludo: 120ms;     $d-saludo: 450ms;    // A2. aparece el saludo con el nombre
+$t-corte: 480ms;      $d-corte: 480ms;     // A3. la navaja cruza la pantalla de izquierda a derecha (fin: 960 ms)
+$d-separa: 650ms;                          // B.  las mitades se separan y dejan ver la app (~1,6 s en total)
+$d-apaga-navaja: 200ms;                    //     la línea se apaga al abrirse el corte
+$d-salto: 250ms;                           // fundido al saltarla con un toque o una tecla
+
+// ==================== CURVAS ====================
+$curva-suave: cubic-bezier(0.22, 0.61, 0.36, 1);
+$curva-corte: cubic-bezier(0.6, 0, 0.2, 1);     // arranca con decisión, como un trazo de navaja
+$curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer fotograma y frena al salir
+
+// ==================== CAPA ====================
+.entrada {
+  @include paleta.oscura;
+
+  z-index: 100001; // por encima de ion-app y de la intro de la barbería, por si coincidieran
+  color: var(--anim-texto);
+  font-family: var(--ion-font-family);
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  animation: entrada-cubre $d-cubre ease-out $t-cubre both;
+
+  &--separando {
+    pointer-events: none;
+  }
+
+  &--saltada {
+    pointer-events: none;
+    animation: entrada-salto $d-salto ease-out both;
+  }
+}
+
+// ==================== MITADES ====================
+.entrada__mitad {
+  height: 50%;
+  will-change: transform;
+
+  // Canto dorado en el borde del corte: se ve al separarse
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--anim-acento) 20%, var(--anim-acento) 80%, transparent);
+    opacity: 0.7;
+  }
+
+  &--arriba::after { bottom: 0; }
+  &--abajo::after { top: 0; }
+}
+
+.entrada--separando .entrada__mitad--arriba {
+  animation: entrada-separa-arriba $d-separa $curva-separa both;
+}
+
+.entrada--separando .entrada__mitad--abajo {
+  animation: entrada-separa-abajo $d-separa $curva-separa both;
+}
+
+// Cada mitad muestra su parte de un lienzo a pantalla completa: los dos quedan alineados y el saludo, entero
+.entrada__lienzo {
+  height: 200%;
+  background: radial-gradient(ellipse 85% 45% at 50% 50%, var(--anim-superficie) 0%, var(--anim-fondo) 70%);
+}
+
+// ==================== SALUDO ====================
+// La línea de corte pasa por el centro de la pantalla: el nombre queda centrado y lo parte por la mitad.
+// Para eso, la línea de arriba y la de abajo tienen la misma altura
+.entrada__saludo {
+  gap: 12px;
+  max-width: 92vw;
+  animation: entrada-saludo $d-saludo $curva-suave $t-saludo both;
+}
+
+.entrada__bienvenida,
+.entrada__subtitulo {
+  font-size: var(--bp-fs-caption);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.entrada__bienvenida {
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--anim-acento);
+}
+
+.entrada__subtitulo {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--anim-texto-suave);
+}
+
+.entrada__nombre {
+  font-size: clamp(2.25rem, 12vw, 4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  color: var(--anim-texto);
+}
+
+// ==================== NAVAJA ====================
+.entrada__navaja {
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent, var(--anim-acento) 15%, var(--anim-acento-claro));
+  will-change: transform, opacity;
+  transition: opacity $d-apaga-navaja ease-out;
+  animation: entrada-corte $d-corte $curva-corte $t-corte both;
+
+  // Halo: un degradado ancho en vez de box-shadow, más barato de pintar
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -8px 0;
+    background: linear-gradient(180deg, transparent, var(--anim-acento) 50%, transparent);
+    opacity: 0.3;
+  }
+
+  .entrada--separando & {
+    opacity: 0;
+  }
+}
+
+// La chispa recorre la pantalla con la misma duración y curva que la línea: siempre va en su punta
+.entrada__chispa {
+  top: 50%;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--anim-acento-claro) 0%, var(--anim-acento) 30%, transparent 70%);
+  will-change: transform, opacity;
+  animation: entrada-chispa $d-corte $curva-corte $t-corte both;
+}
+
+// ==================== KEYFRAMES ====================
+@keyframes entrada-cubre {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes entrada-saludo {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes entrada-corte {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes entrada-chispa {
+  0% { opacity: 0; transform: translateX(0) scale(0.6); }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100vw) scale(1); }
+}
+
+@keyframes entrada-separa-arriba {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+@keyframes entrada-separa-abajo {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes entrada-salto {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

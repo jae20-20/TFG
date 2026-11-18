@@ -1,0 +1,57 @@
+<!-- Capa decorativa sobre toda la app: oculta al lector de pantalla y sin elementos enfocables -->
+@if (visible()) {
+  <div
+    class="intro fixed inset-0 overflow-hidden select-none"
+    aria-hidden="true"
+    [class.intro--saliendo]="fase() !== 'escena'"
+    [class.intro--saltada]="fase() === 'saltada'"
+    (pointerdown)="saltar()"
+    (animationstart)="alEmpezarAnimacion($event)"
+    (animationend)="alTerminarAnimacion($event)"
+  >
+    <div class="intro__escena absolute inset-0">
+      <div class="intro__camara absolute inset-0 flex items-center justify-center">
+        <!-- Interior de la barbería: luz cálida que aparece al abrirse las puertas -->
+        <div class="intro__interior absolute inset-0"></div>
+
+        <div class="intro__rotulo relative flex flex-col items-center px-4">
+          <div class="intro__placa relative">
+            <div class="intro__marca flex items-center">
+              <span class="intro__logo"></span>
+              <span class="intro__nombre">BarberPlan</span>
+            </div>
+            <!-- Destello: copia más clara de la marca vista a través de una franja que la recorre -->
+            <div class="intro__destello absolute inset-0">
+              <div class="intro__marca intro__marca--brillo flex items-center">
+                <span class="intro__logo"></span>
+                <span class="intro__nombre">BarberPlan</span>
+              </div>
+            </div>
+          </div>
+          <span class="intro__filete"></span>
+          <span class="intro__lema">Gestión premium de barberías</span>
+        </div>
+
+        <div class="intro__puertas absolute inset-0">
+          <div class="intro__puerta intro__puerta--izquierda absolute inset-y-0 left-0 w-1/2">
+            <span class="intro__moldura absolute"></span>
+            <span class="intro__canto absolute inset-y-0"></span>
+            <span class="intro__tirador absolute"></span>
+            <span class="intro__sombra absolute inset-0"></span>
+          </div>
+          <div class="intro__puerta intro__puerta--derecha absolute inset-y-0 right-0 w-1/2">
+            <span class="intro__moldura absolute"></span>
+            <span class="intro__canto absolute inset-y-0"></span>
+            <span class="intro__tirador absolute"></span>
+            <span class="intro__sombra absolute inset-0"></span>
+          </div>
+          <!-- Rendija de luz entre las dos hojas -->
+          <span class="intro__rendija absolute inset-y-0">
+            <span class="intro__rendija-trazo absolute inset-0"></span>
+          </span>
+        </div>
+      </div>
+      <div class="intro__vineta absolute inset-0"></div>
+    </div>
+  </div>
+}

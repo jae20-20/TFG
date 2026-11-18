@@ -1,0 +1,38 @@
+<!-- Capa decorativa sobre toda la app: oculta al lector de pantalla y sin elementos enfocables -->
+@if (fase() !== 'inactiva') {
+  <div
+    class="entrada fixed inset-0 overflow-hidden select-none"
+    aria-hidden="true"
+    [class.entrada--separando]="fase() === 'separando'"
+    [class.entrada--saltada]="fase() === 'saltada'"
+    (pointerdown)="saltar()"
+    (animationend)="alTerminarAnimacionCapa($event)"
+  >
+    <!-- Dos mitades con el mismo saludo, cada una recortada a su parte: al separarse, el saludo queda cortado -->
+    <div
+      class="entrada__mitad entrada__mitad--arriba absolute inset-x-0 top-0 overflow-hidden"
+      (animationend)="alTerminarSeparacion($event)"
+    >
+      <div class="entrada__lienzo absolute inset-x-0 top-0 flex items-center justify-center">
+        <ng-container [ngTemplateOutlet]="saludo" />
+      </div>
+    </div>
+    <div class="entrada__mitad entrada__mitad--abajo absolute inset-x-0 bottom-0 overflow-hidden">
+      <div class="entrada__lienzo absolute inset-x-0 bottom-0 flex items-center justify-center">
+        <ng-container [ngTemplateOutlet]="saludo" />
+      </div>
+    </div>
+
+    <!-- La navaja: línea que cruza la pantalla por la mitad, con una chispa en la punta -->
+    <span class="entrada__navaja absolute inset-x-0" (animationend)="alTerminarCorte($event)"></span>
+    <span class="entrada__chispa absolute"></span>
+  </div>
+}
+
+<ng-template #saludo>
+  <div class="entrada__saludo flex flex-col items-center px-6 text-center">
+    <span class="entrada__bienvenida">Te damos la bienvenida</span>
+    <span class="entrada__nombre">{{ nombre() || 'BarberPlan' }}</span>
+    <span class="entrada__subtitulo">{{ subtitulo() }}</span>
+  </div>
+</ng-template>
