@@ -1,8 +1,3 @@
-// EXPERIMENTO: paleta común de las animaciones de entrada (intro-barberia y entrada-app).
-// Sale de los tokens de la app (palettes.scss), así que sigue el acento que haya elegido el usuario, pero siempre
-// en su versión oscura: es parte del concepto.
-
-// Valores del tema oscuro de palettes.scss: solo se usan en modo claro
 $oscuro-fondo: #121212;
 $oscuro-superficie: #1e1e1e;
 $oscuro-superficie-alt: #1a1a1a;
@@ -20,8 +15,6 @@ $oscuro-texto-suave: #b0b0b5;
   --anim-acento: var(--ion-color-primary);
   --anim-acento-claro: var(--custom-gold-light);
 
-  // En modo claro los tokens cambian a valores claros: se recuperan los del tema oscuro. En cada paleta,
-  // --custom-gold-light del modo claro es justo el acento del modo oscuro
   :host-context(.light-mode) & {
     --anim-fondo: #{$oscuro-fondo};
     --anim-superficie: #{$oscuro-superficie};

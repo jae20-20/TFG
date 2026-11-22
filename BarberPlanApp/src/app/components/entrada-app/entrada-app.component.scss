@@ -1,27 +1,38 @@
-// EXPERIMENTO: animación al entrar en la app tras iniciar sesión, «el corte de navaja».
-// Solo se animan transform y opacity. Todos los tiempos están en este bloque.
 @use '../paleta-animaciones' as paleta;
 
-// ==================== TIEMPOS ====================
-// Fase A (tapar, saludar y cortar) arranca al salir del login. La fase B (separar) empieza cuando han terminado el
-// corte y la navegación, para que debajo ya esté la pantalla nueva: no hay esperas fijas, va al ritmo del router.
-$t-cubre: 0ms;        $d-cubre: 200ms;     // A1. una capa oscura tapa el login
-$t-saludo: 120ms;     $d-saludo: 450ms;    // A2. aparece el saludo con el nombre
-$t-corte: 480ms;      $d-corte: 480ms;     // A3. la navaja cruza la pantalla de izquierda a derecha (fin: 960 ms)
-$d-separa: 650ms;                          // B.  las mitades se separan y dejan ver la app (~1,6 s en total)
-$d-apaga-navaja: 200ms;                    //     la línea se apaga al abrirse el corte
-$d-salto: 250ms;                           // fundido al saltarla con un toque o una tecla
+$t-cubre: 0ms;          $d-cubre: 220ms;
+$t-bienvenida: 120ms;   $d-texto: 650ms;
+$t-nombre: 190ms;
+$t-subtitulo: 280ms;
+$t-corte: 520ms;        $d-corte: 440ms;
+$t-fogonazo: 880ms;     $d-fogonazo: 420ms;
+$d-separa: 700ms;
+$d-velo: 600ms;
+$d-apaga-navaja: 180ms;
+$d-salto: 250ms;
 
-// ==================== CURVAS ====================
 $curva-suave: cubic-bezier(0.22, 0.61, 0.36, 1);
-$curva-corte: cubic-bezier(0.6, 0, 0.2, 1);     // arranca con decisión, como un trazo de navaja
-$curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer fotograma y frena al salir
+$curva-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$curva-corte: cubic-bezier(0.65, 0, 0.2, 1);
+$curva-separa: cubic-bezier(0.55, 0, 0.15, 1);
+$giro-mitades: 1.2deg;
 
-// ==================== CAPA ====================
+@mixin cubrir {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 .entrada {
   @include paleta.oscura;
 
-  z-index: 100001; // por encima de ion-app y de la intro de la barbería, por si coincidieran
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100001;
   color: var(--anim-texto);
   font-family: var(--ion-font-family);
   pointer-events: auto;
@@ -38,24 +49,47 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
   }
 }
 
-// ==================== MITADES ====================
+.entrada__velo {
+  @include cubrir;
+  background: var(--anim-fondo);
+  opacity: 0.85;
+
+  .entrada--separando & {
+    animation: entrada-velo $d-velo $curva-suave both;
+  }
+}
+
 .entrada__mitad {
+  position: absolute;
+  left: 0;
+  right: 0;
   height: 50%;
+  overflow: hidden;
   will-change: transform;
 
-  // Canto dorado en el borde del corte: se ve al separarse
   &::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--anim-acento) 20%, var(--anim-acento) 80%, transparent);
-    opacity: 0.7;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--anim-acento) 20%, var(--anim-acento-claro) 50%, var(--anim-acento) 80%, rgba(0, 0, 0, 0));
+    opacity: 0.8;
   }
 
-  &--arriba::after { bottom: 0; }
-  &--abajo::after { top: 0; }
+  &--arriba {
+    top: 0;
+    transform-origin: 50% 100%;
+
+    &::after { bottom: 0; }
+  }
+
+  &--abajo {
+    bottom: 0;
+    transform-origin: 50% 0;
+
+    &::after { top: 0; }
+  }
 }
 
 .entrada--separando .entrada__mitad--arriba {
@@ -66,19 +100,37 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
   animation: entrada-separa-abajo $d-separa $curva-separa both;
 }
 
-// Cada mitad muestra su parte de un lienzo a pantalla completa: los dos quedan alineados y el saludo, entero
 .entrada__lienzo {
+  position: absolute;
+  left: 0;
+  right: 0;
   height: 200%;
-  background: radial-gradient(ellipse 85% 45% at 50% 50%, var(--anim-superficie) 0%, var(--anim-fondo) 70%);
+  background:
+    radial-gradient(ellipse 85% 45% at 50% 50%, var(--anim-superficie) 0%, var(--anim-fondo) 70%);
+
+  .entrada__mitad--arriba & { top: 0; }
+  .entrada__mitad--abajo & { bottom: 0; }
 }
 
-// ==================== SALUDO ====================
-// La línea de corte pasa por el centro de la pantalla: el nombre queda centrado y lo parte por la mitad.
-// Para eso, la línea de arriba y la de abajo tienen la misma altura
 .entrada__saludo {
-  gap: 12px;
   max-width: 92vw;
-  animation: entrada-saludo $d-saludo $curva-suave $t-saludo both;
+}
+
+.entrada__ranura {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.02em 0.12em;
+
+  &--nombre {
+    margin: 10px 0;
+  }
+}
+
+.entrada__bienvenida,
+.entrada__nombre,
+.entrada__subtitulo {
+  display: block;
+  will-change: transform;
 }
 
 .entrada__bienvenida,
@@ -91,14 +143,10 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
 .entrada__bienvenida {
   font-weight: 600;
   letter-spacing: 0.24em;
+  text-indent: 0.24em;
   text-transform: uppercase;
   color: var(--anim-acento);
-}
-
-.entrada__subtitulo {
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--anim-texto-suave);
+  animation: entrada-sube $d-texto $curva-expo $t-bienvenida both;
 }
 
 .entrada__nombre {
@@ -108,25 +156,38 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
   color: var(--anim-texto);
+  animation: entrada-sube $d-texto $curva-expo $t-nombre both;
 }
 
-// ==================== NAVAJA ====================
+.entrada__subtitulo {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--anim-texto-suave);
+  animation: entrada-sube $d-texto $curva-expo $t-subtitulo both;
+}
+
 .entrada__navaja {
+  position: absolute;
   top: 50%;
+  left: 0;
+  right: 0;
   height: 2px;
   margin-top: -1px;
   transform-origin: left center;
-  background: linear-gradient(90deg, transparent, var(--anim-acento) 15%, var(--anim-acento-claro));
+
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--anim-acento) 25%, var(--anim-acento-claro));
   will-change: transform, opacity;
   transition: opacity $d-apaga-navaja ease-out;
   animation: entrada-corte $d-corte $curva-corte $t-corte both;
 
-  // Halo: un degradado ancho en vez de box-shadow, más barato de pintar
   &::before {
     content: '';
     position: absolute;
-    inset: -8px 0;
-    background: linear-gradient(180deg, transparent, var(--anim-acento) 50%, transparent);
+    top: -8px;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0), var(--anim-acento) 50%, rgba(0, 0, 0, 0));
     opacity: 0.3;
   }
 
@@ -135,28 +196,38 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
   }
 }
 
-// La chispa recorre la pantalla con la misma duración y curva que la línea: siempre va en su punta
 .entrada__chispa {
+  position: absolute;
   top: 50%;
   left: 0;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--anim-acento-claro) 0%, var(--anim-acento) 30%, transparent 70%);
+  background: radial-gradient(circle, var(--anim-acento-claro) 0%, var(--anim-acento) 28%, rgba(0, 0, 0, 0) 70%);
   will-change: transform, opacity;
   animation: entrada-chispa $d-corte $curva-corte $t-corte both;
 }
 
-// ==================== KEYFRAMES ====================
+.entrada__fogonazo {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: 0;
+  right: 0;
+  background: radial-gradient(ellipse 60% 50% at 70% 50%, var(--anim-acento), rgba(0, 0, 0, 0) 70%);
+  will-change: opacity;
+  animation: entrada-fogonazo $d-fogonazo ease-out $t-fogonazo both;
+}
+
 @keyframes entrada-cubre {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes entrada-saludo {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+@keyframes entrada-sube {
+  from { transform: translateY(140%); }
+  to { transform: translateY(0); }
 }
 
 @keyframes entrada-corte {
@@ -168,17 +239,28 @@ $curva-separa: cubic-bezier(0.5, 0, 0.15, 1);   // se mueve desde el primer foto
   0% { opacity: 0; transform: translateX(0) scale(0.6); }
   15% { opacity: 1; }
   85% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(100vw) scale(1); }
+  100% { opacity: 0; transform: translateX(100vw) scale(1.1); }
+}
+
+@keyframes entrada-fogonazo {
+  0% { opacity: 0; }
+  30% { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+
+@keyframes entrada-velo {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
 }
 
 @keyframes entrada-separa-arriba {
-  from { transform: translateY(0); }
-  to { transform: translateY(-100%); }
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(-104%) rotate($giro-mitades * -1); }
 }
 
 @keyframes entrada-separa-abajo {
-  from { transform: translateY(0); }
-  to { transform: translateY(100%); }
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(104%) rotate($giro-mitades); }
 }
 
 @keyframes entrada-salto {

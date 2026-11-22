@@ -1,23 +1,37 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, NavigationError, Router } from '@angular/router';
+import { filter, take } from 'rxjs';
 
-// EXPERIMENTO (rama experimento/animacion-entrada): animación de entrada «la puerta de la barbería».
-// Interruptor único: con false no se monta nada y la app arranca como siempre, sin borrar código.
 export const INTRO_BARBERIA_ACTIVA = true;
 
-// Una vez por sesión del navegador; con ?intro=1 en la URL se fuerza para volver a verla mientras se ajusta
 const CLAVE_SESION = 'barberplan_intro_vista';
 const PARAMETRO_FORZAR = 'intro';
 
-// Red de seguridad por si el navegador no emite animationend (pestaña en segundo plano, animaciones desactivadas):
-// solo retira la capa, no bloquea la navegación. Holgada respecto a la duración real (2,8 s, en el SCSS)
-const RETIRADA_MAXIMA_MS = 4500;
+const PARAMETRO_VISTA_PREVIA_ENTRADA = 'entrada';
+
+const RETIRADA_MAXIMA_MS = 8000;
 const RETIRADA_TRAS_SALTO_MS = 1000;
 
-// escena: reproduciéndose y captando toques; saliendo: fundido final, ya deja tocar la app; saltada: fundido corto
-type FaseIntro = 'escena' | 'saliendo' | 'saltada';
+interface Mota {
+  x: number;
+  y: number;
+  tam: number;
+}
 
-// Con ?entrada=1 (vista previa de la animación de entrada a la app, entrada-app) no se reproduce, para no taparla
-const PARAMETRO_VISTA_PREVIA_ENTRADA = 'entrada';
+const MOTAS: readonly Mota[] = [
+  { x: 18, y: 70, tam: 3 },
+  { x: 31, y: 48, tam: 2 },
+  { x: 44, y: 78, tam: 4 },
+  { x: 57, y: 40, tam: 2 },
+  { x: 66, y: 66, tam: 3 },
+  { x: 78, y: 52, tam: 2 },
+  { x: 25, y: 30, tam: 2 },
+  { x: 72, y: 82, tam: 3 },
+  { x: 50, y: 58, tam: 2 }
+];
+
+type FaseIntro = 'escena' | 'saliendo' | 'saltada';
 
 const parametrosUrl = (): URLSearchParams => {
   try {
@@ -31,15 +45,24 @@ const yaVistaEnLaSesion = (): boolean => {
   try {
     return sessionStorage.getItem(CLAVE_SESION) === '1';
   } catch {
-    return false; // sin sessionStorage (modo privado, bloqueado...) se reproduce igualmente
+    return false;
   }
 };
 
-const marcarComoVista = (): void => {
+const marcarComoVista = (): boolean => {
   try {
     sessionStorage.setItem(CLAVE_SESION, '1');
+    return true;
   } catch {
-    /* sin sessionStorage no se recuerda; no es un error */
+    return false;
+  }
+};
+
+const prefiereMenosMovimiento = (): boolean => {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
   }
 };
 
@@ -58,28 +81,45 @@ const debeReproducirse = (): boolean => {
   host: { '(document:keydown)': 'saltar()' }
 })
 export class IntroBarberiaComponent {
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private retirada?: ReturnType<typeof setTimeout>;
 
   readonly visible = signal(debeReproducirse());
   readonly fase = signal<FaseIntro>('escena');
+  readonly movimientoReducido = prefiereMenosMovimiento();
+  readonly motas = MOTAS;
+
+  private escenaTerminada = false;
+  private appCargada = false;
 
   constructor() {
     if (!this.visible()) return;
     marcarComoVista();
     this.programarRetirada(RETIRADA_MAXIMA_MS);
     this.destroyRef.onDestroy(() => clearTimeout(this.retirada));
+
+    this.appCargada = this.router.navigated;
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd || e instanceof NavigationError), take(1), takeUntilDestroyed())
+      .subscribe(() => {
+        this.appCargada = true;
+        this.salirSiToca();
+      });
   }
 
-  // Un toque, clic o tecla la termina con un fundido corto. Si ya está en el fundido final no se reinicia
   saltar(): void {
     if (!this.visible() || this.fase() !== 'escena') return;
     this.fase.set('saltada');
     this.programarRetirada(RETIRADA_TRAS_SALTO_MS);
   }
 
-  // La única animación propia de la capa es su fundido de salida (o el corto): cuando empieza, la app ya se ve
-  // y deja de captar toques. Los eventos de los elementos internos llegan por burbujeo y se ignoran
+  alTerminarDestello(evento: AnimationEvent): void {
+    if (evento.target !== evento.currentTarget) return;
+    this.escenaTerminada = true;
+    this.salirSiToca();
+  }
+
   alEmpezarAnimacion(evento: AnimationEvent): void {
     if (evento.target === evento.currentTarget && this.fase() === 'escena') {
       this.fase.set('saliendo');
@@ -88,6 +128,12 @@ export class IntroBarberiaComponent {
 
   alTerminarAnimacion(evento: AnimationEvent): void {
     if (evento.target === evento.currentTarget) this.retirar();
+  }
+
+  private salirSiToca(): void {
+    if (this.fase() === 'escena' && this.escenaTerminada && this.appCargada) {
+      this.fase.set('saliendo');
+    }
   }
 
   private programarRetirada(ms: number): void {

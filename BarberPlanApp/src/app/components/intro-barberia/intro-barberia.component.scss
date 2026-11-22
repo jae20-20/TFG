@@ -1,102 +1,340 @@
-// EXPERIMENTO: animación de entrada «la puerta de la barbería».
-// Solo se animan transform y opacity. Todos los tiempos están en este bloque: cada fase empieza en $t-* y dura $d-*.
 @use '../paleta-animaciones' as paleta;
 
-// ==================== TIEMPOS ====================
-$t-penumbra: 0ms;       $d-penumbra: 450ms;     // 1. la escena surge de la oscuridad
-$t-rendija: 250ms;      $d-rendija: 550ms;      // 2. se dibuja la rendija de luz entre las puertas
-$t-apertura: 850ms;     $d-apertura: 900ms;     // 3. las puertas se abren hacia dentro y desaparecen de canto
-                        $d-rendija-fuera: 400ms; //    la rendija se ensancha y se apaga al separarse las hojas
-$t-rotulo: 1150ms;      $d-rotulo: 650ms;       // 4. aparece la marca detrás de las puertas
-$t-filete: 1300ms;      $t-lema: 1400ms;        //    filete y lema, un poco después que la marca
-$t-destello: 1650ms;    $d-destello: 700ms;     //    destello de luz que recorre la marca
-$t-salida: 2350ms;      $d-salida: 450ms;       // 5. fundido final que deja ver la app
-$t-total: $t-salida + $d-salida;                // 2800 ms
+$t-penumbra: 0ms;       $d-penumbra: 500ms;
+$t-fachada: 150ms;      $d-fachada: 600ms;
+$t-rendija: 300ms;      $d-rendija: 550ms;
+$t-apertura: 850ms;     $d-apertura: 700ms;
+                        $d-rendija-fuera: 350ms;
+$t-luz: 900ms;          $d-luz: 800ms;
+$t-empuje: 1200ms;      $d-empuje: 800ms;
+$t-logo: 1500ms;        $d-logo: 700ms;
+$t-nombre: 1580ms;      $d-nombre: 650ms;
+$t-filete: 1750ms;      $d-filete: 600ms;
+$t-lema: 1850ms;        $d-lema: 600ms;
+$t-destello: 1900ms;    $d-destello: 600ms;
+$d-salida: 400ms;
+$t-respira: 2000ms;     $d-respira: 1800ms;
 
-$d-salto: 250ms;        // fundido al saltarla con un toque o una tecla
-$d-reducida: 300ms;     // fundido único con prefers-reduced-motion
+$d-salto: 250ms;
+$d-reducida: 300ms;
 
-// ==================== CURVAS Y GEOMETRÍA ====================
+$t-motas: 950ms;        $paso-motas: 55ms;
+$d-motas: 2500ms;       $d-motas-b: 2800ms;
+
 $curva-suave: cubic-bezier(0.22, 0.61, 0.36, 1);
-// Arranca moviéndose desde el primer fotograma (una curva con salida lenta parece que las hojas se traban)
+$curva-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
 $curva-puertas: cubic-bezier(0.35, 0, 0.25, 1);
-$curva-camara: cubic-bezier(0.33, 0, 0.2, 1);
+$curva-empuje: cubic-bezier(0.5, 0, 0.2, 1);
 $curva-destello: cubic-bezier(0.45, 0, 0.25, 1);
 
-// Más de 90°: al pasar de canto la cara trasera queda oculta (backface-visibility) y la hoja desaparece sin dejar
-// franjas en los bordes. Con menos de 90° las hojas se quedan a medio abrir hasta el final
 $apertura-angulo: 105deg;
-$perspectiva: 140vmax;     // relativa a la pantalla para que el efecto sea parecido en móvil y escritorio
-$acercamiento: 1.05;       // «paso al frente» de la cámara mientras se abren y al cruzar el umbral
+$perspectiva: 140vmax;
+
+$vano-lado: 12%;
+$vano-arriba: 15%;
+$vano-abajo: 9%;
+$empuje-escala: 1.45;
+$umbral-escala: 1.06;
 $logo-alto: clamp(52px, 15vw, 80px);
 
-// ==================== CAPA ====================
+@mixin cubrir {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 .intro {
   @include paleta.oscura;
 
-  z-index: 100000; // por encima de ion-app y de sus capas (modales, toasts, alertas)
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100000;
   background: var(--anim-fondo);
   color: var(--anim-texto);
   font-family: var(--ion-font-family);
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
-  animation: intro-salida $d-salida $curva-suave $t-salida both;
+  -webkit-user-select: none;
 
   &--saliendo {
     pointer-events: none;
+    animation: intro-salida $d-salida $curva-suave both;
   }
 
   &--saltada {
+    pointer-events: none;
     animation: intro-salto $d-salto ease-out both;
   }
 }
 
 .intro__escena {
-  animation: intro-penumbra $d-penumbra $curva-suave $t-penumbra both;
+  @include cubrir;
+  animation: intro-aparece $d-penumbra $curva-suave $t-penumbra both;
+
+  .intro--saliendo & {
+    animation: intro-aparece $d-penumbra $curva-suave $t-penumbra both, intro-umbral $d-salida $curva-suave both;
+  }
 }
 
 .intro__camara {
-  animation: intro-acercamiento ($t-total - $t-apertura) $curva-camara $t-apertura both;
+  @include cubrir;
+  transform-origin: 50% (50% + ($vano-arriba - $vano-abajo) * 0.5);
+  will-change: transform;
+  animation: intro-empuje $d-empuje $curva-empuje $t-empuje both;
 }
 
-// Viñeta fija: oscurece los bordes y centra la mirada
 .intro__vineta {
-  background: radial-gradient(ellipse 120% 90% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+  @include cubrir;
+  background: radial-gradient(ellipse 120% 90% at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.6) 100%);
 }
 
-// ==================== INTERIOR Y MARCA ====================
+.intro__muro {
+  @include cubrir;
+
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 40%, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0) calc(12.5% - 1px), rgba(255, 255, 255, 0.045) calc(12.5% - 1px), rgba(255, 255, 255, 0.045) 12.5%),
+    var(--anim-fondo);
+}
+
+.intro__marco {
+  position: absolute;
+  top: calc(#{$vano-arriba} - 10px);
+  bottom: calc(#{$vano-abajo} - 10px);
+  left: calc(#{$vano-lado} - 10px);
+  right: calc(#{$vano-lado} - 10px);
+  border: 1px solid var(--anim-acento);
+  border-bottom: 0;
+  opacity: 0.45;
+  animation: intro-marco $d-fachada $curva-suave $t-fachada both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 0;
+    border: 1px solid var(--anim-acento);
+    border-bottom: 0;
+    opacity: 0.6;
+  }
+}
+
+.intro__vano {
+  position: absolute;
+  top: $vano-arriba;
+  bottom: $vano-abajo;
+  left: $vano-lado;
+  right: $vano-lado;
+  overflow: hidden;
+  perspective: $perspectiva;
+  background: var(--anim-fondo);
+}
+
+.intro__ambiente {
+  @include cubrir;
+  animation: intro-respira $d-respira ease-in-out $t-respira infinite alternate;
+}
+
 .intro__interior {
-  background: radial-gradient(ellipse 65% 45% at 50% 50%, var(--anim-acento) 0%, transparent 70%);
-  animation: intro-luz-interior $d-apertura $curva-suave $t-apertura both;
+  @include cubrir;
+  background: radial-gradient(ellipse 75% 55% at 50% 45%, var(--anim-acento) 0%, rgba(0, 0, 0, 0) 70%);
+  animation: intro-luz-interior $d-luz $curva-suave $t-luz both;
+}
+
+.intro__suelo {
+  position: absolute;
+  top: 58%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), var(--anim-acento-claro) 14%, rgba(0, 0, 0, 0) 85%);
+  -webkit-clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  animation: intro-luz-suelo $d-luz $curva-suave $t-luz both;
+}
+
+.intro__mota {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--anim-acento-claro);
+  will-change: transform, opacity;
+  animation: intro-mota-a $d-motas ease-in-out both;
+  animation-delay: calc(#{$t-motas} + var(--i, 0) * #{$paso-motas});
+
+  &--b {
+    animation-name: intro-mota-b;
+    animation-duration: $d-motas-b;
+  }
+}
+
+.intro__puerta {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  &::before {
+    content: '';
+    @include cubrir;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0) 7px, rgba(255, 255, 255, 0.012) 7px, rgba(255, 255, 255, 0.012) 8px);
+  }
+
+  &--izquierda {
+    left: 0;
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--anim-superficie-alt), var(--anim-superficie));
+    animation: intro-puerta-izquierda $d-apertura $curva-puertas $t-apertura both;
+  }
+
+  &--derecha {
+    right: 0;
+    transform-origin: right center;
+    background: linear-gradient(270deg, var(--anim-superficie-alt), var(--anim-superficie));
+    animation: intro-puerta-derecha $d-apertura $curva-puertas $t-apertura both;
+  }
+}
+
+.intro__moldura {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  border: 1px solid var(--anim-borde);
+  border-radius: 2px;
+
+  &--alta { top: 8%; bottom: 40%; }
+  &--baja { top: 66%; bottom: 8%; }
+}
+
+.intro__canto {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--anim-acento);
+  opacity: 0.35;
+
+  .intro__puerta--izquierda & { right: 0; }
+  .intro__puerta--derecha & { left: 0; }
+}
+
+.intro__tirador {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: clamp(36px, 8vh, 64px);
+  margin-top: calc(clamp(36px, 8vh, 64px) / -2);
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--anim-acento-claro), var(--anim-acento) 55%, var(--anim-acento));
+
+  .intro__puerta--izquierda & { right: 12px; }
+  .intro__puerta--derecha & { left: 12px; }
+}
+
+.intro__sombra {
+  @include cubrir;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7));
+  animation: intro-aparece $d-apertura $curva-puertas $t-apertura both;
+
+  .intro__puerta--derecha & {
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7));
+  }
+}
+
+.intro__rendija {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  will-change: transform, opacity;
+  animation: intro-rendija-se-abre $d-rendija-fuera $curva-suave $t-apertura both;
+}
+
+.intro__rendija-trazo {
+  @include cubrir;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 8%, var(--anim-acento) 35%, var(--anim-acento-claro) 50%, var(--anim-acento) 65%, rgba(0, 0, 0, 0) 92%);
+  will-change: transform, opacity;
+  animation: intro-rendija-trazo $d-rendija $curva-suave $t-rendija both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12%;
+    bottom: 12%;
+    left: -12px;
+    right: -12px;
+    background: radial-gradient(closest-side, var(--anim-acento), rgba(0, 0, 0, 0));
+    opacity: 0.45;
+  }
 }
 
 .intro__rotulo {
-  gap: clamp(12px, 3vw, 18px);
-  will-change: transform, opacity;
-  animation: intro-rotulo $d-rotulo $curva-suave $t-rotulo both;
+  @include cubrir;
+  justify-content: center;
+  padding: 0 16px;
+
+  .intro--saliendo & {
+    animation: intro-rotulo-sale $d-salida $curva-suave both;
+  }
 }
 
 .intro__marca {
-  gap: clamp(10px, 3vw, 16px);
   white-space: nowrap;
 }
 
-// El logo es el mismo SVG del login usado como máscara: toma el color del fondo
+.intro__ranura {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.02em 0.14em;
+}
+
 .intro__logo {
   display: block;
+  flex-shrink: 0;
   height: $logo-alto;
-  aspect-ratio: 600 / 840; // proporción de assets/icon/logo.svg
+  width: calc(#{$logo-alto} * 600 / 840);
+  margin-right: clamp(10px, 3vw, 16px);
   background: var(--anim-acento);
   -webkit-mask: url('/assets/icon/logo.svg') center / contain no-repeat;
   mask: url('/assets/icon/logo.svg') center / contain no-repeat;
 }
 
+@supports not ((-webkit-mask-image: none) or (mask-image: none)) {
+  .intro__logo {
+    display: none;
+  }
+}
+
 .intro__nombre {
+  display: block;
   font-size: clamp(2rem, 9.5vw, 3.25rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.02em;
   color: var(--anim-texto);
+}
+
+.intro__marca:not(.intro__marca--brillo) {
+  .intro__logo {
+    will-change: transform, opacity;
+    animation: intro-logo $d-logo $curva-expo $t-logo both;
+  }
+
+  .intro__nombre {
+    will-change: transform;
+    animation: intro-sube $d-nombre $curva-expo $t-nombre both;
+  }
 }
 
 .intro__marca--brillo {
@@ -112,11 +350,10 @@ $logo-alto: clamp(52px, 15vw, 80px);
   }
 }
 
-// La franja se desplaza de izquierda a derecha y su contenido el mismo recorrido al revés, de modo que la copia
-// clara queda quieta sobre la marca y solo se ve a través de la franja (la máscara)
 .intro__destello {
-  -webkit-mask-image: linear-gradient(105deg, transparent 35%, #000 50%, transparent 65%);
-  mask-image: linear-gradient(105deg, transparent 35%, #000 50%, transparent 65%);
+  @include cubrir;
+  -webkit-mask-image: linear-gradient(105deg, rgba(0, 0, 0, 0) 35%, #000 50%, rgba(0, 0, 0, 0) 65%);
+  mask-image: linear-gradient(105deg, rgba(0, 0, 0, 0) 35%, #000 50%, rgba(0, 0, 0, 0) 65%);
   will-change: transform;
   animation: intro-destello-franja $d-destello $curva-destello $t-destello both;
 }
@@ -125,122 +362,38 @@ $logo-alto: clamp(52px, 15vw, 80px);
   display: block;
   width: clamp(64px, 22vw, 120px);
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--anim-acento), transparent);
-  animation: intro-filete $d-rotulo $curva-suave $t-filete both;
+  margin: clamp(10px, 2.5vw, 16px) 0 clamp(8px, 2vw, 12px);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--anim-acento), rgba(0, 0, 0, 0));
+  animation: intro-filete $d-filete $curva-expo $t-filete both;
 }
 
 .intro__lema {
+  display: block;
   font-size: var(--bp-fs-overline);
   font-weight: 600;
   letter-spacing: 0.22em;
+  text-indent: 0.22em;
   text-transform: uppercase;
   color: var(--anim-acento);
-  animation: intro-aparece $d-rotulo $curva-suave $t-lema both;
+  animation: intro-sube $d-lema $curva-expo $t-lema both;
 }
 
-// ==================== PUERTAS ====================
-.intro__puertas {
-  perspective: $perspectiva;
-}
-
-.intro__puerta {
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-
-  &--izquierda {
-    transform-origin: left center;
-    background: linear-gradient(90deg, var(--anim-superficie-alt), var(--anim-superficie));
-    animation: intro-puerta-izquierda $d-apertura $curva-puertas $t-apertura both;
-  }
-
-  &--derecha {
-    transform-origin: right center;
-    background: linear-gradient(270deg, var(--anim-superficie-alt), var(--anim-superficie));
-    animation: intro-puerta-derecha $d-apertura $curva-puertas $t-apertura both;
-  }
-}
-
-// Cuarterón de la hoja
-.intro__moldura {
-  inset: 10% 16%;
-  border: 1px solid var(--anim-borde);
-  border-radius: 2px;
-}
-
-// Canto interior de cada hoja, con un reflejo del acento
-.intro__canto {
-  width: 1px;
-  background: var(--anim-acento);
-  opacity: 0.35;
-
-  .intro__puerta--izquierda & { right: 0; }
-  .intro__puerta--derecha & { left: 0; }
-}
-
-.intro__tirador {
-  top: 50%;
-  width: 3px;
-  height: clamp(40px, 9vh, 72px);
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--anim-acento-claro), var(--anim-acento));
-  transform: translateY(-50%);
-
-  .intro__puerta--izquierda & { right: 14px; }
-  .intro__puerta--derecha & { left: 14px; }
-}
-
-// Se oscurece el borde libre de cada hoja a medida que gira y se aleja: da sensación de profundidad
-.intro__sombra {
-  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.7));
-  animation: intro-sombra $d-apertura $curva-puertas $t-apertura both;
-
-  .intro__puerta--derecha & {
-    background: linear-gradient(270deg, transparent, rgba(0, 0, 0, 0.7));
-  }
-}
-
-// Contenedor: se ensancha y se apaga al abrirse las hojas. Trazo: se dibuja desde el centro hacia los extremos
-.intro__rendija {
-  left: 50%;
-  width: 2px;
-  margin-left: -1px;
-  will-change: transform, opacity;
-  animation: intro-rendija-se-abre $d-rendija-fuera $curva-suave $t-apertura both;
-}
-
-.intro__rendija-trazo {
-  background: linear-gradient(180deg, transparent 8%, var(--anim-acento) 35%, var(--anim-acento-claro) 50%, var(--anim-acento) 65%, transparent 92%);
-  will-change: transform, opacity;
-  animation: intro-rendija-trazo $d-rendija $curva-suave $t-rendija both;
-
-  // Halo: un degradado ancho en vez de box-shadow, más barato de pintar
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 12% -12px;
-    background: radial-gradient(closest-side, var(--anim-acento), transparent);
-    opacity: 0.45;
-  }
-}
-
-// ==================== MOVIMIENTO REDUCIDO ====================
-// Sin escena: solo un fundido corto de la capa oscura
-@media (prefers-reduced-motion: reduce) {
-  .intro,
-  .intro--saltada {
-    animation: intro-salto $d-reducida ease-out both;
-  }
+.intro.intro--reducida {
+  animation: intro-salto $d-reducida ease-out both;
 
   .intro__escena {
     display: none;
   }
 }
 
-// ==================== KEYFRAMES ====================
-@keyframes intro-penumbra {
+@keyframes intro-aparece {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes intro-marco {
+  from { opacity: 0; transform: scale(0.985); }
+  to { opacity: 0.45; transform: scale(1); }
 }
 
 @keyframes intro-rendija-trazo {
@@ -264,34 +417,58 @@ $logo-alto: clamp(52px, 15vw, 80px);
   to { transform: rotateY($apertura-angulo * -1); }
 }
 
-@keyframes intro-sombra {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 @keyframes intro-luz-interior {
   from { opacity: 0; }
-  to { opacity: 0.22; }
+  to { opacity: 0.24; }
 }
 
-@keyframes intro-acercamiento {
+@keyframes intro-luz-suelo {
+  from { opacity: 0; }
+  to { opacity: 0.12; }
+}
+
+@keyframes intro-respira {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
+
+@keyframes intro-mota-a {
+  0% { opacity: 0; transform: translate(0, 0); }
+  25% { opacity: 0.85; }
+  70% { opacity: 0.55; }
+  100% { opacity: 0; transform: translate(14px, -48px); }
+}
+
+@keyframes intro-mota-b {
+  0% { opacity: 0; transform: translate(0, 0); }
+  30% { opacity: 0.7; }
+  75% { opacity: 0.45; }
+  100% { opacity: 0; transform: translate(-12px, -40px); }
+}
+
+@keyframes intro-empuje {
   from { transform: scale(1); }
-  to { transform: scale($acercamiento); }
+  to { transform: scale($empuje-escala); }
 }
 
-@keyframes intro-rotulo {
-  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+@keyframes intro-umbral {
+  from { transform: scale(1); }
+  to { transform: scale($umbral-escala); }
+}
+
+@keyframes intro-logo {
+  from { opacity: 0; transform: translateY(18px) scale(0.86); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes intro-sube {
+  from { transform: translateY(140%); }
+  to { transform: translateY(0); }
 }
 
 @keyframes intro-filete {
   from { opacity: 0; transform: scaleX(0); }
   to { opacity: 1; transform: scaleX(1); }
-}
-
-@keyframes intro-aparece {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 @keyframes intro-destello-franja {
@@ -304,7 +481,11 @@ $logo-alto: clamp(52px, 15vw, 80px);
   to { transform: translateX(-100%); }
 }
 
-// Salida natural y salida al saltarla: mismo efecto con nombres distintos para que el cambio de clase la reinicie
+@keyframes intro-rotulo-sale {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.04); }
+}
+
 @keyframes intro-salida {
   from { opacity: 1; }
   to { opacity: 0; }
