@@ -1,7 +1,18 @@
 
 
 <ion-content [fullscreen]="true" class="ion-padding barber-premium-content">
-  
+
+  <section class="avisos-barbero" *ngIf="avisosBarbero.length > 0" role="status" aria-label="Cambios en tus citas">
+    <ul class="m-0 flex list-none flex-col gap-2 p-0">
+      <li class="flex items-start gap-2 text-sm" *ngFor="let aviso of avisosBarbero">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span>{{ textoAvisoBarbero(aviso) }}</span>
+      </li>
+    </ul>
+    <div class="mt-2 flex justify-end">
+      <ion-button fill="clear" size="small" class="avisos-barbero-btn" [disabled]="descartandoAvisos" (click)="descartarAvisos()">Entendido</ion-button>
+    </div>
+  </section>
 
   <app-pendientes-aprobacion
     [citas]="pendientes"
@@ -76,7 +87,7 @@
                     <span class="cita-time">{{ cita.horaInicio }} - {{ cita.horaFin }}</span>
                     <span class="cita-client">
                       <span class="cita-client-iniciales" [class.vinculada]="cita.clienteId" [attr.title]="cita.clienteId ? 'Cliente con cuenta en BarberPlan' : 'Cita manual sin cuenta'" aria-hidden="true">{{ inicialesCliente(cita) }}</span>
-                      {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }} {{ cita.cliente?.apellido || '' }}
+                      {{ cita.cliente?.nombre || cita.clienteNombre || 'Reserva manual' }}
                     </span>
                     <span class="appointment-status" [ngClass]="cita.estado" *ngIf="cita.estado !== 'confirmada'">{{ etiquetaEstado(cita) }}</span>
                   </div>
@@ -113,10 +124,6 @@
                   <span>Teléfono</span>
                   <strong>{{ cita.cliente.telefono }}</strong>
                 </div>
-                <div class="detalle-row" *ngIf="cita.servicioDuracion">
-                  <span>Duración</span>
-                  <strong>{{ cita.servicioDuracion }} min</strong>
-                </div>
                 <div class="detalle-comment" *ngIf="cita.comentario">
                   <span>Petición del cliente</span>
                   <p>{{ cita.comentario }}</p>
@@ -125,8 +132,12 @@
 
                 <app-cita-acciones [cita]="cita" (accion)="onCambiarEstado(cita, $event)"></app-cita-acciones>
 
-                <div class="detalle-actions" *ngIf="admiteCancelacionPersonal(cita)">
-                  <ion-button fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(cita, $event)">
+                <div class="detalle-actions" *ngIf="admiteEdicion(cita) || admiteCancelacionPersonal(cita)">
+                  <ion-button *ngIf="admiteEdicion(cita)" fill="clear" class="cita-edit-btn" (click)="abrirEdicion(cita, $event)">
+                    <ion-icon slot="start" name="pencil-outline"></ion-icon>
+                    Editar
+                  </ion-button>
+                  <ion-button *ngIf="admiteCancelacionPersonal(cita)" fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(cita, $event)">
                     <ion-icon slot="start" name="close-outline"></ion-icon>
                     Cancelar cita
                   </ion-button>
@@ -153,15 +164,27 @@
           [citas]="selectedDayAppointments"
           [slots]="daySlots"
           [absences]="dayAbsences"
+          [edicionHabilitada]="true"
           (daySelected)="selectWeekDay($event)"
           (togglePago)="onWeekTogglePago($event)"
           (editImporte)="onWeekEditImporte($event)"
           (cancelCita)="onWeekCancelCita($event)"
           (cambiarEstado)="onCambiarEstado($event.cita, $event.accion)"
+          (moverCita)="onMoverCita($event)"
+          (editarCita)="abrirEdicion($event)"
         ></app-week-agenda>
       </ng-container>
       </div>
     </div>
+
+  <app-editar-cita-modal
+    [abierto]="!!citaEnEdicion"
+    [cita]="citaEnEdicion"
+    [barberiaId]="getBarberiaId()"
+    [puedeCambiarBarbero]="false"
+    (guardada)="onCitaGuardada()"
+    (cerrar)="cerrarEdicion()"
+  ></app-editar-cita-modal>
 
   <!-- Modal para añadir cita manual -->
   <ion-modal #newCitaModal [isOpen]="isNewCitaModalOpen" (didDismiss)="cancelNewCitaModal()" class="premium-modal compact-modal">

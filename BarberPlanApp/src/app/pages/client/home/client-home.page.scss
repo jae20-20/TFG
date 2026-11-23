@@ -125,7 +125,8 @@ ion-content.client-premium-content {
 		--aviso-color: var(--ion-color-danger);
 	}
 
-	&.aviso-expirada {
+	&.aviso-expirada,
+	&.aviso-modificada {
 		--aviso-color: var(--ion-color-warning);
 	}
 }

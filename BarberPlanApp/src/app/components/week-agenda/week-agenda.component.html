@@ -6,6 +6,8 @@
     [class.selected]="day.isSelected"
     [class.today]="day.isToday"
     [class.closed-day]="day.closed"
+    [class.drop-target]="diaDestino === day.key"
+    [attr.data-dia]="day.key"
     (click)="onDayClick(day.key)"
   >
     <span class="week-strip-label">{{ day.weekdayLabel }}</span>
@@ -13,6 +15,7 @@
     <span class="week-strip-dot" *ngIf="day.appointmentCount > 0"></span>
   </button>
 </div>
+
 
 <div class="week-grid-wrap">
   <div class="hour-axis" [style.height.px]="gridHeight">
@@ -39,10 +42,27 @@
       [style.height.px]="item.height"
       [style.left.%]="item.leftPct"
       [style.width.%]="item.widthPct"
-      (click)="openDetail(item.cita)"
+      [class.arrastrable]="esArrastrable(item.cita)"
+      [class.arrastrando]="arrastrandoId === item.cita._id"
+      (pointerdown)="onBlockPointerDown($event, item)"
+      (pointermove)="onBlockPointerMove($event)"
+      (pointerup)="onBlockPointerUp($event)"
+      (pointercancel)="onBlockPointerCancel()"
+      (click)="onBlockClick(item.cita)"
     >
       <span class="week-cita-time">{{ item.cita.horaInicio }}-{{ item.cita.horaFin }}</span>
       <span class="week-cita-client">{{ getClienteNombre(item.cita) }} - {{ getServicioNombre(item.cita) }}</span>
+    </div>
+
+    <div
+      class="week-cita-preview"
+      *ngIf="vistaPrevia as vista"
+      [class.otro-dia]="diaDestino"
+      [style.top.px]="vista.top"
+      [style.height.px]="vista.height"
+      aria-hidden="true"
+    >
+      <span>{{ vista.etiqueta }}</span>
     </div>
 
     <div class="week-closed-message" *ngIf="isDayEntirelyClosed && positionedCitas.length === 0">
@@ -84,10 +104,10 @@
         <span>Servicio</span>
         <strong>{{ getServicioNombre(cita) }}</strong>
       </div>
-      <div class="detalle-row" *ngIf="cita.servicioDuracion">
+      <!-- <div class="detalle-row" *ngIf="cita.servicioDuracion">
         <span>Duración</span>
         <strong>{{ cita.servicioDuracion }} min</strong>
-      </div>
+      </div> -->
       <div class="detalle-comment" *ngIf="cita.comentario">
         <span>Petición del cliente</span>
         <p>{{ cita.comentario }}</p>
@@ -106,8 +126,12 @@
         </div>
       </div>
 
-      <div class="detalle-actions" *ngIf="admiteCancelacionPersonal(cita)">
-        <ion-button fill="clear" class="cita-cancel-btn" (click)="onCancelClick()">
+      <div class="detalle-actions" *ngIf="(edicionHabilitada && admiteEdicion(cita)) || admiteCancelacionPersonal(cita)">
+        <ion-button *ngIf="edicionHabilitada && admiteEdicion(cita)" fill="clear" class="cita-edit-btn" (click)="onEditarClick()">
+          <ion-icon slot="start" name="pencil-outline"></ion-icon>
+          Editar
+        </ion-button>
+        <ion-button *ngIf="admiteCancelacionPersonal(cita)" fill="clear" class="cita-cancel-btn" (click)="onCancelClick()">
           <ion-icon slot="start" name="close-outline"></ion-icon>
           Cancelar cita
         </ion-button>

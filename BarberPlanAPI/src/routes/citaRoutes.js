@@ -2,7 +2,7 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { config } from "../config.js";
-import { correoClienteIndicado, validarObjectIdParam } from "../middleware/validateMiddleware.js";
+import { correoClienteIndicado, validarCuerpoEdicionCita, validarObjectIdParam } from "../middleware/validateMiddleware.js";
 import {
     cancelarCita,
     completarCita,
@@ -10,17 +10,21 @@ import {
     crearCita,
     crearCitaManual,
     crearResena,
+    editarCita,
     editarRespuesta,
     eliminarRespuesta,
     getAnaliticasBarberia,
+    getAvisosBarberoAutenticado,
     getCita,
     getCitasBarberia,
     getCitasBarbero,
     getDiasDisponibles,
     getDisponibilidad,
+    getHuecosEdicion,
     getMisCitas,
     getResenasBarberia,
     actualizarPagoCita,
+    marcarAvisosBarberoLeidos,
     marcarAvisosLeidos,
     marcarNoPresentada,
     rechazarCita,
@@ -64,6 +68,8 @@ router.put("/avisos/leidos", authEscritura, isCliente, marcarAvisosLeidos);
 
 // ==================== RUTAS DE BARBERO ====================
 router.get("/barbero", verifyToken, isBarbero, getCitasBarbero);
+router.get("/avisos/barbero", verifyToken, isBarbero, getAvisosBarberoAutenticado);
+router.put("/avisos/barbero/leidos", authEscritura, isBarbero, marcarAvisosBarberoLeidos);
 
 // ==================== RUTAS DE ADMIN ====================
 router.get("/barberia/:barberiaId", verifyToken, isAdmin, getCitasBarberia);
@@ -74,6 +80,9 @@ router.get("/resenas/barberia", verifyToken, isAdminOrBarbero, getResenasBarberi
 
 // ==================== RUTAS COMPARTIDAS ====================
 router.get("/:id", verifyToken, getCita);
+// El rol solo filtra: el permiso sobre la cita se comprueba en la BD (services/editarCitaService.js)
+router.patch("/:id", authEscritura, isAdminOrBarbero, validarCuerpoEdicionCita, editarCita);
+router.get("/:id/huecos", verifyToken, isAdminOrBarbero, getHuecosEdicion);
 router.put("/:id/confirmar", authEscritura, isAdminOrBarbero, confirmarCita);
 router.put("/:id/rechazar", authEscritura, isAdminOrBarbero, rechazarCita);
 router.put("/:id/completar", authEscritura, isAdminOrBarbero, completarCita);

@@ -5,7 +5,7 @@ import { Storage } from '@ionic/storage-angular';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ESPERA_MAXIMA_ARRANQUE_MS } from './arranque-servidor.util';
-import { AccionEstadoCita } from './cita-estado.util';
+import { AccionEstadoCita, AvisoBarbero, EdicionCita } from './cita-estado.util';
 
 @Injectable({
   providedIn: 'root',
@@ -234,6 +234,40 @@ export class ApiService {
     const headers = await this.getAuthHeaders();
     return await firstValueFrom(
       this.http.put<any>(`${this.apiUrl}/citas/${id}/cancelar`, {}, { headers })
+    );
+  }
+
+  // Solo se envían los campos que cambian; el servidor recalcula la duración y comprueba el hueco
+  async editarCita(id: string, cambios: EdicionCita) {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.patch<{ message: string; cita: any }>(`${this.apiUrl}/citas/${id}`, cambios, { headers })
+    );
+  }
+
+  async getHuecosEdicion(id: string, fecha: string, opciones: { barberoId?: string; duracion?: number } = {}) {
+    const headers = await this.getAuthHeaders();
+    const params: Record<string, string> = { fecha };
+    if (opciones.barberoId) params['barberoId'] = opciones.barberoId;
+    if (opciones.duracion) params['duracion'] = String(opciones.duracion);
+    return await firstValueFrom(
+      this.http.get<{ fecha: string; barberoId: string; estado: string; horariosDisponibles: string[] }>(
+        `${this.apiUrl}/citas/${id}/huecos`, { headers, params }
+      )
+    );
+  }
+
+  async getAvisosBarbero() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.get<AvisoBarbero[]>(`${this.apiUrl}/citas/avisos/barbero`, { headers })
+    );
+  }
+
+  async marcarAvisosBarberoLeidos() {
+    const headers = await this.getAuthHeaders();
+    return await firstValueFrom(
+      this.http.put<{ avisosLeidos: number }>(`${this.apiUrl}/citas/avisos/barbero/leidos`, {}, { headers })
     );
   }
 

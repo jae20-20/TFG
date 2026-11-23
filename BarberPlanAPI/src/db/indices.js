@@ -14,7 +14,9 @@ export const INDICES = [
   { coleccion: "Barberias", clave: { adminId: 1 }, opciones: { name: "adminId" } },
   { coleccion: "Citas", clave: { barberoId: 1, fecha: 1 }, opciones: { name: "barberoId_fecha" } },
   { coleccion: "Citas", clave: { barberiaId: 1, fecha: 1 }, opciones: { name: "barberiaId_fecha" } },
-  { coleccion: "Citas", clave: { clienteId: 1, fecha: -1 }, opciones: { name: "clienteId_fecha" } }
+  { coleccion: "Citas", clave: { clienteId: 1, fecha: -1 }, opciones: { name: "clienteId_fecha" } },
+  // Avisos al barbero: solo las citas con aviso entran en el índice
+  { coleccion: "Citas", clave: { "avisosBarbero.barberoId": 1 }, opciones: { name: "avisosBarbero_barberoId", sparse: true } }
 ];
 
 // Crea los índices que falten. Si falla uno único se lanza el error (el servidor no debe arrancar sin la

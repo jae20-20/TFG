@@ -11,6 +11,8 @@ import {
   IonFooter,
   IonToggle
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { checkmarkCircle, moon, sunny } from 'ionicons/icons';
 import { ThemeService, AppTheme } from '../../services/theme.service';
 
 @Component({
@@ -47,10 +49,10 @@ import { ThemeService, AppTheme } from '../../services/theme.service';
         </ion-header>
         <div class="compact-modal-body">
           <!-- Toggle Modo Oscuro / Claro -->
-          <div class="mode-card mb-5 p-4 rounded-2xl border transition">
+          <div class="mode-card mb-5 p-3.5 rounded-2xl border transition">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <ion-icon [name]="tempIsDark ? 'moon' : 'sunny'" class="text-2xl text-gold-400"></ion-icon>
+                <ion-icon [name]="tempIsDark ? 'moon' : 'sunny'" class="text-2xl -mx-0.5 text-gold-400"></ion-icon>
                 <div>
                   <div class="font-bold text-dynamic-text text-base">Modo Oscuro</div>
                   <div class="text-xs text-dynamic-muted">{{ tempIsDark ? 'Activado' : 'Desactivado (Modo Claro)' }}</div>
@@ -138,6 +140,7 @@ export class ThemeHeaderBtnComponent {
   private isSaved = false;
 
   constructor(private themeService: ThemeService, private cdr: ChangeDetectorRef) {
+    addIcons({ checkmarkCircle, moon, sunny });
     this.themes = this.themeService.themes;
   }
 

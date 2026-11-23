@@ -10,6 +10,57 @@ export const validarObjectIdParam = (req, res, next, valor) => {
     next();
 };
 
+export const RE_FECHA = /^\d{4}-\d{2}-\d{2}$/;
+export const RE_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Rechaza también fechas que no existen, como 2026-02-30
+export const esFechaValida = (valor) => {
+    if (typeof valor !== "string" || !RE_FECHA.test(valor)) return false;
+    const [y, m, d] = valor.split("-").map(Number);
+    const fecha = new Date(Date.UTC(y, m - 1, d));
+    return fecha.getUTCFullYear() === y && fecha.getUTCMonth() === m - 1 && fecha.getUTCDate() === d;
+};
+
+// ==================== EDICIÓN DE CITAS ====================
+
+export const CAMPOS_EDICION_CITA = ["fecha", "horaInicio", "barberoId", "servicioIds"];
+
+export const MAX_SERVICIOS_CITA = 4;
+
+// mongoSanitize ya ha quitado las claves con $ o punto: { fecha: { $gt: "" } } llega como { fecha: {} } y se
+// rechaza por no ser texto; un operador en la raíz deja el cuerpo vacío y también se rechaza
+export const errorCuerpoEdicionCita = (body) => {
+    const noObjeto = errorCuerpoNoObjeto(body);
+    if (noObjeto) return noObjeto;
+
+    const desconocido = Object.keys(body).find((campo) => !CAMPOS_EDICION_CITA.includes(campo));
+    if (desconocido) return `El campo ${desconocido} no se puede modificar`;
+    if (!CAMPOS_EDICION_CITA.some((campo) => body[campo] !== undefined)) {
+        return "Indica al menos un cambio: fecha, horaInicio, barberoId o servicioIds";
+    }
+
+    if (body.fecha !== undefined && !esFechaValida(body.fecha)) return "Fecha no válida. Usa el formato YYYY-MM-DD";
+    if (body.horaInicio !== undefined && (typeof body.horaInicio !== "string" || !RE_HORA.test(body.horaInicio))) {
+        return "Hora no válida. Usa el formato HH:MM";
+    }
+    if (body.barberoId !== undefined && !esObjectIdValido(body.barberoId)) return "Identificador de barbero no válido";
+    if (body.servicioIds !== undefined) {
+        const ids = body.servicioIds;
+        if (!Array.isArray(ids) || ids.length === 0) return "servicioIds debe ser una lista con al menos un servicio";
+        if (ids.length > MAX_SERVICIOS_CITA) return `Puedes elegir como máximo ${MAX_SERVICIOS_CITA} servicios por cita`;
+        if (!ids.every(esObjectIdValido)) return "Identificador de servicio no válido";
+    }
+    return null;
+};
+
+export const validarCuerpoEdicionCita = (req, res, next) => {
+    const error = errorCuerpoEdicionCita(req.body);
+    if (error) {
+        return res.status(400).json({ error });
+    }
+    next();
+};
+
 // ==================== CREDENCIALES ====================
 // Copia en la app: BarberPlanApp/src/app/services/validacion-credenciales.util.ts.
 // Los valores y mensajes deben coincidir; la batería de integración lo comprueba.

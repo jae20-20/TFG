@@ -9,15 +9,18 @@ import { CitaAccionesService } from '../../../services/cita-acciones.service';
 import {
   AccionEstadoCita,
   admiteCancelacionPersonal,
+  admiteEdicion,
   admitePago,
   esPendienteVigente,
   etiquetaEstadoCita,
   inicialesCliente
 } from '../../../services/cita-estado.util';
+import { CitaEdicionService } from '../../../services/cita-edicion.service';
 import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
+import { EditarCitaModalComponent } from '../../../components/editar-cita-modal/editar-cita-modal.component';
 import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
 import { horarioSinFranjas, resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
-import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
+import { MovimientoCita, WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
 import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
 
 const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
@@ -27,9 +30,11 @@ const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
   templateUrl: './calendar.page.html',
   styleUrls: ['./calendar.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent]
+  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent, EditarCitaModalComponent]
 })
 export class CalendarPage implements OnInit {
+  readonly admiteEdicion = admiteEdicion;
+  citaEnEdicion: any = null;
   readonly inicialesCliente = inicialesCliente;
   user: any = null;
   citas: any[] = [];
@@ -95,6 +100,7 @@ export class CalendarPage implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private citaAcciones: CitaAccionesService,
+    private citaEdicion: CitaEdicionService,
     private router: Router
   ) { }
 
@@ -1251,6 +1257,27 @@ export class CalendarPage implements OnInit {
     if (await this.citaAcciones.ejecutar(cita, accion)) {
       await this.recargarCitas();
     }
+  }
+
+  // ==================== EDICIÓN DE CITAS ====================
+
+  async onMoverCita({ cita, fecha, horaInicio }: MovimientoCita) {
+    await this.citaEdicion.mover(cita, fecha, horaInicio, () => this.updateSelectedDayAppointments());
+  }
+
+  abrirEdicion(cita: any, event?: Event) {
+    event?.stopPropagation();
+    this.citaEnEdicion = cita;
+  }
+
+  cerrarEdicion() {
+    this.citaEnEdicion = null;
+  }
+
+  async onCitaGuardada() {
+    this.citaEnEdicion = null;
+    await this.citaEdicion.toast('Cita modificada. El cliente recibirá un aviso.', 'success');
+    await this.recargarCitas();
   }
 
   // Lleva el calendario al día y barbero de la cita y despliega su detalle

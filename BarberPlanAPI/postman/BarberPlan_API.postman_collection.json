@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d71528f7-3c08-437e-9a73-d763dffc6061",
     "name": "BarberPlan API",
-    "description": "Colección de pruebas de la API REST de BarberPlan (60 endpoints). Para cada ruta incluye el caso correcto y los casos de error que le aplican (sin token, rol incorrecto, recurso ajeno, recurso inexistente, datos no válidos y conflictos), cada uno con su prueba automática en la pestaña Tests.\n\nREQUISITOS\n1. Importar también el entorno «BarberPlan - Local» y seleccionarlo.\n2. Ajustar `baseUrl` al puerto real del servidor y rellenar las credenciales de tres cuentas de prueba (`adminCorreo`/`adminPw`, `barberoCorreo`/`barberoPw`, `clienteCorreo`/`clientePw`). El barbero debe pertenecer a la barbería del dueño. Para ejecutar la colección completa a mano hacen falta además `clienteUsuario`, `barberoExtraId` (un segundo barbero del equipo, que el dueño borra en U8), `citaPasadaId` y `citaNoPresentadaId` (citas confirmadas cuya hora ya haya pasado; si están vacías, sus peticiones se saltan); `npm run test:postman` crea todo eso.\n3. Usar una base de datos de pruebas: la colección crea, modifica y borra datos (usuarios, servicios, invitaciones, citas, solicitudes y una segunda barbería).\n\nORDEN\nLas carpetas 00 a 07 deben ejecutarse juntas y en orden (Collection Runner, de arriba abajo), porque cada una guarda en el entorno los identificadores que usa la siguiente. La primera petición de «01 · Usuarios» inicia sesión y guarda los tokens. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 11 (imágenes y listados ligeros) usa las cuentas y la barbería de las carpetas 00 a 07 (deja la barbería sin logo ni galería) y se ejecuta después de la 10. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. Las carpetas 08 y 09 se ejecutan aparte, cada una sola y contra una API recién arrancada (ver LÍMITES).\n\nEJECUCIÓN RECOMENDADA\n`npm run test:postman` (en BarberPlanAPI) crea una base de datos desechable, la siembra, arranca la API y ejecuta la colección con newman en tres pasadas: carpetas 00 a 07 y 10 con el límite global y el de inicio de sesión y registro subidos (RATE_LIMIT_MAX y AUTH_RATE_LIMIT_MAX), carpeta 08 contra una API nueva con los límites reales y carpeta 09 contra otra API nueva. Al terminar borra la base de datos. Con `-- --mantener` deja las APIs y la base levantadas e imprime los valores del entorno para lanzar el Runner a mano.\n\nLÍMITES\nEl limitador global admite 100 peticiones cada 15 minutos por IP y las carpetas 00 a 07 envían más de 300, así que la API debe arrancarse con RATE_LIMIT_MAX alto (lo hace el script). El inicio de sesión y el registro de usuarios (U1 y U2) comparten un límite de 10 peticiones cada 15 minutos por IP: las carpetas 00 a 07 usan los 10 (siete en la carpeta 01, dos en la 02 y el inicio de sesión del barbero invitado en la 04), la carpeta 10 usa otros 8 (4 registros y 4 inicios de sesión; el script sube AUTH_RATE_LIMIT_MAX para las carpetas 00 a 07 y 10) y la carpeta 09 usa otros 10, por eso va sola, contra otra API recién arrancada. Si se ejecuta dos veces seguidas contra la misma API aparecerá un 429: hay que esperar 15 minutos o reiniciar el servidor. Los 429 se prueban en la carpeta 08, que debe ejecutarse sola contra una API recién arrancada con los límites por defecto.\n\nNO CUBIERTO\n- Aprobar solicitudes de vacaciones, horas puntuales y bloqueo de servicio: aquí solo se aprueba una de día libre (añade ese día a los días libres del barbero, así que hay que usar una base de datos de pruebas). Los cuatro tipos los cubre la batería de integración (`npm test`).\n- El identificador mal formado no se repite en todas las rutas: en usuarios, barberías, citas y barberos el mismo validador (`router.param`) se comprueba en otras rutas de su router; en solicitudes no hay ningún caso.\n- El 429 de validar invitaciones y el de registrar barberías.\n- La caducidad automática de las reservas pendientes y las demás tareas periódicas (`TAREAS_CITAS=off` en las pruebas).\n- La concurrencia (dos peticiones simultáneas con el mismo correo, usuario o hueco): la cubren las baterías automáticas (`npm test`).\n- Las imágenes de reseñas y avatares.\n- El 503 cuando MongoDB no está disponible (conexión caída o tiempo agotado): no se puede provocar por HTTP desde esta colección; lo cubre la batería de integración (`npm test`), que corta la conexión con un proxy.",
+    "description": "Colección de pruebas de la API REST de BarberPlan (64 endpoints). Para cada ruta incluye el caso correcto y los casos de error que le aplican (sin token, rol incorrecto, recurso ajeno, recurso inexistente, datos no válidos y conflictos), cada uno con su prueba automática en la pestaña Tests.\n\nREQUISITOS\n1. Importar también el entorno «BarberPlan - Local» y seleccionarlo.\n2. Ajustar `baseUrl` al puerto real del servidor y rellenar las credenciales de tres cuentas de prueba (`adminCorreo`/`adminPw`, `barberoCorreo`/`barberoPw`, `clienteCorreo`/`clientePw`). El barbero debe pertenecer a la barbería del dueño. Para ejecutar la colección completa a mano hacen falta además `clienteUsuario`, `barberoExtraId` (un segundo barbero del equipo, que el dueño borra en U8), `citaPasadaId` y `citaNoPresentadaId` (citas confirmadas cuya hora ya haya pasado; si están vacías, sus peticiones se saltan); `npm run test:postman` crea todo eso.\n3. Usar una base de datos de pruebas: la colección crea, modifica y borra datos (usuarios, servicios, invitaciones, citas, solicitudes y una segunda barbería).\n\nORDEN\nLas carpetas 00 a 07 deben ejecutarse juntas y en orden (Collection Runner, de arriba abajo), porque cada una guarda en el entorno los identificadores que usa la siguiente. La primera petición de «01 · Usuarios» inicia sesión y guarda los tokens. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 11 (imágenes y listados ligeros) usa las cuentas y la barbería de las carpetas 00 a 07 (deja la barbería sin logo ni galería) y se ejecuta después de la 10. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. La carpeta 10 (RGPD y avisos) es autónoma: crea y elimina sus propias cuentas, y se ejecuta después de la 07. Las carpetas 08 y 09 se ejecutan aparte, cada una sola y contra una API recién arrancada (ver LÍMITES).\n\nEJECUCIÓN RECOMENDADA\n`npm run test:postman` (en BarberPlanAPI) crea una base de datos desechable, la siembra, arranca la API y ejecuta la colección con newman en tres pasadas: carpetas 00 a 07 y 10 con el límite global y el de inicio de sesión y registro subidos (RATE_LIMIT_MAX y AUTH_RATE_LIMIT_MAX), carpeta 08 contra una API nueva con los límites reales y carpeta 09 contra otra API nueva. Al terminar borra la base de datos. Con `-- --mantener` deja las APIs y la base levantadas e imprime los valores del entorno para lanzar el Runner a mano.\n\nLÍMITES\nEl limitador global admite 100 peticiones cada 15 minutos por IP y las carpetas 00 a 07 envían más de 300, así que la API debe arrancarse con RATE_LIMIT_MAX alto (lo hace el script). El inicio de sesión y el registro de usuarios (U1 y U2) comparten un límite de 10 peticiones cada 15 minutos por IP: las carpetas 00 a 07 usan los 10 (siete en la carpeta 01, dos en la 02 y el inicio de sesión del barbero invitado en la 04), la carpeta 10 usa otros 8 (4 registros y 4 inicios de sesión; el script sube AUTH_RATE_LIMIT_MAX para las carpetas 00 a 07 y 10) y la carpeta 09 usa otros 10, por eso va sola, contra otra API recién arrancada. Si se ejecuta dos veces seguidas contra la misma API aparecerá un 429: hay que esperar 15 minutos o reiniciar el servidor. Los 429 se prueban en la carpeta 08, que debe ejecutarse sola contra una API recién arrancada con los límites por defecto.\n\nNO CUBIERTO\n- Aprobar solicitudes de vacaciones, horas puntuales y bloqueo de servicio: aquí solo se aprueba una de día libre (añade ese día a los días libres del barbero, así que hay que usar una base de datos de pruebas). Los cuatro tipos los cubre la batería de integración (`npm test`).\n- El identificador mal formado no se repite en todas las rutas: en usuarios, barberías, citas y barberos el mismo validador (`router.param`) se comprueba en otras rutas de su router; en solicitudes no hay ningún caso.\n- El 429 de validar invitaciones y el de registrar barberías.\n- La caducidad automática de las reservas pendientes y las demás tareas periódicas (`TAREAS_CITAS=off` en las pruebas).\n- La concurrencia (dos peticiones simultáneas con el mismo correo, usuario o hueco): la cubren las baterías automáticas (`npm test`).\n- Las imágenes de reseñas y avatares.\n- El 503 cuando MongoDB no está disponible (conexión caída o tiempo agotado): no se puede provocar por HTTP desde esta colección; lo cubre la batería de integración (`npm test`), que corta la conexión con un proxy.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "25829622",
     "_collection_link": "https://go.postman.co/collection/25829622-d71528f7-3c08-437e-9a73-d763dffc6061?source=collection_link"
@@ -12853,6 +12853,916 @@
                     "barberias",
                     "{{barberiaId}}",
                     "resenas"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "C19 · PATCH /citas/:id, GET /citas/:id/huecos y avisos al barbero",
+          "item": [
+            {
+              "name": "Huecos para editar: correcto (barbero asignado)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Lista de horas que incluye la hora actual de la cita (se excluye a sí misma)\", function () { const j = pm.response.json(); pm.expect(j.horariosDisponibles).to.be.an(\"array\"); pm.expect(j.horariosDisponibles).to.include(pm.environment.get(\"horaUltima\")); });",
+                      "if (pm.response.code === 200) { const libres = pm.response.json().horariosDisponibles.filter(h => h !== pm.environment.get('horaUltima')); pm.environment.set('horaEdicion', libres[0] || ''); pm.environment.set('horaEdicion2', libres[1] || ''); }"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}/huecos?fecha={{fechaReserva}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}",
+                    "huecos"
+                  ],
+                  "query": [
+                    {
+                      "key": "fecha",
+                      "value": "{{fechaReserva}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Huecos para editar: rol cliente (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenCliente}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}/huecos?fecha={{fechaReserva}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}",
+                    "huecos"
+                  ],
+                  "query": [
+                    {
+                      "key": "fecha",
+                      "value": "{{fechaReserva}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Huecos para editar: dueño de otra barbería (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 404\", function () { pm.response.to.have.status(404); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdminNuevo}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}/huecos?fecha={{fechaReserva}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}",
+                    "huecos"
+                  ],
+                  "query": [
+                    {
+                      "key": "fecha",
+                      "value": "{{fechaReserva}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Huecos para editar: fecha no válida (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}/huecos?fecha=2026-02-30",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}",
+                    "huecos"
+                  ],
+                  "query": [
+                    {
+                      "key": "fecha",
+                      "value": "2026-02-30"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Correcto: el barbero mueve su cita (arrastre)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"La cita tiene la hora nueva y conserva la duración\", function () { const j = pm.response.json(); pm.expect(j.cita.horaInicio).to.eql(pm.environment.get(\"horaEdicion\")); pm.expect(j.cita).to.have.property(\"horaFin\"); pm.expect(j.cita).to.not.have.property(\"avisosBarbero\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Correcto: el dueño mueve la cita del barbero",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Hora nueva\", function () { pm.expect(pm.response.json().cita.horaInicio).to.eql(pm.environment.get(\"horaEdicion2\")); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion2}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Avisos del barbero: ve la cita que le movió el dueño",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Aviso «modificada» de la cita, sin datos del cliente\", function () { const a = pm.response.json().find(x => x.citaId === pm.environment.get(\"citaManualId\")); pm.expect(a).to.be.an(\"object\"); pm.expect(a.tipo).to.eql(\"modificada\"); pm.expect(a.anterior.horaInicio).to.eql(pm.environment.get(\"horaEdicion\")); pm.expect(a).to.not.have.property(\"clienteNombre\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/avisos/barbero",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "avisos",
+                    "barbero"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Avisos del barbero: rol cliente (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenCliente}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/avisos/barbero",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "avisos",
+                    "barbero"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Correcto: el barbero da por vistos sus avisos",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 200\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"La respuesta es JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                      "pm.test(\"Al menos un aviso leído\", function () { pm.expect(pm.response.json().avisosLeidos).to.be.at.least(1); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/citas/avisos/barbero/leidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "avisos",
+                    "barbero",
+                    "leidos"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Un barbero no puede cambiar el barbero de su cita (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenBarbero}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"barberoId\": \"000000000000000000000000\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Rol incorrecto: cliente (403)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 403\", function () { pm.response.to.have.status(403); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenCliente}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Dueño de otra barbería (404, no revela la cita)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 404\", function () { pm.response.to.have.status(404); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdminNuevo}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Campo que no se puede editar (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"cancelada\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Operador de Mongo en la fecha (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecha\": {\n    \"$gt\": \"\"\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cuerpo vacío (400)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 400\", function () { pm.response.to.have.status(400); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "La cita está cancelada (409)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 409\", function () { pm.response.to.have.status(409); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recurso inexistente (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 404\", function () { pm.response.to.have.status(404); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenAdmin}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/000000000000000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "000000000000000000000000"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sin token (401)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Código de estado 401\", function () { pm.response.to.have.status(401); });",
+                      "pm.test(\"El error llega como { error: texto }\", function () { const j = pm.response.json(); pm.expect(j).to.have.property(\"error\"); pm.expect(j.error).to.be.a(\"string\"); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"horaInicio\": \"{{horaEdicion}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/citas/{{citaManualId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "citas",
+                    "{{citaManualId}}"
                   ]
                 }
               },

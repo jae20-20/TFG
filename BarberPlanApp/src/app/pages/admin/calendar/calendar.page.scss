@@ -400,9 +400,11 @@
       padding-top: 8px;
       border-top: 1px dashed var(--custom-border-subtle);
       display: flex;
-      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
 
-      .cita-cancel-btn {
+      .cita-cancel-btn,
+      .cita-edit-btn {
         margin: 0;
         --color: var(--ion-color-danger);
         --background-hover: rgba(var(--ion-color-danger-rgb), 0.12);
@@ -413,6 +415,15 @@
         ion-icon {
           font-size: 18px;
         }
+      }
+
+      .cita-cancel-btn {
+        margin-left: auto;
+      }
+
+      .cita-edit-btn {
+        --color: var(--ion-color-primary);
+        --background-hover: rgba(var(--ion-color-primary-rgb), 0.12);
       }
     }
   }

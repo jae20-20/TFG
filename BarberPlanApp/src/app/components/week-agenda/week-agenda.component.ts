@@ -1,9 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { ScheduleSlot, toHHMM, toMinutes } from '../../services/schedule.util';
-import { AccionEstadoCita, admiteCancelacionPersonal, admitePago, etiquetaEstadoCita } from '../../services/cita-estado.util';
+import { AccionEstadoCita, admiteCancelacionPersonal, admiteEdicion, admitePago, etiquetaEstadoCita } from '../../services/cita-estado.util';
 import { CitaAccionesComponent } from '../cita-acciones/cita-acciones.component';
+
+export interface MovimientoCita {
+  cita: any;
+  fecha: string;
+  horaInicio: string;
+}
+
+interface EstadoArrastre {
+  cita: any;
+  pointerId: number;
+  pointerType: string;
+  inicioX: number;
+  inicioY: number;
+  inicioMin: number;
+  duracionMin: number;
+  activo: boolean;
+  temporizador: ReturnType<typeof setTimeout> | null;
+  minutoDestino: number;
+  diaDestino: string | null;
+}
 
 export interface WeekAgendaDay {
   key: string;
@@ -38,6 +58,12 @@ const PX_PER_MIN = HOUR_HEIGHT / 60;
 const MIN_BLOCK_HEIGHT = 38; // px mínimos para que quepan las dos líneas (hora y cliente-servicio)
 const DEFAULT_START_MIN = 8 * 60;
 const DEFAULT_END_MIN = 21 * 60;
+// Misma granularidad que los huecos del servidor (INTERVALO_HUECOS_MIN)
+const REJILLA_MIN = 30;
+// En táctil el arrastre empieza con pulsación larga para no chocar con el scroll
+const PULSACION_LARGA_MS = 450;
+const TOLERANCIA_TACTIL_PX = 8;
+const UMBRAL_RATON_PX = 4;
 
 @Component({
   selector: 'app-week-agenda',
@@ -46,21 +72,35 @@ const DEFAULT_END_MIN = 21 * 60;
   templateUrl: './week-agenda.component.html',
   styleUrls: ['./week-agenda.component.scss']
 })
-export class WeekAgendaComponent implements OnChanges, OnDestroy {
+export class WeekAgendaComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() weekDays: WeekAgendaDay[] = [];
   @Input() citas: any[] = [];
   @Input() slots: ScheduleSlot[] = [];
   @Input() absences: ScheduleSlot[] = [];
+  @Input() edicionHabilitada = false;
 
   @Output() daySelected = new EventEmitter<string>();
   @Output() togglePago = new EventEmitter<{ cita: any; event: any }>();
   @Output() editImporte = new EventEmitter<any>();
   @Output() cancelCita = new EventEmitter<any>();
   @Output() cambiarEstado = new EventEmitter<{ cita: any; accion: AccionEstadoCita }>();
+  @Output() moverCita = new EventEmitter<MovimientoCita>();
+  @Output() editarCita = new EventEmitter<any>();
 
   readonly etiquetaEstado = etiquetaEstadoCita;
   readonly admitePago = admitePago;
   readonly admiteCancelacionPersonal = admiteCancelacionPersonal;
+  readonly admiteEdicion = admiteEdicion;
+
+  arrastrandoId: string | null = null;
+  vistaPrevia: { top: number; height: number; etiqueta: string } | null = null;
+  diaDestino: string | null = null;
+  private arrastre: EstadoArrastre | null = null;
+  private ignorarClic = false;
+  // Necesita un listener no pasivo para poder cancelar el scroll mientras se arrastra con el dedo
+  private readonly bloquearDesplazamiento = (event: TouchEvent) => {
+    if (this.arrastre?.activo && event.cancelable) event.preventDefault();
+  };
 
   gridStart = DEFAULT_START_MIN;
   gridEnd = DEFAULT_END_MIN;
@@ -77,7 +117,7 @@ export class WeekAgendaComponent implements OnChanges, OnDestroy {
 
   private nowInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor() {
+  constructor(private host: ElementRef<HTMLElement>) {
     this.nowInterval = setInterval(() => this.updateNowLine(), 60000);
   }
 
@@ -87,10 +127,16 @@ export class WeekAgendaComponent implements OnChanges, OnDestroy {
     }
   }
 
+  ngAfterViewInit() {
+    this.host.nativeElement.addEventListener('touchmove', this.bloquearDesplazamiento, { passive: false });
+  }
+
   ngOnDestroy() {
     if (this.nowInterval) {
       clearInterval(this.nowInterval);
     }
+    this.host.nativeElement.removeEventListener('touchmove', this.bloquearDesplazamiento);
+    this.terminarArrastre();
   }
 
   onDayClick(dateKey: string) {
@@ -100,6 +146,132 @@ export class WeekAgendaComponent implements OnChanges, OnDestroy {
   openDetail(cita: any) {
     this.selectedCita = cita;
     this.isDetailOpen = true;
+  }
+
+  onBlockClick(cita: any) {
+    if (this.ignorarClic) return;
+    this.openDetail(cita);
+  }
+
+  onEditarClick() {
+    if (!this.selectedCita) return;
+    const cita = this.selectedCita;
+    this.closeDetail();
+    this.editarCita.emit(cita);
+  }
+
+  esArrastrable(cita: any): boolean {
+    return this.edicionHabilitada && admiteEdicion(cita);
+  }
+
+  // ==================== ARRASTRE ====================
+  // Soltar sobre la rejilla cambia la hora; soltar sobre un día de la tira cambia el día y conserva la hora
+
+  onBlockPointerDown(event: PointerEvent, item: PositionedCita) {
+    if (!this.esArrastrable(item.cita) || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    const inicio = toMinutes(item.cita.horaInicio);
+    const fin = item.cita.horaFin ? toMinutes(item.cita.horaFin) : inicio + (Number(item.cita.servicioDuracion) || REJILLA_MIN);
+    this.terminarArrastre();
+    this.arrastre = {
+      cita: item.cita,
+      pointerId: event.pointerId,
+      pointerType: event.pointerType,
+      inicioX: event.clientX,
+      inicioY: event.clientY,
+      inicioMin: inicio,
+      duracionMin: Math.max(fin - inicio, REJILLA_MIN),
+      activo: false,
+      temporizador: null,
+      minutoDestino: inicio,
+      diaDestino: null
+    };
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    if (event.pointerType === 'mouse') {
+      event.preventDefault();
+    } else {
+      this.arrastre.temporizador = setTimeout(() => this.activarArrastre(), PULSACION_LARGA_MS);
+    }
+  }
+
+  onBlockPointerMove(event: PointerEvent) {
+    const arrastre = this.arrastre;
+    if (!arrastre || event.pointerId !== arrastre.pointerId) return;
+    const distancia = Math.hypot(event.clientX - arrastre.inicioX, event.clientY - arrastre.inicioY);
+
+    if (!arrastre.activo) {
+      if (arrastre.pointerType === 'mouse') {
+        if (distancia > UMBRAL_RATON_PX) this.activarArrastre();
+      } else if (distancia > TOLERANCIA_TACTIL_PX) {
+        this.terminarArrastre();
+      }
+      if (!this.arrastre?.activo) return;
+    }
+
+    event.preventDefault();
+    this.actualizarVistaPrevia(event.clientX, event.clientY);
+  }
+
+  onBlockPointerUp(event: PointerEvent) {
+    const arrastre = this.arrastre;
+    if (!arrastre || event.pointerId !== arrastre.pointerId) return;
+    if (arrastre.activo) {
+      const fecha = arrastre.diaDestino ?? this.diaSeleccionado();
+      const horaInicio = toHHMM(arrastre.minutoDestino);
+      const cambia = fecha !== String(arrastre.cita.fecha).slice(0, 10) || horaInicio !== arrastre.cita.horaInicio;
+      this.ignorarClic = true;
+      setTimeout(() => (this.ignorarClic = false));
+      if (fecha && cambia) this.moverCita.emit({ cita: arrastre.cita, fecha, horaInicio });
+    }
+    this.terminarArrastre();
+  }
+
+  onBlockPointerCancel() {
+    this.terminarArrastre();
+  }
+
+  private activarArrastre() {
+    if (!this.arrastre) return;
+    this.arrastre.activo = true;
+    this.arrastrandoId = this.arrastre.cita._id;
+    navigator.vibrate?.(15);
+    this.actualizarVistaPrevia(this.arrastre.inicioX, this.arrastre.inicioY);
+  }
+
+  private actualizarVistaPrevia(x: number, y: number) {
+    const arrastre = this.arrastre;
+    if (!arrastre) return;
+    const bajoPuntero = document.elementFromPoint(x, y) as HTMLElement | null;
+    const dia = bajoPuntero?.closest<HTMLElement>('[data-dia]')?.dataset['dia'] ?? null;
+
+    let minuto = arrastre.inicioMin;
+    if (!dia) {
+      const desplazado = arrastre.inicioMin + (y - arrastre.inicioY) / PX_PER_MIN;
+      const ajustado = Math.round(desplazado / REJILLA_MIN) * REJILLA_MIN;
+      minuto = Math.min(Math.max(ajustado, this.gridStart), this.gridEnd - arrastre.duracionMin);
+    }
+    arrastre.minutoDestino = minuto;
+    arrastre.diaDestino = dia && dia !== this.diaSeleccionado() ? dia : null;
+    this.diaDestino = arrastre.diaDestino;
+
+    const diaTira = arrastre.diaDestino ? this.weekDays.find(d => d.key === arrastre.diaDestino) : null;
+    const rango = `${toHHMM(minuto)}-${toHHMM(minuto + arrastre.duracionMin)}`;
+    this.vistaPrevia = {
+      top: (minuto - this.gridStart) * PX_PER_MIN,
+      height: Math.max(arrastre.duracionMin * PX_PER_MIN, MIN_BLOCK_HEIGHT),
+      etiqueta: diaTira ? `${diaTira.weekdayLabel} ${diaTira.dayNumber} · ${rango}` : rango
+    };
+  }
+
+  private terminarArrastre() {
+    if (this.arrastre?.temporizador) clearTimeout(this.arrastre.temporizador);
+    this.arrastre = null;
+    this.arrastrandoId = null;
+    this.vistaPrevia = null;
+    this.diaDestino = null;
+  }
+
+  private diaSeleccionado(): string {
+    return this.weekDays.find(day => day.isSelected)?.key ?? '';
   }
 
   closeDetail() {

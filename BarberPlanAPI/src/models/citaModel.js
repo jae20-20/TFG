@@ -9,6 +9,46 @@ export const ESTADOS_OCUPAN_HUECO = ["pendiente", "confirmada", "completada"];
 // Tipo de avisoCliente (RF12) que se deja cuando el personal responde la reseña del cliente
 export const AVISO_RESPUESTA_RESENA = "respuesta_resena";
 
+export const ESTADOS_EDITABLES = ["pendiente", "confirmada"];
+
+export const AVISO_CITA_MODIFICADA = "modificada";
+
+// ==================== BLOQUEO DE AGENDA ====================
+
+// Dos escrituras simultáneas sobre la misma agenda escriben el mismo bloqueo (barbero + día): MongoDB aborta una
+// y withTransaction la reintenta viendo ya la otra
+const conBloqueoAgenda = async (barberoId, fecha, operacion) => {
+    const agenda = db.collection("AgendaBloqueos");
+    const bloqueoId = `${barberoId}:${fecha}`;
+    try {
+        await agenda.updateOne({ _id: bloqueoId }, { $setOnInsert: { version: 0 } }, { upsert: true });
+    } catch (error) {
+        if (error.code !== 11000) throw error;
+    }
+
+    const session = client.startSession();
+    try {
+        let resultado = null;
+        await session.withTransaction(async () => {
+            resultado = null;
+            await agenda.updateOne({ _id: bloqueoId }, { $inc: { version: 1 } }, { session });
+            resultado = await operacion(session);
+        });
+        return resultado;
+    } finally {
+        await session.endSession();
+    }
+};
+
+const filtroSolape = ({ barberoId, fecha, horaInicio, horaFin }, excluirId) => ({
+    barberoId,
+    fecha,
+    estado: { $in: ESTADOS_OCUPAN_HUECO },
+    horaInicio: { $lt: horaFin },
+    horaFin: { $gt: horaInicio },
+    ...(excluirId ? { _id: { $ne: excluirId } } : {})
+});
+
 // ==================== FUNCIONES BÁSICAS ====================
 
 // Crea la cita solo si el barbero no tiene otra que ocupe hueco (ESTADOS_OCUPAN_HUECO) y se solape.
@@ -26,36 +66,46 @@ export const createCita = async (citaData) => {
         updatedAt: new Date()
     };
 
-    // Dos reservas simultáneas escriben el mismo bloqueo (barbero + día): MongoDB aborta una y withTransaction la reintenta viendo ya la otra
-    const agenda = db.collection("AgendaBloqueos");
-    const bloqueoId = `${cita.barberoId}:${cita.fecha}`;
-    try {
-        await agenda.updateOne({ _id: bloqueoId }, { $setOnInsert: { version: 0 } }, { upsert: true });
-    } catch (error) {
-        if (error.code !== 11000) throw error;
+    return await conBloqueoAgenda(cita.barberoId, cita.fecha, async (session) => {
+        const solape = await db.collection("Citas").findOne(filtroSolape(cita), { session, projection: { _id: 1 } });
+        if (solape) return null;
+        const { insertedId } = await db.collection("Citas").insertOne({ ...cita }, { session });
+        return { ...cita, _id: insertedId };
+    });
+};
+
+// Mueve o cambia una cita con la misma protección que createCita. El filtro del update exige que la cita siga como
+// se leyó (original): si otra petición la movió o cancelló entretanto, no se escribe nada
+export const moverCita = async (original, cambios, extra = {}) => {
+    const destino = {
+        barberoId: new ObjectId(cambios.barberoId),
+        fecha: cambios.fecha,
+        horaInicio: cambios.horaInicio,
+        horaFin: cambios.horaFin
+    };
+    const $set = { ...cambios, ...destino, ...extra, updatedAt: new Date() };
+    if (cambios.servicioId !== undefined) $set.servicioId = new ObjectId(cambios.servicioId);
+    if (extra.avisosBarbero) {
+        $set.avisosBarbero = extra.avisosBarbero.map((aviso) => ({ ...aviso, barberoId: new ObjectId(String(aviso.barberoId)) }));
     }
 
-    const session = client.startSession();
-    try {
-        let insertada = null;
-        await session.withTransaction(async () => {
-            insertada = null;
-            await agenda.updateOne({ _id: bloqueoId }, { $inc: { version: 1 } }, { session });
-            const solape = await db.collection("Citas").findOne({
-                barberoId: cita.barberoId,
-                fecha: cita.fecha,
-                estado: { $in: ESTADOS_OCUPAN_HUECO },
-                horaInicio: { $lt: cita.horaFin },
-                horaFin: { $gt: cita.horaInicio }
-            }, { session, projection: { _id: 1 } });
-            if (solape) return;
-            const { insertedId } = await db.collection("Citas").insertOne({ ...cita }, { session });
-            insertada = { ...cita, _id: insertedId };
-        });
-        return insertada;
-    } finally {
-        await session.endSession();
-    }
+    return await conBloqueoAgenda(destino.barberoId, destino.fecha, async (session) => {
+        const solape = await db.collection("Citas").findOne(filtroSolape(destino, original._id), { session, projection: { _id: 1 } });
+        if (solape) return { motivo: "ocupado" };
+        const cita = await db.collection("Citas").findOneAndUpdate(
+            {
+                _id: original._id,
+                estado: { $in: ESTADOS_EDITABLES },
+                barberoId: original.barberoId,
+                fecha: original.fecha,
+                horaInicio: original.horaInicio,
+                horaFin: original.horaFin
+            },
+            { $set },
+            { session, returnDocument: "after" }
+        );
+        return cita ? { cita } : { motivo: "cambiada" };
+    });
 };
 
 // Obtener cita por ID
@@ -107,7 +157,7 @@ export const getCitasByClienteId = async (clienteId) => {
         },
         { $unwind: { path: "$barberia", preserveNullAndEmptyArrays: true } },
         { $unwind: { path: "$barbero", preserveNullAndEmptyArrays: true } },
-        { $project: { "resena.imagen": 0, "resena.respuesta.autorId": 0 } }
+        { $project: { "resena.imagen": 0, "resena.respuesta.autorId": 0, avisosBarbero: 0 } }
     ]).toArray();
 };
 
@@ -130,7 +180,8 @@ export const getCitasByBarberoId = async (barberoId, barberiaId) => {
                 "cliente.pw": 0,
                 "cliente.avatar": 0,
                 "resena.imagen": 0,
-                "resena.respuesta.autorId": 0
+                "resena.respuesta.autorId": 0,
+                avisosBarbero: 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -169,7 +220,8 @@ export const getCitasByBarberiaId = async (barberiaId) => {
                 "barbero.pw": 0,
                 "barbero.avatar": 0,
                 "resena.imagen": 0,
-                "resena.respuesta.autorId": 0
+                "resena.respuesta.autorId": 0,
+                avisosBarbero: 0
             }
         },
         { $sort: { fecha: -1 } }
@@ -314,6 +366,42 @@ export const quitarAvisosCliente = async (clienteId) => {
     return await db.collection("Citas").updateMany(
         { clienteId: new ObjectId(clienteId), avisoCliente: { $exists: true } },
         { $unset: { avisoCliente: "" } }
+    );
+};
+
+// ==================== AVISOS AL BARBERO ====================
+// avisosBarbero: [{ barberoId, tipo, creadoEn, anterior }]. Es una lista porque un barbero puede tener aviso en una
+// cita que ya no es suya, y no se devuelven datos del cliente ni avisos de otros barberos
+
+export const getAvisosBarbero = async (barberoId) => {
+    const id = new ObjectId(barberoId);
+    return await db.collection("Citas").aggregate([
+        { $match: { "avisosBarbero.barberoId": id } },
+        { $unwind: "$avisosBarbero" },
+        { $match: { "avisosBarbero.barberoId": id } },
+        { $sort: { "avisosBarbero.creadoEn": -1 } },
+        {
+            $project: {
+                _id: 0,
+                citaId: "$_id",
+                tipo: "$avisosBarbero.tipo",
+                creadoEn: "$avisosBarbero.creadoEn",
+                anterior: "$avisosBarbero.anterior",
+                fecha: 1,
+                horaInicio: 1,
+                horaFin: 1,
+                servicioNombre: 1,
+                estado: 1
+            }
+        }
+    ]).toArray();
+};
+
+export const quitarAvisosBarbero = async (barberoId) => {
+    const id = new ObjectId(barberoId);
+    return await db.collection("Citas").updateMany(
+        { "avisosBarbero.barberoId": id },
+        { $pull: { avisosBarbero: { barberoId: id } } }
     );
 };
 

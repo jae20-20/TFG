@@ -400,8 +400,10 @@ ion-alert.select-alert {
     font-weight: 700 !important;
   }
 
-  .alert-head {
-    border-bottom: 1.5px solid var(--ion-color-primary) !important;
+  /* Sin título, la cabecera vacía y su hueco desaparecen: así no se apilan dos rayas encima de la lista */
+  .alert-head:empty,
+  .alert-head:empty + .alert-message:empty {
+    display: none !important;
   }
 
   .alert-radio-label,
@@ -414,6 +416,12 @@ ion-alert.select-alert {
   .alert-checkbox-group {
     border-top: 1.5px solid var(--ion-color-primary) !important;
     border-bottom: 1.5px solid var(--ion-color-primary) !important;
+  }
+
+  .alert-head:empty ~ .alert-radio-group,
+  .alert-head:empty ~ .alert-checkbox-group {
+    border-top: none !important;
+    padding-top: 6px !important;
   }
 
   .alert-button-group {

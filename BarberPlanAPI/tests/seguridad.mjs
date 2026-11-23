@@ -1,5 +1,5 @@
 // Batería de seguridad: autorización entre barberías (IDOR), inyección NoSQL, exposición de datos,
-// validación de entradas y CORS. Levanta su propia API (puerto 5099) sobre la BD desechable
+// validación de entradas (también la edición de citas desde la agenda) y CORS. Levanta su propia API (puerto 5099) sobre la BD desechable
 // BarberPlan_test sembrada con tests/semilla.mjs, y la borra al terminar. Solo hace lecturas o
 // peticiones que el servidor rechaza antes de escribir (también las de respuesta a reseñas). Las rutas de escritura comprueban que la
 // cuenta del token exista, así que los atacantes de las pruebas son cuentas reales (sembradas aquí):
@@ -620,6 +620,78 @@ try {
         }
         check("Cita manual: el 404 es idéntico para un correo sin cuenta, de un barbero o de un dueño (sin datos de la cuenta)", new Set(respuestas404).size === 1);
         check("Cita manual por correo: ninguna petición rechazada ha creado una cita", await entorno.bd.collection("Citas").countDocuments() === citasAntes);
+    }
+
+    // --- Edición de citas y avisos al barbero: permisos por recurso, cuerpo estricto y estados no editables.
+    // Todas las peticiones se rechazan antes de escribir
+    {
+        const usuario = (nombre) => entorno.bd.collection("Usuarios").findOne({ usuario: nombre });
+        const [adminA, adminB, barberoA1, barberoA2, clienteSemilla] = await Promise.all(
+            ["admin_a", "admin_b", "barbero_a1", "barbero_a2", "cliente_1"].map(usuario));
+        const token = (u) => firmar({ id: u._id.toString(), rol: u.rol, barberiaId: u.barberiaId?.toString() ?? null });
+        const citasA1 = await entorno.bd.collection("Citas").find({ barberoId: barberoA1._id, resena: { $exists: false } }).toArray();
+        const citaEditable = citasA1.find((c) => c.estado === "confirmada");
+        const citaCancelada = citasA1.find((c) => c.estado === "cancelada");
+        const citaCompletada = citasA1.find((c) => c.estado === "completada");
+        const huella = async () => JSON.stringify((await entorno.bd.collection("Citas").find({}, { projection: { fecha: 1, horaInicio: 1, horaFin: 1, estado: 1, barberoId: 1, servicioPrecio: 1 } }).sort({ _id: 1 }).toArray()));
+        const antes = await huella();
+        const editar = (tok, cita, body = { horaInicio: "15:00" }) => req("PATCH", `/citas/${cita._id}`, { token: tok, body });
+
+        r = await editar(undefined, citaEditable);
+        check("Editar cita sin token -> 401", r.status === 401, `${r.status}`);
+        r = await editar(token(clienteSemilla), citaEditable);
+        check("Editar cita con rol cliente (aunque sea su cita) -> 403", r.status === 403, `${r.status}`);
+        r = await editar(adminAjeno, citaEditable);
+        check("Editar cita: admin que no administra ninguna barbería -> 404 (no revela la cita)", r.status === 404, `${r.status}`);
+        r = await editar(token(adminB), citaEditable);
+        check("Editar cita: dueño de otra barbería -> 404", r.status === 404, `${r.status}`);
+        r = await editar(firmar({ id: adminB._id.toString(), rol: "admin", barberiaId: adminA.barberiaId.toString() }), citaEditable);
+        check("Editar cita: la barbería del token no da permiso (se comprueba en la BD) -> 404", r.status === 404, `${r.status}`);
+        r = await editar(token(barberoA2), citaEditable);
+        check("Editar cita: barbero de la misma barbería sobre la cita de otro barbero -> 404", r.status === 404, `${r.status}`);
+        r = await editar(token(barberoA1), citaEditable, { barberoId: barberoA2._id.toString() });
+        check("Editar cita: el barbero asignado no puede cambiar el barbero -> 403", r.status === 403, `${r.status}`);
+        r = await editar(token(adminA), citaCancelada);
+        check("Editar cita cancelada -> 409", r.status === 409, `${r.status}`);
+        r = await editar(token(adminA), citaCompletada);
+        check("Editar cita completada -> 409", r.status === 409, `${r.status}`);
+
+        for (const [nombre, body] of [
+            ["el operador $gt en la fecha", { fecha: { $gt: "" } }],
+            ["el operador $ne en el barbero", { barberoId: { $ne: null } }],
+            ["un $where en la raíz", { $where: "sleep(1000)" }],
+            ["un operador dentro de servicioIds", { servicioIds: [{ $in: [] }] }],
+            ["el campo estado", { estado: "cancelada" }],
+            ["el campo clienteId", { clienteId: clienteSemilla._id.toString() }],
+            ["el campo barberiaId", { barberiaId: adminB.barberiaId.toString() }],
+            ["el campo pagado", { horaInicio: "15:00", pagado: true }]
+        ]) {
+            r = await editar(token(adminA), citaEditable, body);
+            check(`Editar cita con ${nombre} -> 400`, r.status === 400 && typeof r.data?.error === "string", `${r.status} ${JSON.stringify(r.data)}`);
+        }
+
+        const huecos = (tok, extra = "") => req("GET", `/citas/${citaEditable._id}/huecos?fecha=${fechaRelativa(7)}${extra}`, { token: tok });
+        r = await huecos(undefined);
+        check("Huecos para editar sin token -> 401", r.status === 401, `${r.status}`);
+        r = await huecos(token(clienteSemilla));
+        check("Huecos para editar con rol cliente -> 403", r.status === 403, `${r.status}`);
+        r = await huecos(token(adminB));
+        check("Huecos para editar: dueño de otra barbería -> 404", r.status === 404, `${r.status}`);
+        r = await huecos(token(barberoA2));
+        check("Huecos para editar: barbero de otra cita -> 404", r.status === 404, `${r.status}`);
+        r = await huecos(token(barberoA1), `&barberoId=${barberoA2._id}`);
+        check("Huecos para editar: el barbero no puede consultar a otro barbero -> 403", r.status === 403, `${r.status}`);
+        r = await huecos(token(adminA), "&barberoId=abc");
+        check("Huecos para editar con un barberoId mal formado -> 400", r.status === 400, `${r.status}`);
+
+        r = await req("GET", "/citas/avisos/barbero");
+        check("Avisos del barbero sin token -> 401", r.status === 401, `${r.status}`);
+        r = await req("GET", "/citas/avisos/barbero", { token: token(adminA) });
+        check("Avisos del barbero con rol dueño -> 403", r.status === 403, `${r.status}`);
+        r = await req("PUT", "/citas/avisos/barbero/leidos", { token: token(clienteSemilla) });
+        check("Marcar avisos del barbero con rol cliente -> 403", r.status === 403, `${r.status}`);
+
+        check("Edición de citas: ninguna petición rechazada ha modificado ninguna cita", await huella() === antes);
     }
 
     // --- CORS

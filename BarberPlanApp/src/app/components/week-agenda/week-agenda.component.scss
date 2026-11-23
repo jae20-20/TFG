@@ -190,6 +190,60 @@
   &.estado-no_presentada {
     opacity: 0.55;
   }
+
+  &.arrastrable {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  &.arrastrando {
+    cursor: grabbing;
+    opacity: 0.35;
+    filter: none;
+  }
+}
+
+.week-cita-preview {
+  position: absolute;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 2px dashed var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.22);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color: var(--custom-text-primary);
+  font-size: 12px;
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 4;
+  transition: top 0.08s ease-out;
+
+  &.otro-dia {
+    border-color: var(--custom-gold-light);
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+  }
+}
+
+.week-strip-day.drop-target {
+  border-color: var(--custom-gold-light);
+  box-shadow: 0 0 0 2px var(--custom-gold-light);
+  transform: scale(1.06);
+  transition: transform 0.12s ease;
+}
+
+.detalle-actions {
+  .cita-edit-btn {
+    margin: 0;
+    --color: var(--ion-color-primary);
+    --background-hover: rgba(var(--ion-color-primary-rgb), 0.12);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+  }
 }
 
 .week-cita-time {
@@ -330,10 +384,11 @@
   padding-top: 10px;
   border-top: 1px dashed var(--custom-border-subtle);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
 
   .cita-cancel-btn {
-    margin: 0;
+    margin: 0 0 0 auto;
     --color: var(--ion-color-danger);
     --background-hover: rgba(var(--ion-color-danger-rgb), 0.12);
     font-size: 13px;

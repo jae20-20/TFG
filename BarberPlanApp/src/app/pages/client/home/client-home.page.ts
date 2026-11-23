@@ -95,7 +95,8 @@ const ICONOS_AVISO: Record<TipoAvisoCita, string> = {
   expirada: 'time-outline',
   cancelada: 'alert-circle-outline',
   respuesta_resena: 'chatbubble-ellipses-outline',
-  nueva: 'calendar-outline'
+  nueva: 'calendar-outline',
+  modificada: 'pencil-outline'
 };
 
 @Component({

@@ -7,16 +7,21 @@ import { ApiService } from '../../../services/api.service';
 import { CitaAccionesService } from '../../../services/cita-acciones.service';
 import {
   AccionEstadoCita,
+  AvisoBarbero,
   admiteCancelacionPersonal,
+  admiteEdicion,
   admitePago,
   esPendienteVigente,
   etiquetaEstadoCita,
-  inicialesCliente
+  inicialesCliente,
+  textoAvisoBarbero
 } from '../../../services/cita-estado.util';
+import { CitaEdicionService } from '../../../services/cita-edicion.service';
 import { CitaAccionesComponent } from '../../../components/cita-acciones/cita-acciones.component';
+import { EditarCitaModalComponent } from '../../../components/editar-cita-modal/editar-cita-modal.component';
 import { PendientesAprobacionComponent } from '../../../components/pendientes-aprobacion/pendientes-aprobacion.component';
 import { resolveDaySchedule, ScheduleSlot } from '../../../services/schedule.util';
-import { WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
+import { MovimientoCita, WeekAgendaComponent, WeekAgendaDay } from '../../../components/week-agenda/week-agenda.component';
 import { MonthCalendarComponent, CalendarDay } from '../../../components/month-calendar/month-calendar.component';
 
 const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
@@ -26,9 +31,14 @@ const CALENDAR_VIEW_STORAGE_KEY = 'barberplan_calendar_view';
   templateUrl: './calendar.page.html',
   styleUrls: ['./calendar.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent]
+  imports: [IonicModule, CommonModule, FormsModule, WeekAgendaComponent, MonthCalendarComponent, CitaAccionesComponent, PendientesAprobacionComponent, EditarCitaModalComponent]
 })
 export class BarberCalendarPage implements OnInit {
+  readonly admiteEdicion = admiteEdicion;
+  readonly textoAvisoBarbero = textoAvisoBarbero;
+  citaEnEdicion: any = null;
+  avisosBarbero: AvisoBarbero[] = [];
+  descartandoAvisos = false;
   readonly inicialesCliente = inicialesCliente;
   user: any = null;
   citas: any[] = [];
@@ -75,7 +85,8 @@ export class BarberCalendarPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private cdr: ChangeDetectorRef,
-    private citaAcciones: CitaAccionesService
+    private citaAcciones: CitaAccionesService,
+    private citaEdicion: CitaEdicionService
   ) { }
 
   readonly etiquetaEstado = etiquetaEstadoCita;
@@ -116,6 +127,7 @@ export class BarberCalendarPage implements OnInit {
       const citas = await this.apiService.getCitasBarbero();
       this.citas = Array.isArray(citas) ? citas : [];
       this.pendientes = this.citas.filter(esPendienteVigente);
+      await this.cargarAvisos();
 
       try {
         const profile = await this.apiService.getMyProfile();
@@ -637,6 +649,50 @@ export class BarberCalendarPage implements OnInit {
   async onCambiarEstado(cita: any, accion: AccionEstadoCita) {
     if (await this.citaAcciones.ejecutar(cita, accion)) {
       await this.recargarCitas();
+    }
+  }
+
+  // ==================== EDICIÓN DE CITAS ====================
+
+  async onMoverCita({ cita, fecha, horaInicio }: MovimientoCita) {
+    await this.citaEdicion.mover(cita, fecha, horaInicio, () => this.updateSelectedDayAppointments());
+  }
+
+  abrirEdicion(cita: any, event?: Event) {
+    event?.stopPropagation();
+    this.citaEnEdicion = cita;
+  }
+
+  cerrarEdicion() {
+    this.citaEnEdicion = null;
+  }
+
+  async onCitaGuardada() {
+    this.citaEnEdicion = null;
+    await this.citaEdicion.toast('Cita modificada. El cliente recibirá un aviso.', 'success');
+    await this.recargarCitas();
+  }
+
+  private async cargarAvisos() {
+    try {
+      const avisos = await this.apiService.getAvisosBarbero();
+      this.avisosBarbero = Array.isArray(avisos) ? avisos : [];
+    } catch (err) {
+      console.warn('No se pudieron cargar los avisos:', err);
+      this.avisosBarbero = [];
+    }
+  }
+
+  async descartarAvisos() {
+    if (this.descartandoAvisos) return;
+    this.descartandoAvisos = true;
+    try {
+      await this.apiService.marcarAvisosBarberoLeidos();
+      this.avisosBarbero = [];
+    } catch (err) {
+      console.warn('No se pudieron marcar los avisos como leídos:', err);
+    } finally {
+      this.descartandoAvisos = false;
     }
   }
 

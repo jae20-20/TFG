@@ -61,10 +61,11 @@ export function esPendienteVigente(cita: any): boolean {
 
 // ==================== AVISOS AL CLIENTE (RF12) ====================
 // El servidor deja `avisoCliente: { tipo, creadoEn }` en la cita cuando el personal acepta, rechaza o cancela una reserva,
-// cuando caduca sin respuesta, cuando el personal responde la reseña del cliente (respuesta_resena) o cuando le asigna
-// una cita manual a su cuenta (nueva). Solo se muestran dentro de la aplicación (sin push ni correo).
+// cuando caduca sin respuesta, cuando el personal responde la reseña del cliente (respuesta_resena), cuando le asigna
+// una cita manual a su cuenta (nueva) o cuando mueve o cambia su cita (modificada, con `anterior: { fecha, horaInicio }`).
+// Solo se muestran dentro de la aplicación (sin push ni correo).
 
-export type TipoAvisoCita = 'confirmada' | 'rechazada' | 'expirada' | 'cancelada' | 'respuesta_resena' | 'nueva';
+export type TipoAvisoCita = 'confirmada' | 'rechazada' | 'expirada' | 'cancelada' | 'respuesta_resena' | 'nueva' | 'modificada';
 
 export interface AvisoCita {
   citaId: string;
@@ -92,8 +93,55 @@ export function textoAvisoCita(cita: any): string {
     // Si el cliente ya la canceló, el aviso de la cita nueva deja de tener sentido y no se muestra
     case 'nueva': return cita?.estado === 'confirmada' ? `Tienes una cita nueva en ${barberia} el ${diaMes(cita?.fecha)} a las ${cita?.horaInicio}.` : '';
     case 'respuesta_resena': return `${barberia} ha respondido a tu reseña de la cita del ${diaMes(cita?.fecha)}.`;
+    // Si se canceló después de moverla, el aviso de cancelación ya la cubre
+    case 'modificada': {
+      if (cita?.estado === 'cancelada') return '';
+      const anterior = cita?.avisoCliente?.anterior;
+      const desde = anterior?.fecha ? `del ${diaMes(anterior.fecha)} a las ${anterior.horaInicio}` : cuando;
+      return `${barberia} ha cambiado tu cita ${desde}: ahora es el ${diaMes(cita?.fecha)} a las ${cita?.horaInicio}.`;
+    }
     default: return '';
   }
+}
+
+// ==================== AVISOS AL BARBERO ====================
+
+export type TipoAvisoBarbero = 'modificada' | 'reasignada_entrante' | 'reasignada_saliente';
+
+export interface AvisoBarbero {
+  citaId: string;
+  tipo: TipoAvisoBarbero;
+  creadoEn: string;
+  fecha: string;
+  horaInicio: string;
+  horaFin?: string;
+  servicioNombre?: string;
+  estado?: EstadoCita;
+  anterior?: { fecha: string; horaInicio: string };
+}
+
+export function textoAvisoBarbero(aviso: Pick<AvisoBarbero, 'tipo' | 'fecha' | 'horaInicio' | 'anterior'>): string {
+  const ahora = `el ${diaMes(aviso.fecha)} a las ${aviso.horaInicio}`;
+  const antes = aviso.anterior?.fecha ? `el ${diaMes(aviso.anterior.fecha)} a las ${aviso.anterior.horaInicio}` : ahora;
+  switch (aviso.tipo) {
+    case 'modificada': return `El dueño ha movido tu cita de ${antes} a ${ahora}.`;
+    case 'reasignada_entrante': return `El dueño te ha pasado una cita: ${ahora}.`;
+    case 'reasignada_saliente': return `La cita de ${antes} ya no es tuya: el dueño se la ha pasado a otro barbero.`;
+    default: return '';
+  }
+}
+
+// ==================== EDICIÓN DESDE LA AGENDA ====================
+
+export function admiteEdicion(cita: any): boolean {
+  return (cita?.estado === 'pendiente' || cita?.estado === 'confirmada') && !citaHaEmpezado(cita);
+}
+
+export interface EdicionCita {
+  fecha?: string;
+  horaInicio?: string;
+  barberoId?: string;
+  servicioIds?: string[];
 }
 
 // Citas con aviso sin ver, de la más reciente a la más antigua

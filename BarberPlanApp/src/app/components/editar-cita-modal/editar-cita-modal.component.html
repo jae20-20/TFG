@@ -1,0 +1,71 @@
+<ion-modal [isOpen]="abierto" (didDismiss)="onCerrar()" class="premium-modal compact-modal">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Editar cita</ion-title>
+        <ion-buttons slot="end">
+          <ion-button class="modal-close-btn" (click)="onCerrar()" aria-label="Cerrar">
+            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <div class="compact-modal-body" *ngIf="cita">
+      <p class="modal-subtitle-text mb-4">
+        Ahora: <b>{{ fechaActualTexto }}</b> de <b>{{ cita.horaInicio }}</b> a <b>{{ cita.horaFin }}</b>.
+        El cliente verá un aviso con el cambio.
+      </p>
+
+      <ion-item class="time-item mb-3" lines="none">
+        <ion-label position="stacked">Día</ion-label>
+        <ion-input type="date" [min]="fechaMinima" [(ngModel)]="fecha" (ionChange)="onFechaChange()"></ion-input>
+      </ion-item>
+
+      <ion-item class="time-item mb-3" lines="none" *ngIf="puedeCambiarBarbero">
+        <ion-label position="stacked">Barbero</ion-label>
+        <ion-select [(ngModel)]="barberoId" (ionChange)="onBarberoChange()" interface="alert" cancelText="Cancelar" okText="Aceptar">
+          <ion-select-option *ngFor="let b of barberosDisponibles" [value]="b._id">{{ b.displayName }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item class="time-item mb-3" lines="none">
+        <ion-label position="stacked">Servicios</ion-label>
+        <ion-select [(ngModel)]="servicioIds" [multiple]="true" (ionChange)="onServiciosChange()" placeholder="Selecciona uno o varios servicios" interface="alert" cancelText="Cancelar" okText="Aceptar">
+          <ion-select-option *ngFor="let s of servicios" [value]="s._id">{{ s.nombre }} ({{ s.duracion }} min - {{ s.precio }}€)</ion-select-option>
+        </ion-select>
+        <div class="field-note">Duración total: {{ duracion }} min · {{ precio }} €</div>
+        <div class="field-note field-note-danger" *ngIf="servicioNoRealizado" role="alert">{{ servicioNoRealizado }}</div>
+      </ion-item>
+
+      <div class="mb-2 text-sm font-semibold text-dynamic-text">Hora de inicio</div>
+      <div class="field-note" *ngIf="cargandoHuecos">Buscando huecos libres...</div>
+      <div class="field-note field-note-danger" *ngIf="!cargandoHuecos && huecos.length === 0">
+        No hay huecos libres ese día para esta duración.
+      </div>
+      <div class="flex flex-wrap gap-2" *ngIf="!cargandoHuecos && huecos.length > 0" role="listbox" aria-label="Horas disponibles">
+        <button
+          type="button"
+          class="hueco-chip"
+          *ngFor="let hora of huecos"
+          role="option"
+          [attr.aria-selected]="hora === horaInicio"
+          [class.seleccionado]="hora === horaInicio"
+          [class.actual]="hora === cita.horaInicio && fecha === (cita.fecha | slice: 0 : 10)"
+          (click)="elegirHora(hora)"
+        >{{ hora }}</button>
+      </div>
+
+      <p class="field-note field-note-danger mt-4" *ngIf="error" role="alert">{{ error }}</p>
+    </div>
+
+    <ion-footer>
+      <ion-toolbar>
+        <ion-button expand="block" class="premium-modal-button-solid ion-margin" [disabled]="!puedeGuardar" (click)="guardar()">
+          <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+          <span *ngIf="!guardando">{{ hayCambios ? 'Guardar cambios' : 'Sin cambios' }}</span>
+        </ion-button>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

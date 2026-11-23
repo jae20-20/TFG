@@ -123,7 +123,7 @@
                     <span class="cita-time">{{ item.cita.horaInicio }} - {{ item.cita.horaFin }}</span>
                     <span class="cita-client">
                       <span class="cita-client-iniciales" [class.vinculada]="item.cita.clienteId" [attr.title]="item.cita.clienteId ? 'Cliente con cuenta en BarberPlan' : 'Cita manual sin cuenta'" aria-hidden="true">{{ inicialesCliente(item.cita) }}</span>
-                      {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }} {{ item.cita.cliente?.apellido || '' }}
+                      {{ item.cita.cliente?.nombre || item.cita.clienteNombre || 'Reserva manual' }}
                     </span>
                     <span class="appointment-status" [ngClass]="item.cita.estado" *ngIf="item.cita.estado !== 'confirmada'">{{ etiquetaEstado(item.cita) }}</span>
                   </div>
@@ -160,10 +160,6 @@
                   <span>Teléfono</span>
                   <strong>{{ item.cita.cliente.telefono }}</strong>
                 </div>
-                <div class="detalle-row" *ngIf="item.cita.servicioDuracion">
-                  <span>Duración</span>
-                  <strong>{{ item.cita.servicioDuracion }} min</strong>
-                </div>
                 <div class="detalle-comment" *ngIf="item.cita.comentario">
                   <span>Petición del cliente</span>
                   <p>{{ item.cita.comentario }}</p>
@@ -172,8 +168,12 @@
 
                 <app-cita-acciones [cita]="item.cita" (accion)="onCambiarEstado(item.cita, $event)"></app-cita-acciones>
 
-                <div class="detalle-actions" *ngIf="admiteCancelacionPersonal(item.cita)">
-                  <ion-button fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(item.cita, $event)">
+                <div class="detalle-actions" *ngIf="admiteEdicion(item.cita) || admiteCancelacionPersonal(item.cita)">
+                  <ion-button *ngIf="admiteEdicion(item.cita)" fill="clear" class="cita-edit-btn" (click)="abrirEdicion(item.cita, $event)">
+                    <ion-icon slot="start" name="pencil-outline"></ion-icon>
+                    Editar
+                  </ion-button>
+                  <ion-button *ngIf="admiteCancelacionPersonal(item.cita)" fill="clear" class="cita-cancel-btn" (click)="confirmarCancelarCita(item.cita, $event)">
                     <ion-icon slot="start" name="close-outline"></ion-icon>
                     Cancelar cita
                   </ion-button>
@@ -205,15 +205,28 @@
         [citas]="selectedBarberDayAppointments"
         [slots]="daySlots"
         [absences]="dayAbsences"
+        [edicionHabilitada]="true"
         (daySelected)="selectWeekDay($event)"
         (togglePago)="onWeekTogglePago($event)"
         (editImporte)="onWeekEditImporte($event)"
         (cancelCita)="onWeekCancelCita($event)"
         (cambiarEstado)="onCambiarEstado($event.cita, $event.accion)"
+        (moverCita)="onMoverCita($event)"
+        (editarCita)="abrirEdicion($event)"
       ></app-week-agenda>
       </ng-container>
     </div>
   </div>
+
+  <app-editar-cita-modal
+    [abierto]="!!citaEnEdicion"
+    [cita]="citaEnEdicion"
+    [barberiaId]="user?.barberiaId"
+    [puedeCambiarBarbero]="true"
+    [barberos]="teamBarbers"
+    (guardada)="onCitaGuardada()"
+    (cerrar)="cerrarEdicion()"
+  ></app-editar-cita-modal>
 
   <!-- MODAL MODELO UNIFICADO: Gestionar Día -->
   <ion-modal #gestionarDiaModal [isOpen]="isGestionarDiaModalOpen" (didDismiss)="isGestionarDiaModalOpen = false" class="premium-modal compact-modal">
