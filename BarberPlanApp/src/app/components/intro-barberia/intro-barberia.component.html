@@ -1,0 +1,69 @@
+@if (visible()) {
+  <div
+    class="intro fixed overflow-hidden select-none"
+    aria-hidden="true"
+    [class.intro--saliendo]="fase() === 'saliendo'"
+    [class.intro--saltada]="fase() === 'saltada'"
+    [class.intro--reducida]="movimientoReducido"
+    (pointerdown)="saltar()"
+    (click)="saltar()"
+    (animationstart)="alEmpezarAnimacion($event)"
+    (animationend)="alTerminarAnimacion($event)"
+  >
+    <div class="intro__escena">
+      <div class="intro__camara">
+        <div class="intro__muro"></div>
+        <div class="intro__vano">
+          <div class="intro__ambiente">
+            <div class="intro__interior"></div>
+            <span class="intro__suelo"></span>
+            @for (mota of motas; track $index) {
+              <span
+                class="intro__mota"
+                [class.intro__mota--b]="$odd"
+                [style.left.%]="mota.x"
+                [style.top.%]="mota.y"
+                [style.width.px]="mota.tam"
+                [style.height.px]="mota.tam"
+                [style.--i]="$index"
+              ></span>
+            }
+          </div>
+          <div class="intro__puerta intro__puerta--izquierda">
+            <span class="intro__moldura intro__moldura--alta"></span>
+            <span class="intro__moldura intro__moldura--baja"></span>
+            <span class="intro__canto"></span>
+            <span class="intro__tirador"></span>
+            <span class="intro__sombra"></span>
+          </div>
+          <div class="intro__puerta intro__puerta--derecha">
+            <span class="intro__moldura intro__moldura--alta"></span>
+            <span class="intro__moldura intro__moldura--baja"></span>
+            <span class="intro__canto"></span>
+            <span class="intro__tirador"></span>
+            <span class="intro__sombra"></span>
+          </div>
+          <span class="intro__rendija"><span class="intro__rendija-trazo"></span></span>
+        </div>
+        <span class="intro__marco"></span>
+      </div>
+      <div class="intro__rotulo flex flex-col items-center">
+        <div class="intro__placa relative">
+          <div class="intro__marca flex items-center">
+            <span class="intro__logo"></span>
+            <span class="intro__ranura"><span class="intro__nombre">BarberPlan</span></span>
+          </div>
+          <div class="intro__destello" (animationend)="alTerminarDestello($event)">
+            <div class="intro__marca intro__marca--brillo flex items-center">
+              <span class="intro__logo"></span>
+              <span class="intro__ranura"><span class="intro__nombre">BarberPlan</span></span>
+            </div>
+          </div>
+        </div>
+        <span class="intro__filete"></span>
+        <span class="intro__ranura intro__ranura--lema"><span class="intro__lema">Gestión premium de barberías</span></span>
+      </div>
+      <div class="intro__vineta"></div>
+    </div>
+  </div>
+}

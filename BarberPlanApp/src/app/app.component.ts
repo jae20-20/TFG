@@ -66,11 +66,13 @@ addIcons({
 });
 
 import { ThemeService } from './services/theme.service';
+import { IntroBarberiaComponent } from './components/intro-barberia/intro-barberia.component';
+import { EntradaAppComponent } from './components/entrada-app/entrada-app.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [IonApp, IonRouterOutlet, IntroBarberiaComponent, EntradaAppComponent],
 })
 export class AppComponent {
   constructor(private themeService: ThemeService) {}

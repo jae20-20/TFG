@@ -1,0 +1,269 @@
+@use '../paleta-animaciones' as paleta;
+
+$t-cubre: 0ms;          $d-cubre: 220ms;
+$t-bienvenida: 120ms;   $d-texto: 650ms;
+$t-nombre: 190ms;
+$t-subtitulo: 280ms;
+$t-corte: 520ms;        $d-corte: 440ms;
+$t-fogonazo: 880ms;     $d-fogonazo: 420ms;
+$d-separa: 700ms;
+$d-velo: 600ms;
+$d-apaga-navaja: 180ms;
+$d-salto: 250ms;
+
+$curva-suave: cubic-bezier(0.22, 0.61, 0.36, 1);
+$curva-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$curva-corte: cubic-bezier(0.65, 0, 0.2, 1);
+$curva-separa: cubic-bezier(0.55, 0, 0.15, 1);
+$giro-mitades: 1.2deg;
+
+@mixin cubrir {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.entrada {
+  @include paleta.oscura;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100001;
+  color: var(--anim-texto);
+  font-family: var(--ion-font-family);
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  animation: entrada-cubre $d-cubre ease-out $t-cubre both;
+
+  &--separando {
+    pointer-events: none;
+  }
+
+  &--saltada {
+    pointer-events: none;
+    animation: entrada-salto $d-salto ease-out both;
+  }
+}
+
+.entrada__velo {
+  @include cubrir;
+  background: var(--anim-fondo);
+  opacity: 0.85;
+
+  .entrada--separando & {
+    animation: entrada-velo $d-velo $curva-suave both;
+  }
+}
+
+.entrada__mitad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  will-change: transform;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--anim-acento) 20%, var(--anim-acento-claro) 50%, var(--anim-acento) 80%, rgba(0, 0, 0, 0));
+    opacity: 0.8;
+  }
+
+  &--arriba {
+    top: 0;
+    transform-origin: 50% 100%;
+
+    &::after { bottom: 0; }
+  }
+
+  &--abajo {
+    bottom: 0;
+    transform-origin: 50% 0;
+
+    &::after { top: 0; }
+  }
+}
+
+.entrada--separando .entrada__mitad--arriba {
+  animation: entrada-separa-arriba $d-separa $curva-separa both;
+}
+
+.entrada--separando .entrada__mitad--abajo {
+  animation: entrada-separa-abajo $d-separa $curva-separa both;
+}
+
+.entrada__lienzo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200%;
+  background:
+    radial-gradient(ellipse 85% 45% at 50% 50%, var(--anim-superficie) 0%, var(--anim-fondo) 70%);
+
+  .entrada__mitad--arriba & { top: 0; }
+  .entrada__mitad--abajo & { bottom: 0; }
+}
+
+.entrada__saludo {
+  max-width: 92vw;
+}
+
+.entrada__ranura {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0.02em 0.12em;
+
+  &--nombre {
+    margin: 10px 0;
+  }
+}
+
+.entrada__bienvenida,
+.entrada__nombre,
+.entrada__subtitulo {
+  display: block;
+  will-change: transform;
+}
+
+.entrada__bienvenida,
+.entrada__subtitulo {
+  font-size: var(--bp-fs-caption);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.entrada__bienvenida {
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-transform: uppercase;
+  color: var(--anim-acento);
+  animation: entrada-sube $d-texto $curva-expo $t-bienvenida both;
+}
+
+.entrada__nombre {
+  font-size: clamp(2.25rem, 12vw, 4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  color: var(--anim-texto);
+  animation: entrada-sube $d-texto $curva-expo $t-nombre both;
+}
+
+.entrada__subtitulo {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--anim-texto-suave);
+  animation: entrada-sube $d-texto $curva-expo $t-subtitulo both;
+}
+
+.entrada__navaja {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  margin-top: -1px;
+  transform-origin: left center;
+
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--anim-acento) 25%, var(--anim-acento-claro));
+  will-change: transform, opacity;
+  transition: opacity $d-apaga-navaja ease-out;
+  animation: entrada-corte $d-corte $curva-corte $t-corte both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0), var(--anim-acento) 50%, rgba(0, 0, 0, 0));
+    opacity: 0.3;
+  }
+
+  .entrada--separando & {
+    opacity: 0;
+  }
+}
+
+.entrada__chispa {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--anim-acento-claro) 0%, var(--anim-acento) 28%, rgba(0, 0, 0, 0) 70%);
+  will-change: transform, opacity;
+  animation: entrada-chispa $d-corte $curva-corte $t-corte both;
+}
+
+.entrada__fogonazo {
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  left: 0;
+  right: 0;
+  background: radial-gradient(ellipse 60% 50% at 70% 50%, var(--anim-acento), rgba(0, 0, 0, 0) 70%);
+  will-change: opacity;
+  animation: entrada-fogonazo $d-fogonazo ease-out $t-fogonazo both;
+}
+
+@keyframes entrada-cubre {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes entrada-sube {
+  from { transform: translateY(140%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes entrada-corte {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes entrada-chispa {
+  0% { opacity: 0; transform: translateX(0) scale(0.6); }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100vw) scale(1.1); }
+}
+
+@keyframes entrada-fogonazo {
+  0% { opacity: 0; }
+  30% { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+
+@keyframes entrada-velo {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
+}
+
+@keyframes entrada-separa-arriba {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(-104%) rotate($giro-mitades * -1); }
+}
+
+@keyframes entrada-separa-abajo {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(104%) rotate($giro-mitades); }
+}
+
+@keyframes entrada-salto {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

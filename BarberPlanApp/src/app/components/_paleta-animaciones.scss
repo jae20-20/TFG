@@ -1,0 +1,28 @@
+$oscuro-fondo: #121212;
+$oscuro-superficie: #1e1e1e;
+$oscuro-superficie-alt: #1a1a1a;
+$oscuro-borde: #2c2c2e;
+$oscuro-texto: #f5f5f7;
+$oscuro-texto-suave: #b0b0b5;
+
+@mixin oscura {
+  --anim-fondo: var(--ion-background-color);
+  --anim-superficie: var(--custom-card-bg);
+  --anim-superficie-alt: var(--custom-surface);
+  --anim-borde: var(--custom-border);
+  --anim-texto: var(--custom-text-primary);
+  --anim-texto-suave: var(--custom-text-secondary);
+  --anim-acento: var(--ion-color-primary);
+  --anim-acento-claro: var(--custom-gold-light);
+
+  :host-context(.light-mode) & {
+    --anim-fondo: #{$oscuro-fondo};
+    --anim-superficie: #{$oscuro-superficie};
+    --anim-superficie-alt: #{$oscuro-superficie-alt};
+    --anim-borde: #{$oscuro-borde};
+    --anim-texto: #{$oscuro-texto};
+    --anim-texto-suave: #{$oscuro-texto-suave};
+    --anim-acento: var(--custom-gold-light);
+    --anim-acento-claro: var(--custom-gold-light);
+  }
+}

@@ -1,0 +1,34 @@
+@if (fase() !== 'inactiva') {
+  <div
+    class="entrada fixed overflow-hidden select-none"
+    aria-hidden="true"
+    [class.entrada--separando]="fase() === 'separando'"
+    [class.entrada--saltada]="fase() === 'saltada'"
+    (pointerdown)="saltar()"
+    (click)="saltar()"
+    (animationend)="alTerminarAnimacionCapa($event)"
+  >
+    <span class="entrada__velo"></span>
+    <div class="entrada__mitad entrada__mitad--arriba" (animationend)="alTerminarSeparacion($event)">
+      <div class="entrada__lienzo flex items-center justify-center">
+        <ng-container [ngTemplateOutlet]="saludo" />
+      </div>
+    </div>
+    <div class="entrada__mitad entrada__mitad--abajo">
+      <div class="entrada__lienzo flex items-center justify-center">
+        <ng-container [ngTemplateOutlet]="saludo" />
+      </div>
+    </div>
+    <span class="entrada__navaja" (animationend)="alTerminarCorte($event)"></span>
+    <span class="entrada__chispa"></span>
+    <span class="entrada__fogonazo"></span>
+  </div>
+}
+
+<ng-template #saludo>
+  <div class="entrada__saludo flex flex-col items-center px-6 text-center">
+    <span class="entrada__ranura"><span class="entrada__bienvenida">Te damos la bienvenida</span></span>
+    <span class="entrada__ranura entrada__ranura--nombre"><span class="entrada__nombre">{{ nombre() || 'BarberPlan' }}</span></span>
+    <span class="entrada__ranura"><span class="entrada__subtitulo">{{ subtitulo() }}</span></span>
+  </div>
+</ng-template>
