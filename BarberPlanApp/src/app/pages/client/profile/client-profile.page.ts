@@ -212,10 +212,6 @@ export class ClientProfilePage implements OnInit {
     }
   }
 
-  verPrivacidad() {
-    this.router.navigateByUrl('/privacidad');
-  }
-
   getInitials() {
     const source = this.profile || this.user || {};
     const nombre = (source.nombre || '').trim();
@@ -248,7 +244,7 @@ export class ClientProfilePage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Sesión',
       message: '¿Estás seguro de que quieres cerrar sesión?',
-      cssClass: 'premium-alert',
+      cssClass: 'premium-alert alert-centrado',
       buttons: [
         {
           text: 'Cancelar',

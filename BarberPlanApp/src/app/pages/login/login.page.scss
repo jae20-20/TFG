@@ -1,6 +1,30 @@
 // Estilos específicos de la página de login
 // (El sistema de diseño auth-* está en global.scss)
 
+// Pie de pantalla: se pega al final del contenedor y queda discreto, centrado y en gris
+.login-footer {
+  margin-top: auto;
+  padding-top: 32px;
+  text-align: center;
+}
+
+.login-footer-link {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-family: var(--ion-font-family);
+  font-size: 0.7rem;
+  color: var(--custom-text-muted-alt, #94a3b8);
+  opacity: 0.8;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    text-decoration: underline;
+  }
+}
+
 ::ng-deep {
   // Autofill override para inputs de la página
   input::-webkit-autofill {

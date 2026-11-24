@@ -7,7 +7,7 @@ import { arrowBackOutline } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
 import { EDAD_MINIMA, POLITICA_FECHA, POLITICA_VERSION } from '../../services/privacidad.util';
 
-// Política de privacidad: página pública (sin guard), enlazada desde los tres registros y los tres perfiles.
+// Política de privacidad: página pública (sin guard), enlazada desde el login y los tres registros.
 // Los datos de contacto salen del entorno; lo que aparece entre corchetes lo completa el responsable antes de desplegar.
 @Component({
   selector: 'app-privacidad',

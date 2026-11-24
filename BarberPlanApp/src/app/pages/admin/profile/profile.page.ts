@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService } from '../../../services/api.service';
@@ -30,13 +29,8 @@ export class ProfilePage implements OnInit {
   constructor(
     private apiService: ApiService,
     private storage: Storage,
-    private toastCtrl: ToastController,
-    private router: Router
+    private toastCtrl: ToastController
   ) { }
-
-  verPrivacidad() {
-    this.router.navigateByUrl('/privacidad');
-  }
 
   async ngOnInit() {
     await this.storage.create();

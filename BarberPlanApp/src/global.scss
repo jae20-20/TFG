@@ -182,6 +182,15 @@ body.dark .custom-header-center {
   }
 }
 
+/* Alerta de confirmación con título y mensaje centrados (cerrar sesión) */
+.premium-alert.alert-centrado {
+  .alert-head,
+  .alert-title,
+  .alert-message {
+    text-align: center !important;
+  }
+}
+
 /* Estilos para Modales Premium con Borde de Paleta */
 ion-modal.premium-modal {
   --background: var(--custom-surface, #17191d);

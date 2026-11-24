@@ -62,7 +62,7 @@ export class CitaAccionesService {
     const alert = await this.alertCtrl.create({
       header,
       message,
-      cssClass: 'premium-alert',
+      cssClass: 'premium-alert alert-centrado',
       buttons: [
         { text: 'Volver', role: 'cancel' },
         { text: boton, role: 'destructive' }

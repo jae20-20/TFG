@@ -103,4 +103,8 @@ export class LoginPage {
   goToBarberiaRegister(){
     this.router.navigateByUrl('/register-barberia');
   }
+
+  goToPrivacidad() {
+    this.router.navigateByUrl('/privacidad');
+  }
 }
