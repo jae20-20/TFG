@@ -1,34 +1,18 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  IonButton,
-  IonIcon,
-  IonModal,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonFooter,
-  IonToggle
-} from '@ionic/angular/standalone';
+import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle, moon, sunny } from 'ionicons/icons';
 import { ThemeService, AppTheme } from '../../services/theme.service';
 
+// Usa IonicModule como el resto de páginas: con el IonModal de @ionic/angular/standalone, en producción los modales y
+// las alertas llevan contadores de z-index distintos y el desplegable de un ion-select se abre debajo del modal
 @Component({
   selector: 'app-theme-header-btn',
   standalone: true,
   imports: [
     CommonModule,
-    IonButton,
-    IonIcon,
-    IonModal,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonFooter,
-    IonToggle
+    IonicModule
   ],
   template: `
     <ion-button fill="clear" class="theme-palette-btn" (click)="openThemeModal()" title="Personalización Visual">
